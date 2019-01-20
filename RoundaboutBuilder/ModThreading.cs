@@ -28,6 +28,7 @@ namespace RoundaboutBuilder
                 //Activating/deactivating tool & UI
                 UIWindow.Instance.enabled = !UIWindow.Instance.enabled;
                 NodeSelection.instance.enabled = UIWindow.Instance.enabled;
+                if(!NodeSelection.instance.enabled) ToolsModifierControl.SetTool<DefaultTool>();
 
                 Debug.Log("CTRL+O Pressed");
             }
