@@ -2,15 +2,14 @@
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.0.0 */
+/* Version BETA 1.1.0 */
 
 namespace RoundaboutBuilder
 {
-    namespace RoundaboutBuilder
-    {
         public class RoundAboutBuilder : IUserMod
         {
-            public static readonly string VERSION = "BETA 1.0.0";
+            public static readonly string VERSION = "BETA 1.1.0";
+            public bool OldSnappingAlgorithm { get; private set; } = false;
 
             public string Name
             {
@@ -19,8 +18,9 @@ namespace RoundaboutBuilder
 
             public string Description
             {
-                get { return "Automatically builds roundabouts. [" + VERSION + "]"; }
-            }
+            get { return "Press CTRL+O to open menu. [" + VERSION + "]"; }
+            //get { return "Automatically builds roundabouts. [" + VERSION + "]"; }
         }
-    }
+
+        }
 }

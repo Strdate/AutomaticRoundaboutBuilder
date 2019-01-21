@@ -55,17 +55,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomaticRoundaboutBuilder.cs" />
-    <Compile Include="Tools\CircleConnectorKit.cs" />
-    <Compile Include="Tools\GraphTraveller.cs" />
+    <Compile Include="EllipseTool.cs" />
+    <Compile Include="RoundaboutTool.cs" />
+    <Compile Include="ToolBaseExtended.cs" />
+    <Compile Include="Tools\EdgeIntersections2.cs" />
+    <Compile Include="Tools\Ellipse.cs" />
+    <Compile Include="Tools\FinalConnector.cs" />
     <Compile Include="ModLoadingExtension.cs" />
     <Compile Include="ModThreading.cs" />
-    <Compile Include="NodeSelection.cs" />
-    <Compile Include="Tools\CircleIntersectionsKit.cs" />
+    <Compile Include="Tools\GraphTraveller2.cs" />
+    <Compile Include="Tools\VectorNodeStruct.cs" />
     <Compile Include="UIWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="README.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

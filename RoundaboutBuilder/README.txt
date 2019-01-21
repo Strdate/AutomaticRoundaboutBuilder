@@ -3,6 +3,12 @@ Automatic Roundabout Builder by Strad
 Version BETA 1.0.0
 January 2019
 
+<update>
+VERSION BETA 1.1.0
+- Elliptic roundabouts
+- New road snapping algorithm (and new bugs as a bonus)
+</update>
+
 Thanks to boformer and Elektrix for I have reused parts of their code.
 
 This mod builds a roundabout in place of any intersection. It clips the roads automatically back onto itself. Before using, clean the nearby area of buildings.
@@ -23,3 +29,5 @@ Issues:
 Please leave any feedback! I am not an experienced programmer and probably I did many things in more complicated way then necessary.
 
 USE AT YOUR OWN RISK!
+
+Steam workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=1625704117

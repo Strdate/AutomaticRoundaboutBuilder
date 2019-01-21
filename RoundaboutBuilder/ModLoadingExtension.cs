@@ -4,7 +4,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.0.0 */
+/* Version BETA 1.1.0 */
 
 /* Most of this is copied from Elektrix's Segment Slope Smoother.
  * The oter part is copied from somewhere as well, but unfortunately I don't remeber from where. */
@@ -23,13 +23,15 @@ namespace RoundaboutBuilder
         public void OnLevelLoaded(LoadMode mode)
         {
 
-            //instatiate tool
-            if (NodeSelection.instance == null)
+            //instatiate tools
+            if (RoundaboutTool.Instance == null || EllipseTool.Instance == null)
             {
                 ToolController toolController = GameObject.FindObjectOfType<ToolController>();
 
-                NodeSelection.instance = toolController.gameObject.AddComponent<NodeSelection>();
-                NodeSelection.instance.enabled = false;
+                RoundaboutTool.Instance = toolController.gameObject.AddComponent<RoundaboutTool>();
+                RoundaboutTool.Instance.enabled = false;
+                EllipseTool.Instance = toolController.gameObject.AddComponent<EllipseTool>();
+                EllipseTool.Instance.enabled = false;
             }
 
             //instatiate UI

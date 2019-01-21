@@ -1,45 +1,29 @@
 ﻿using ColossalFramework.UI;
-using System;
 using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.0.0 */
+/* Version BETA 1.1.0 */
 
 namespace RoundaboutBuilder
 {
     /* UI Window */
 
-    class UIWindow : UIPanel
+    public class UIWindow : UIPanel
     {
-        private static readonly int RADIUS_MAX = 500;
-        private static readonly int RADIUS_MIN = 5;
-        private static readonly int RADIUS_DEF = 40;
+        public static readonly int BUTTON_HEIGHT = 25;
 
-        private string textAreaString = RADIUS_DEF.ToString();
-        private bool keepWindowOpen = false;
-        private string keepWindowText = "Keep open (off)";
-        private Rect windowRect = new Rect(85, 10, 150, 110);
+        public bool keepWindowOpen = true;
+        private string keepWindowText = "Keep open (On)";
+        private Rect windowRect = new Rect(85, 10, 150, 200);
 
         public static UIWindow Instance { get; private set; }
 
-        public int Radius
-        {
-            get {
-                int i = 0;
-                if (!Int32.TryParse(textAreaString, out i) || !IsInBounds(i))
-                {
-                    //Debug.Log(string.Format("parse {0} bounds {1}", Int32.TryParse(textAreaString, out i), IsInBounds(i)));
-                    return -1;
-                }
-                return i;
-            }       
-        }
+        private ToolBaseExtended toolOnUI;
+        private bool inSettings;
 
-        private bool IsInBounds( int radius )
-        {
-            return radius >= RADIUS_MIN && radius <= RADIUS_MAX;
-        }
+        public bool OldSnappingAlgorithm { get; private set; } = false;
+        private string snappingAlgorithmText = "Standard";
 
         public void ThrowErrorMsg(string content)
         {
@@ -47,45 +31,16 @@ namespace RoundaboutBuilder
             panel.SetMessage("Roundabout builder", content, false);
         }
 
-        public void IncreaseRadius()
-        {
-            int newValue = 0;
-            int value = Radius;
-            if (!IsInBounds(value))
-            {
-                textAreaString = RADIUS_DEF.ToString();
-                return;
-            }
-            else
-            {
-                newValue = Convert.ToInt32(Math.Ceiling(new decimal(value+1)/new decimal(5)))*5;
-                //Debug.Log(string.Format("decimal {0} int {1}", ((new decimal((value + 1) / 5)) * 5), newValue));
-            }
-            if (IsInBounds(newValue)) textAreaString = newValue.ToString(); else value.ToString();
-        }
-
-        public void DecreaseRadius()
-        {
-            int newValue = 0;
-            int value = Radius;
-            if (!IsInBounds(value))
-            {
-                textAreaString = RADIUS_DEF.ToString();
-                return;
-            }
-            else
-            {
-                newValue = (int)(Math.Floor(new Decimal((value - 1) / 5))*5);
-            }
-            if (IsInBounds(newValue)) textAreaString = newValue.ToString(); else value.ToString();
-
-        }
 
         public override void Start()
         {
             Instance = this;
             name = "RoundaboutBuilderWindow";
             enabled = false;
+
+            /* Hahaha good programming practice */
+            width = 1;
+            height = 1;
 
             // At the beginning I started to create UI using the ColossalFramework.UI, but didn't manage to make it work. Thus I stuck to usual Unity UI.
 
@@ -109,10 +64,30 @@ namespace RoundaboutBuilder
             //Debug.Log("Window set up");
         }
 
+        internal void GoToMenu()
+        {
+            if (toolOnUI != null)
+                toolOnUI.enabled = false;
+            toolOnUI = null;
+            inSettings = false;
+        }
+
         /* Default unity UI method */
         void OnGUI()
         {
             GUI.Window(666, windowRect, _populateWindow, "Roundabout Builder");
+        }
+
+        public void IncreaseButton()
+        {
+            if (toolOnUI != null)
+                toolOnUI.IncreaseButton();
+        }
+
+        public void DecreaseButton()
+        {
+            if (toolOnUI != null)
+                toolOnUI.DecreaseButton();
         }
 
         public void LostFocus()
@@ -120,31 +95,92 @@ namespace RoundaboutBuilder
             if (!keepWindowOpen)
             {
                 enabled = false;
-                NodeSelection.instance.enabled = false;
             }
+            if (toolOnUI != null)
+                toolOnUI.enabled = false;
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            if (toolOnUI != null)
+                toolOnUI.enabled = true;
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            inSettings = false;
+            if (toolOnUI != null)
+                toolOnUI.enabled = false;
         }
 
         private void _populateWindow(int num)
         {
             Event e = Event.current;
-            //Debug.Log("event: " + e.ToString());
-            //Debug.Log("is mouse donwn: " + (e.type == EventType.MouseDown).ToString() + "; is inside rect: " + windowRect.Contains(e.mousePosition).ToString());
             if (e.type == EventType.MouseDown)
             {
-                NodeSelection.instance.enabled = true;
-                //Debug.Log("is mouse donwn: " + (e.type == EventType.MouseDown).ToString() + "; ismouse: " + e.isMouse.ToString() + "; isup: " + (e.type == EventType.MouseUp).ToString());
-                //Debug.Log("window click");
+                if(toolOnUI != null)
+                toolOnUI.enabled = true;
             }
             GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Radius:");
-            textAreaString = GUILayout.TextField(textAreaString);
-            GUILayout.EndHorizontal();
-            if (GUILayout.Button(keepWindowText))
+
+            /* If user is in menu of one of the tools, we call its own UI Method. Otherwise we draw main menu/settings. */
+            if(toolOnUI != null)
             {
-                //Debug.Log("keep open clicked");
+                toolOnUI.UIWindowMethod();
+                if (GUILayout.Button("Back"))
+                {
+                    bool buffer = keepWindowOpen; // Little cheat, the window would close without this
+                    keepWindowOpen = true;
+                    toolOnUI.enabled = false;
+                    toolOnUI = null;
+                    keepWindowOpen = buffer;
+                }
+            }
+            else
+            {
+                if(inSettings)
+                {
+                    drawSettingsMenu();
+                }
+                else
+                {
+                    drawMainMenu();
+                }
+            }
+            
+
+            if (GUILayout.Button("Close"))
+            {
+                enabled = false;
+                if(toolOnUI != null)
+                    toolOnUI.enabled = false;
+            }
+            GUILayout.EndVertical();
+        }
+
+        private void drawMainMenu()
+        {
+            if (GUILayout.Button("Roundabout"))
+            {
+                toolOnUI = RoundaboutTool.Instance;
+                toolOnUI.enabled = true;
+            }
+            else if (GUILayout.Button("Elliptic roundabout"))
+            {
+                toolOnUI = EllipseTool.Instance;
+                toolOnUI.enabled = true;
+            }
+            GUILayout.Space(2 * BUTTON_HEIGHT);
+            if (GUILayout.Button("About"))
+            {
+                inSettings = true;
+            }
+            else if (GUILayout.Button(keepWindowText))
+            {
                 keepWindowOpen = !keepWindowOpen;
-                if(keepWindowOpen)
+                if (keepWindowOpen)
                 {
                     keepWindowText = "Keep open (On)";
                 }
@@ -153,13 +189,30 @@ namespace RoundaboutBuilder
                     keepWindowText = "Keep open (Off)";
                 }
             }
+        }
 
-            if (GUILayout.Button("Close"))
+        private void drawSettingsMenu()
+        {
+            GUILayout.Label("Sanpping algorithm:");
+            if (GUILayout.Button(snappingAlgorithmText))
             {
-                enabled = false;
-                NodeSelection.instance.enabled = false;
+                OldSnappingAlgorithm = !OldSnappingAlgorithm;
+                if (OldSnappingAlgorithm)
+                {
+                    snappingAlgorithmText = "Old";
+                }
+                else
+                {
+                    snappingAlgorithmText = "Standard";
+                }
             }
-            GUILayout.EndVertical();
+            GUILayout.Label("Mod by Strad");
+            GUILayout.Label("For more information see workshop page");
+            GUILayout.Space(0.5f * BUTTON_HEIGHT);
+            if (GUILayout.Button("Back"))
+            {
+                inSettings = false;
+            }
         }
 
     }

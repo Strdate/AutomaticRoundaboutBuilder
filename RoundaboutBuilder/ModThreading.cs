@@ -3,7 +3,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.0.0 */
+/* Version BETA 1.1.0 */
 
 /* This was shamelessly stolen from bomormer's tutorial on Simtropolis. He takes the credit.
  * https://community.simtropolis.com/forums/topic/73490-modding-tutorial-3-show-limits/ */
@@ -27,20 +27,19 @@ namespace RoundaboutBuilder
 
                 //Activating/deactivating tool & UI
                 UIWindow.Instance.enabled = !UIWindow.Instance.enabled;
-                NodeSelection.instance.enabled = UIWindow.Instance.enabled;
+                //NodeSelection.instance.enabled = UIWindow.Instance.enabled;
 
-                Debug.Log("CTRL+O Pressed");
             }
             else if (UIWindow.Instance.enabled && Input.GetKey("[+]"))
             {
                 if (_processed) return;
-                UIWindow.Instance.IncreaseRadius();
+                UIWindow.Instance.IncreaseButton();
                 _processed = true;
             }
             else if (UIWindow.Instance.enabled && Input.GetKey("[-]"))
             {
                 if (_processed) return;
-                UIWindow.Instance.DecreaseRadius();
+                UIWindow.Instance.DecreaseButton();
                 _processed = true;
             }
             else
