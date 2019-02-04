@@ -1,11 +1,13 @@
 ﻿using ColossalFramework.Math;
+using ColossalFramework.UI;
 using RoundaboutBuilder.Tools;
+using RoundaboutBuilder.UI;
 using System;
 using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.1.0 */
+/* Version BETA 1.2.0 */
 
 namespace RoundaboutBuilder
 {
@@ -16,27 +18,31 @@ namespace RoundaboutBuilder
         public static EllipseTool Instance;
 
         private static readonly int DISTANCE_PADDING = 15;
-        public static readonly int RADIUS_MAX = 500;
-        private static readonly int RADIUS_MIN = 10;
         private static readonly int RADIUS1_DEF = 60;
         private static readonly int RADIUS2_DEF = 30;
 
         ushort m_hover;
-        string radius1String = RADIUS1_DEF.ToString();
-        string radius2String = RADIUS2_DEF.ToString();
 
         ushort centralNode;
         ushort axisNode;
 
-        // Saving radiuses from the last frame so that we don't have to recalculate the ellipse every time
+        // Saving radii from the last frame so that we don't have to recalculate the ellipse every time
         int prevRadius1 = 0;
         int prevRadius2 = 0;
         Ellipse ellipse;
 
         // UI:
-        int stage = 1; // stage 1 - select central point; stage 2 - select main axis direction; stage 3 - adjust radiuses
-        string controlVerticesString = "Control points (On)";
+        private enum Stage
+        {
+            CentralPoint, // First user chooses cental point
+            MainAxis, // Then point on main axis
+            Final // And then sets radii and stuff
+        }
+        Stage stage = Stage.CentralPoint;
         bool controlVertices = true;
+
+        private NumericTextField m_radius1tf;
+        private NumericTextField m_radius2tf;
 
         /* Debug */
         /*public List<Bezier2> debugDraw = new List<Bezier2>();
@@ -49,17 +55,25 @@ namespace RoundaboutBuilder
             Ellipse ellipseWithPadding = ellipse;
             /* When the old snapping algorithm is enabled, we create secondary (bigger) ellipse, so the newly connected roads obtained by the 
              * graph traveller are not too short. They will be at least as long as the padding. */
-            if (UIWindow.Instance.OldSnappingAlgorithm)
+            if (RoundAboutBuilder.UseOldSnappingAlgorithm.value)
             {
                 ellipseWithPadding = new Ellipse(GetNode(centralNode).m_position, GetNode(axisNode).m_position - GetNode(centralNode).m_position, prevRadius1 + DISTANCE_PADDING, prevRadius2 + DISTANCE_PADDING);
             }
 
-            UIWindow.Instance.LostFocus();
-            UIWindow.Instance.GoToMenu();
+            UIWindow2.instance.LostFocus();
+            UIWindow2.instance.GoBack();
 
-            GraphTraveller2 traveller = new GraphTraveller2(centralNode,prevRadius1,ellipseWithPadding);
-            EdgeIntersections2 intersections = new EdgeIntersections2(traveller, centralNode, toBeBuiltEllipse);
-            FinalConnector finalConnector = new FinalConnector(GetNode(centralNode).Info, intersections.Intersections, toBeBuiltEllipse, controlVertices);
+            try
+            {
+                GraphTraveller2 traveller = new GraphTraveller2(centralNode, prevRadius1, ellipseWithPadding);
+                EdgeIntersections2 intersections = new EdgeIntersections2(traveller, centralNode, toBeBuiltEllipse);
+                FinalConnector finalConnector = new FinalConnector(GetNode(centralNode).Info, intersections.Intersections, toBeBuiltEllipse, controlVertices);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+                UIWindow2.instance.ThrowErrorMsg(e.ToString(), true);
+            }
 
         }
 
@@ -75,17 +89,20 @@ namespace RoundaboutBuilder
                 {
                     switch(stage)
                     {
-                        case 1:
+                        case Stage.CentralPoint:
                             centralNode = m_hover;
-                            stage = 2; break;
-                        case 2: if(m_hover == centralNode)
+                            stage = Stage.MainAxis;
+                            UIWindow2.instance.SwitchTool(this);
+                            break;
+                        case Stage.MainAxis: if(m_hover == centralNode)
                             {
-                                UIWindow.Instance.ThrowErrorMsg("You selected the same node!");
+                                UIWindow2.instance.ThrowErrorMsg("You selected the same node!");
                             }
                             else
                             {
                                 axisNode = m_hover;
-                                stage = 3;
+                                stage = Stage.Final;
+                                UIWindow2.instance.SwitchTool(this);
                             } break;
                     }
                 }
@@ -94,122 +111,183 @@ namespace RoundaboutBuilder
 
         /* UI methods */
 
-        public override void UIWindowMethod()
+        public override void InitUIComponent(UIPanel component)
         {
-            switch(stage)
+            base.InitUIComponent(component);
+            UILabel label;
+            switch (stage)
             {
-                case 1:
-                    GUILayout.Label("Step 1/3:\nSelect center of the elliptic roundabout. (Nothing will be built yet)");
-                    GUILayout.Space(1.5f*UIWindow.BUTTON_HEIGHT);
+                case Stage.CentralPoint:
+                    label = component.AddUIComponent<UILabel>();
+                    label.text = "Step 1/3:\nSelect center of the elliptic roundabout (Nothing will be built yet)";
+                    label.wordWrap = true;
+                    label.textScale = 0.9f;
+                    label.autoSize = false;
+                    label.width = component.width - 16;
+                    label.relativePosition = new Vector2(8, 0);
+                    label.SendToBack();
+                    component.height = 122; // !!
                     break;
-                case 2:
-                    GUILayout.Label("Step 2/3:\nSelect any intersection on the main axis of the roundabout. (Nothing will be built yet)");
-                    GUILayout.Space(UIWindow.BUTTON_HEIGHT);
+                case Stage.MainAxis:
+                    label = component.AddUIComponent<UILabel>();
+                    label.text = "Step 2/3:\nSelect any intersection on the main axis of the roundabout (Nothing will be built yet)";
+                    label.wordWrap = true;
+                    label.textScale = 0.9f;
+                    label.autoSize = false;
+                    label.width = component.width - 16;
+                    label.relativePosition = new Vector2(8, 0);
+                    label.SendToBack();
+                    component.height = 122; // !!
                     break;
-                case 3:
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("Main axis:");
-                    radius1String = GUILayout.TextField(radius1String);
-                    GUILayout.EndHorizontal();
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("Minor axis:");
-                    radius2String = GUILayout.TextField(radius2String);
-                    GUILayout.EndHorizontal();
-                    GUILayout.Label("Press +/- to adjust");
-                    if (GUILayout.Button("Build"))
+                case Stage.Final:
+                    float cumulativeHeight = 0;
+
+                    UILabel labelRadius = component.AddUIComponent<UILabel>();
+                    labelRadius.textScale = 0.9f;
+                    labelRadius.text = "Main axis:";
+                    labelRadius.relativePosition = new Vector2(8, cumulativeHeight);
+                    labelRadius.tooltip = "Press SHIFT +/- to adjust";
+                    labelRadius.SendToBack();
+
+                    m_radius1tf = component.AddUIComponent<NumericTextField>();
+                    m_radius1tf.relativePosition = new Vector2(component.parent.width - m_radius1tf.width - 8, cumulativeHeight);
+                    m_radius1tf.tooltip = "Press SHIFT +/- to adjust";
+                    m_radius1tf.DefaultRadius = RADIUS1_DEF;
+                    m_radius1tf.text = RADIUS1_DEF.ToString();
+                    cumulativeHeight += m_radius1tf.height + 8;
+
+                    labelRadius = component.AddUIComponent<UILabel>();
+                    labelRadius.textScale = 0.9f;
+                    labelRadius.text = "Minor axis:";
+                    labelRadius.relativePosition = new Vector2(8, cumulativeHeight);
+                    labelRadius.tooltip = "Press CTRL +/- to adjust";
+                    labelRadius.SendToBack();
+
+                    m_radius2tf = component.AddUIComponent<NumericTextField>();
+                    m_radius2tf.relativePosition = new Vector2(component.parent.width - m_radius1tf.width - 8, cumulativeHeight);
+                    m_radius2tf.tooltip = "Press CTRL +/- to adjust";
+                    m_radius2tf.DefaultRadius = RADIUS2_DEF;
+                    m_radius2tf.text = RADIUS2_DEF.ToString();
+                    cumulativeHeight += m_radius2tf.height + 8;
+
+                    var buildButton = UIWindow2.CreateButton(component);
+                    buildButton.text = "Build";
+                    buildButton.relativePosition = new Vector2(8, cumulativeHeight);
+                    buildButton.eventClick += (c, p) =>
                     {
                         if (ellipse != null)
                             BuildEllipse();
                         else
-                            UIWindow.Instance.ThrowErrorMsg("Invalid radiuses!");
-                    } else if (GUILayout.Button(controlVerticesString))
+                            UIWindow2.instance.ThrowErrorMsg("Invalid radii!");
+                    };
+                    cumulativeHeight += buildButton.height + 8;
+
+                    var controlVertices = UIWindow2.CreateCheckBox(component);
+                    controlVertices.name = "RAB_controlVertices";
+                    controlVertices.label.text = "Insert control points";
+                    controlVertices.tooltip = "Control points are inserted on main axes to keep the ellipse in shape. See workshop page";
+                    controlVertices.isChecked = this.controlVertices;
+                    controlVertices.relativePosition = new Vector3(8, cumulativeHeight);
+                    controlVertices.eventCheckChanged += (c, state) =>
                     {
-                        controlVertices = !controlVertices;
-                        if (controlVertices)
-                        {
-                            controlVerticesString = "Control points (On)";
-                        }
-                        else
-                        {
-                            controlVerticesString = "Control points (Off)";
-                        }
-                    }
+                        this.controlVertices = state;
+                    };
+                    cumulativeHeight += controlVertices.height + 8;
+
+                    component.height = cumulativeHeight;
                     break;
             }
         }
 
-        /* Returns radiuses */
+        /* Returns radii */
         private bool Radius(out int radius1, out int radius2)
         {
             radius1 = radius2 = -1;
-            if (!Int32.TryParse(radius1String, out radius1) || !IsInBounds(radius1) || !Int32.TryParse(radius2String, out radius2) || !IsInBounds(radius2))
+            if (!NumericTextField.IsValid( m_radius1tf.Value ) || !NumericTextField.IsValid(m_radius2tf.Value))
             {
                 return false;
             }
-            if(radius2 > radius1)
+            radius1 = m_radius1tf.Value;
+            radius2 = m_radius2tf.Value;
+            if (radius2 > radius1)
             {
                 return false;
             }
             return true;
         }
 
-        private static bool IsInBounds(int radius)
-        {
-            return radius >= RADIUS_MIN && radius <= RADIUS_MAX;
-        }
-
         public override void IncreaseButton()
         {
-            int newRadius1 = 0;
-            int newRadius2 = 0;
-            if (!Radius(out int radius1, out int radius2))
+            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) {
+                m_radius1tf.Increase();
+            } else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) {
+                m_radius2tf.Increase();
+            } else
             {
-                radius1String = RADIUS1_DEF.ToString();
-                radius2String = RADIUS2_DEF.ToString();
-                return;
-            }
-            else
-            {
-                double ratio = (double)radius2 / (double)radius1;
-                newRadius1 = Convert.ToInt32(Math.Ceiling(new decimal(radius1 + 1) / new decimal(5))) * 5;
-                newRadius2 = Convert.ToInt32(ratio* newRadius1);
-            }
-            if (IsInBounds(newRadius1) && IsInBounds(newRadius2) && newRadius1 >= newRadius2)
-            {
-                radius1String = newRadius1.ToString();
-                radius2String = newRadius2.ToString();
+
+                int newRadius1 = 0;
+                int newRadius2 = 0;
+                if (!Radius(out int radius1, out int radius2))
+                {
+                    m_radius1tf.text = RADIUS1_DEF.ToString();
+                    m_radius1tf.text = RADIUS2_DEF.ToString();
+                    return;
+                }
+                else
+                {
+                    double ratio = (double)radius2 / (double)radius1;
+                    newRadius1 = Convert.ToInt32(Math.Ceiling(new decimal(radius1 + 1) / new decimal(5))) * 5;
+                    newRadius2 = Convert.ToInt32(ratio * newRadius1);
+                }
+                if (NumericTextField.IsValid(newRadius1) && NumericTextField.IsValid(newRadius2) && newRadius1 >= newRadius2)
+                {
+                    m_radius1tf.text = newRadius1.ToString();
+                    m_radius2tf.text = newRadius2.ToString();
+                }
+
             }
         }
 
         public override void DecreaseButton()
         {
-            int newRadius1 = 0;
-            int newRadius2 = 0;
-            if (!Radius(out int radius1, out int radius2))
+            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
             {
-                radius1String = RADIUS1_DEF.ToString();
-                radius2String = RADIUS2_DEF.ToString();
-                return;
+                m_radius1tf.Decrease();
+            }
+            else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+            {
+                m_radius2tf.Decrease();
             }
             else
             {
-                double ratio = (double)radius2 / (double)radius1;
-                newRadius1 = Convert.ToInt32(Math.Floor(new decimal(radius1 - 1) / new decimal(5))) * 5;
-                newRadius2 = Convert.ToInt32(ratio * newRadius1);
-                //Debug.Log(string.Format("decimal {0} int {1}", ((new decimal((value + 1) / 5)) * 5), newValue));
-            }
-            if (IsInBounds(newRadius1) && IsInBounds(newRadius2) && newRadius1 >= newRadius2)
-            {
-                radius1String = newRadius1.ToString();
-                radius2String = newRadius2.ToString();
-            }
 
+                int newRadius1 = 0;
+                int newRadius2 = 0;
+                if (!Radius(out int radius1, out int radius2))
+                {
+                    m_radius1tf.text = RADIUS1_DEF.ToString();
+                    m_radius1tf.text = RADIUS2_DEF.ToString();
+                    return;
+                }
+                else
+                {
+                    double ratio = (double)radius2 / (double)radius1;
+                    newRadius1 = Convert.ToInt32(Math.Floor(new decimal(radius1 - 1) / new decimal(5))) * 5;
+                    newRadius2 = Convert.ToInt32(ratio * newRadius1);
+                }
+                if (NumericTextField.IsValid(newRadius1) && NumericTextField.IsValid(newRadius2) && newRadius1 >= newRadius2)
+                {
+                    m_radius1tf.text = newRadius1.ToString();
+                    m_radius2tf.text = newRadius2.ToString();
+                }
+
+            }
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-            stage = 1;
+            stage = Stage.CentralPoint;
             ellipse = null;
         }
 
@@ -219,18 +297,18 @@ namespace RoundaboutBuilder
             //debugDrawMethod(cameraInfo);
             try
             {
-                if (m_hover != 0 && (stage == 1 || stage == 2))
+                if (m_hover != 0 && (stage == Stage.CentralPoint || stage == Stage.MainAxis))
                 {
                     NetNode hoveredNode = GetNode(m_hover);
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, hoveredNode.m_position, 15f, hoveredNode.m_position.y - 1f, hoveredNode.m_position.y + 1f, true, true);
 
                 }
-                if (stage == 2 || stage == 3)
+                if (stage == Stage.MainAxis || stage == Stage.Final)
                 {
                     NetNode centralNodeDraw = GetNode(centralNode);
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.red, centralNodeDraw.m_position, 15f, centralNodeDraw.m_position.y - 1f, centralNodeDraw.m_position.y + 1f, true, true);
                 }
-                if (stage == 3)
+                if (stage == Stage.Final)
                 {
                     NetNode axisNodeDraw = GetNode(axisNode);
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.green, axisNodeDraw.m_position, 15f, axisNodeDraw.m_position.y - 1f, axisNodeDraw.m_position.y + 1f, true, true);
@@ -260,7 +338,7 @@ namespace RoundaboutBuilder
             {
                 Debug.Log("Catched exception while rendering ellipse UI.");
                 Debug.Log(e);
-                stage = 1;
+                stage = Stage.CentralPoint;
                 enabled = false; // ???
             }
         }

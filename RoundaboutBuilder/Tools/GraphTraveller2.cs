@@ -5,7 +5,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.1.0 */
+/* Version BETA 1.2.0 */
 
 namespace RoundaboutBuilder.Tools
 {
@@ -52,7 +52,7 @@ namespace RoundaboutBuilder.Tools
             noInfiniteRecursion++;
             if(noInfiniteRecursion > RECURSION_TRESHOLD)
             {
-                UIWindow.Instance.ThrowErrorMsg("Error: DFS method exeeded max recursion limit");
+                UI.UIWindow2.instance.ThrowErrorMsg("Error: DFS method exeeded max recursion limit");
                 OuterNodes = OuterSegments = InnerNodes = InnerSegments = new List<ushort>();
                 return;
             }

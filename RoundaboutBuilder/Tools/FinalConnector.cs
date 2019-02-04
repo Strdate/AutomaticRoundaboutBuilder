@@ -6,7 +6,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.1.0 */
+/* Version BETA 1.2.0 */
 
 namespace RoundaboutBuilder.Tools
 {
@@ -177,14 +177,38 @@ namespace RoundaboutBuilder.Tools
             /*EllipseTool.Instance.debugDrawVector(10*vec1, vectorNode1.vector);
             EllipseTool.Instance.debugDrawVector(10*vec2, vectorNode2.vector);*/
 
-            NetInfo netPrefab = PrefabCollection<NetInfo>.FindLoaded("Oneway Road");
+            //NetInfo netPrefab = PrefabCollection<NetInfo>.FindLoaded("Oneway Road");
+            NetInfo netPrefab = UI.UIWindow2.instance.dropDown.Value;
             var result = NetManager.instance.CreateSegment(out ushort newSegmentId, ref randomizer, netPrefab, (leftHandTraffic ? vectorNode2 : vectorNode1).nodeId,
                 (leftHandTraffic ? vectorNode1 : vectorNode2).nodeId,
                 (leftHandTraffic ? vec2 : vec1), (leftHandTraffic ? vec1 : vec2), Singleton<SimulationManager>.instance.m_currentBuildIndex + 1,
                         Singleton<SimulationManager>.instance.m_currentBuildIndex, invert);
 
+            /* Sometime in the future ;) */
+
+            /*try
+            {
+                SetupTMPE(newSegmentId);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }*/
             //Debug.Log(string.Format("Building segment between nodes {0}, {1}, bezier scale {2}", node1, node2, scale));
         }
+
+        /*private void SetupTMPE(ushort segment)
+        {
+            /* None of this below works: */
+            /*bool result = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetEnteringBlockedJunctionAllowed(segment, true, true);
+            bool result2 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetEnteringBlockedJunctionAllowed(segment, false, true);
+            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetPedestrianCrossingAllowed(segment, false, false);
+            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetPedestrianCrossingAllowed(segment, true, false);
+            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetUturnAllowed(segment, false, true);
+            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetLaneChangingAllowedWhenGoingStraight(segment, false, false);
+            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetLaneChangingAllowedWhenGoingStraight(segment, true, false);
+            Debug.Log($"Setting up tmpe. Result: {result}, {result2}");
+        }*/
 
         /* Please for your own sake don't look at this method! There definitely exist algorithms that compute this with efficiency
          * better than the two nested FOR cycles, but whatever. Still better than O(n!), isn't it? (The first FOR cycle is in

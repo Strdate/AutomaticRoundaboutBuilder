@@ -5,7 +5,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.1.0 */
+/* Version BETA 1.2.0 */
 
 namespace RoundaboutBuilder.Tools
 {
@@ -82,7 +82,7 @@ namespace RoundaboutBuilder.Tools
             Beziers = beziers;
         }
 
-        /* What is an absolute angle? It is an angle between a point on the ellipse in the coordinate system of the ellipse and X axis in standard coords.
+        /* What is an absolute angle? It is an angle between a point on the ellipse in the coordinate system of the (moved!) ellipse and X axis in standard coords.
          * Draw yourself a picture. ;) */
 
         public double RadiusAtAbsoluteAngle(double angle)

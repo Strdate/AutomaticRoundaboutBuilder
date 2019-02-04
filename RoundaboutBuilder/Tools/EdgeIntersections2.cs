@@ -1,12 +1,13 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
+using RoundaboutBuilder.UI;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.1.0 */
+/* Version BETA 1.2.0 */
 
 /* This class takes the edge segments obrained by GraphTraveller2, creates a node where they intersect with the future roundabout and
  * connects that node with the outer node of the segment. */
@@ -36,7 +37,7 @@ namespace RoundaboutBuilder.Tools
             this.traveller = traveller;
             this.ellipse = ellipse;
 
-            if(UIWindow.Instance.OldSnappingAlgorithm)
+            if(RoundAboutBuilder.UseOldSnappingAlgorithm.value)
             {
                 SnappingAlgorithmOld();
             }
@@ -50,8 +51,7 @@ namespace RoundaboutBuilder.Tools
             if (Intersections.Count == 0 && ellipse.IsCircle())
             {
                 Vector3 defaultIntersection = new Vector3(ellipse.RadiusMain, 0, 0) + ellipse.Center;
-                NetManager.instance.CreateNode(out ushort newNodeId, ref randomizer, CenterNode.Info, defaultIntersection,
-                Singleton<SimulationManager>.instance.m_currentBuildIndex + 1);
+                CreateNode(out ushort newNodeId, CenterNode.Info, defaultIntersection);
                 Intersections.Add(new VectorNodeStruct(newNodeId));
             }
 
@@ -97,15 +97,14 @@ namespace RoundaboutBuilder.Tools
                         }
                         else
                         {
-                            Debug.Log("Error - no segment is outer."); continue;
+                            throw new Exception("Error - Failed to determine segment geometry.");
                         }
 
                         //debug:
                         //EllipseTool.Instance.debugDraw.Add(outerBezier);
 
                         /* We create a node at the intersection. */
-                        NetManager.instance.CreateNode(out ushort newNodeId, ref randomizer, CenterNode.Info, intersection,
-                        Singleton<SimulationManager>.instance.m_currentBuildIndex + 1);
+                        CreateNode(out ushort newNodeId, CenterNode.Info, intersection);
                         Intersections.Add(new VectorNodeStruct(newNodeId));
 
                         BezierToSegment(outerBezier, traveller.OuterSegments[i], newNodeId, traveller.OuterNodes[i]);
@@ -134,7 +133,7 @@ namespace RoundaboutBuilder.Tools
                 float directionZ = (curNode.m_position.z - centerZ) / VectorDistance(CenterNode.m_position, curNode.m_position);
 
                 float radius = (float)ellipse.RadiusAtAbsoluteAngle(Math.Abs(Ellipse.VectorsAngle(curNode.m_position - ellipse.Center)));
-                if (radius > EllipseTool.RADIUS_MAX)
+                if (radius > UI.NumericTextField.RADIUS_MAX)
                 {
                     throw new Exception("Algortithm error");
                 }
@@ -146,8 +145,7 @@ namespace RoundaboutBuilder.Tools
                 ushort newNodeId;
                 ushort newSegmentId;
 
-                NetManager.instance.CreateNode(out newNodeId, ref randomizer, CenterNode.Info, circleIntersection,
-                Singleton<SimulationManager>.instance.m_currentBuildIndex + 1);
+                CreateNode(out newNodeId, CenterNode.Info, circleIntersection);
 
                 Intersections.Add(new VectorNodeStruct(newNodeId));
                 //EllipseTool.Instance.debugDrawPositions.Add(Intersections.Last().vector);
@@ -206,7 +204,7 @@ namespace RoundaboutBuilder.Tools
             }
             else
             {
-                Debug.Log(string.Format("Error - no intersection of bezier and point. Dist: {0}, {1}",Distance(nodePos2d,bezier2.Position(0f)), Distance(nodePos2d, bezier2.Position(1f)))); return;
+                throw new Exception(string.Format("Error - no intersection of bezier and point. Dist: {0}, {1}",Distance(nodePos2d,bezier2.Position(0f)), Distance(nodePos2d, bezier2.Position(1f))));
             }
             startDirection2d = bezier2.Tangent(0f);
             endDirection2d = bezier2.Tangent(1f);
@@ -218,7 +216,7 @@ namespace RoundaboutBuilder.Tools
              * In that case, we take one more segment away from the ellipse.*/
             if (VectorDistance(bezier2.a, bezier2.d) < MIN_BEZIER_LENGTH)
             {
-                Debug.Log("Distance seems to be too short!! " + VectorDistance(bezier2.a, bezier2.d));
+                Debug.Log("Segment is too short. Launching repair mechainsm." + VectorDistance(bezier2.a, bezier2.d));
                 if(nextSegmentInfo(endNodeId, oldSegmentId, out ushort endNodeIdNew, out Vector3 endDirectionNew))
                 {
                     endNodeId = endNodeIdNew;
@@ -243,7 +241,7 @@ namespace RoundaboutBuilder.Tools
             bool result = NetManager.instance.CreateSegment(out ushort newSegmentId, ref randomizer, oldSegment.Info, startNodeId, endNodeId,
             startDirection, endDirection, Singleton<SimulationManager>.instance.m_currentBuildIndex + 1,
                     Singleton<SimulationManager>.instance.m_currentBuildIndex, invert);
-            if (!result) UIWindow.Instance.ThrowErrorMsg("The game failed to create one of the road segments.");
+            if (!result) UIWindow2.instance.ThrowErrorMsg("The game failed to create one of the road segments.");
         }
 
         /* Sometimes it happens that we split the road too close to another segment. If that occur, the roads do glitch. In that case 
@@ -318,53 +316,69 @@ namespace RoundaboutBuilder.Tools
 
         private void ReleaseNodesAndSegments(GraphTraveller2 traveller)
         {
-            for (int i = 0; i < traveller.InnerSegments.Count; i++)
+            foreach (ushort segment in traveller.InnerSegments)
             {
-                NetManager.instance.ReleaseSegment(traveller.InnerSegments[i], true);
+                ReleaseSegment(segment);
             }
-            for (int i = 0; i < traveller.OuterSegments.Count; i++)
+            foreach (ushort segment in traveller.OuterSegments)
             {
-                NetManager.instance.ReleaseSegment(traveller.OuterSegments[i], true);
+                ReleaseSegment(segment);
             }
             foreach (ushort segment in ToBeReleasedSegments)
             {
-                NetManager.instance.ReleaseSegment(segment, true);
+                ReleaseSegment(segment);
             }
-            for (int i = 0; i < traveller.InnerNodes.Count; i++)
+            foreach (ushort node in traveller.InnerNodes)
             {
-                try
-                {
-                    if (GetNode(traveller.InnerNodes[i]).CountSegments() > 0)
-                    {
-                        Debug.LogWarning("Trying to release node with segments. (InnerNodes)");
-                        continue;
-                    }
-                    NetManager.instance.ReleaseNode(traveller.InnerNodes[i]);
-                }
-                catch(Exception e)
-                {
-                    Debug.LogWarning("Exception while realeasing a node " + traveller.InnerNodes[i] + ". (InnerNodes)");
-                    Debug.LogWarning(e);
-                }
-                
+                ReleaseNode(node);
             }
             foreach (ushort node in ToBeReleasedNodes)
             {
-                try
-                {
-                    if (GetNode(node).CountSegments() > 0)
-                    {
-                        Debug.LogWarning("Trying to release node with segments. (ToBeReleasedNodes)");
-                        continue;
-                    }
-                    NetManager.instance.ReleaseNode(node);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning("Exception while realeasing a node " + node + ". (ToBeReleasedNodes)");
-                    Debug.LogWarning(e);
-                }
+                ReleaseNode(node);
             }
+        }
+
+        public static bool ReleaseSegment(ushort id)
+        {
+            if(id > 0 && (NetManager.instance.m_segments.m_buffer[id].m_flags & NetSegment.Flags.Created) != NetSegment.Flags.None)
+            {
+                NetManager.instance.ReleaseSegment(id, true);
+                return true;
+            }
+            else
+            {
+                Debug.LogWarning("Failed to release NetSegment " + id);
+                return false;
+            }
+        }
+
+        public static bool ReleaseNode(ushort id)
+        {
+            if (GetNode(id).CountSegments() > 0)
+            {
+                Debug.LogWarning("Failed to release NetNode " + id + ": Has segments");
+                return false;
+            }
+
+            if (id > 0 && (NetManager.instance.m_nodes.m_buffer[id].m_flags & NetNode.Flags.Created) != NetNode.Flags.None)
+            {
+                NetManager.instance.ReleaseNode(id);
+                return true;
+            }
+            else
+            {
+                Debug.LogWarning("Failed to release NetNode " + id);
+                return false;
+            }
+        }
+
+        public void CreateNode(out ushort nodeId,NetInfo info, Vector3 position)
+        {
+            bool result = NetManager.instance.CreateNode(out nodeId, ref randomizer, info, position,
+                Singleton<SimulationManager>.instance.m_currentBuildIndex + 1);
+
+            if (!result)
+                throw new Exception("Failed to create NetNode at " + position.ToString());
         }
 
         /* Utility */
@@ -378,15 +392,15 @@ namespace RoundaboutBuilder.Tools
         {
             return (float)(Math.Sqrt(Math.Pow(v1.x - v2.x, 2) + Math.Pow(v1.z - v2.z, 2)));
         }
-        public NetManager Manager
+        public static NetManager Manager
         {
             get { return Singleton<NetManager>.instance; }
         }
-        public NetNode GetNode(ushort id)
+        public static NetNode GetNode(ushort id)
         {
             return Manager.m_nodes.m_buffer[id];
         }
-        public NetSegment GetSegment(ushort id)
+        public static NetSegment GetSegment(ushort id)
         {
             return Manager.m_segments.m_buffer[id];
         }

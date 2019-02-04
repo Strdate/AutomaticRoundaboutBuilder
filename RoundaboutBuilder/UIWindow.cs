@@ -25,10 +25,10 @@ namespace RoundaboutBuilder
         public bool OldSnappingAlgorithm { get; private set; } = false;
         private string snappingAlgorithmText = "Standard";
 
-        public void ThrowErrorMsg(string content)
+        public void ThrowErrorMsg(string content, bool error=false)
         {
             ExceptionPanel panel = UIView.library.ShowModal<ExceptionPanel>("ExceptionPanel");
-            panel.SetMessage("Roundabout builder", content, false);
+            panel.SetMessage("Roundabout builder", content, error);
         }
 
 
@@ -41,7 +41,7 @@ namespace RoundaboutBuilder
             /* Hahaha good programming practice */
             width = 1;
             height = 1;
-
+            
             // At the beginning I started to create UI using the ColossalFramework.UI, but didn't manage to make it work. Thus I stuck to usual Unity UI.
 
             /*backgroundSprite = "GenericPanel";

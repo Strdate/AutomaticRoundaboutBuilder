@@ -1,10 +1,11 @@
 ﻿using ColossalFramework.UI;
 using ICities;
+using RoundaboutBuilder.UI;
 using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.1.0 */
+/* Version BETA 1.2.0 */
 
 /* Most of this is copied from Elektrix's Segment Slope Smoother.
  * The oter part is copied from somewhere as well, but unfortunately I don't remeber from where. */
@@ -13,6 +14,7 @@ namespace RoundaboutBuilder
 {
     public class ModLoadingExtension : ILoadingExtension
     {
+        public static bool LevelLoaded = false;
 
         // called when level loading begins
         public void OnCreated(ILoading loading)
@@ -35,16 +37,32 @@ namespace RoundaboutBuilder
             }
 
             //instatiate UI
-            if (UIWindow.Instance == null)
+            if (UIWindow2.instance == null) // !!
             {
-                UIView.GetAView().AddUIComponent(typeof(UIWindow));
-            } 
+                UIView.GetAView().AddUIComponent(typeof(UIWindow2));
+            }
+
+            LevelLoaded = true;
+            //debug();
         }
+
+        /*private void debug()
+        {
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            //Make an array for the list of assemblies.
+            Assembly[] assems = currentDomain.GetAssemblies();
+
+            //List the assemblies in the current application domain.
+            Console.WriteLine("List of assemblies loaded in current appdomain:");
+            foreach (Assembly assem in assems)
+                Debug.Log(assem.ToString());
+        }*/
 
         // called when unloading begins
         public void OnLevelUnloading()
         {
-            UIWindow.Instance.enabled = false;
+            UIWindow2.instance.enabled = false;
+            LevelLoaded = false;
         }
 
         // called when unloading finished

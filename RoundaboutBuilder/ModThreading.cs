@@ -1,9 +1,12 @@
-﻿using ICities;
+﻿using ColossalFramework;
+using ICities;
+using RoundaboutBuilder.UI;
+using System.Timers;
 using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.1.0 */
+/* Version BETA 1.2.0 */
 
 /* This was shamelessly stolen from bomormer's tutorial on Simtropolis. He takes the credit.
  * https://community.simtropolis.com/forums/topic/73490-modding-tutorial-3-show-limits/ */
@@ -23,23 +26,24 @@ namespace RoundaboutBuilder
 
                 _processed = true;
 
-                if (UIWindow.Instance == null) return;
+                if (UIWindow2.instance == null) return;
 
                 //Activating/deactivating tool & UI
-                UIWindow.Instance.enabled = !UIWindow.Instance.enabled;
+                //UIWindow.Instance.enabled = !UIWindow.Instance.enabled;
+                UIWindow2.instance.enabled = !UIWindow2.instance.enabled;
                 //NodeSelection.instance.enabled = UIWindow.Instance.enabled;
 
             }
-            else if (UIWindow.Instance.enabled && Input.GetKey("[+]"))
+            else if (UIWindow2.instance.enabled && (Input.GetKey("[+]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey("=") )))
             {
                 if (_processed) return;
-                UIWindow.Instance.IncreaseButton();
+                UIWindow2.instance.IncreaseButton();
                 _processed = true;
             }
-            else if (UIWindow.Instance.enabled && Input.GetKey("[-]"))
+            else if (UIWindow2.instance.enabled && (Input.GetKey("[-]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey("-") )))
             {
                 if (_processed) return;
-                UIWindow.Instance.DecreaseButton();
+                UIWindow2.instance.DecreaseButton();
                 _processed = true;
             }
             else
@@ -47,6 +51,37 @@ namespace RoundaboutBuilder
                 // not both keys pressed: Reset processed state
                 _processed = false;
             }
+
+            /*if(reenable)
+            {
+                reenable = false;
+            }*/
         }
+
+        /* This is so so disgusting */
+
+        // Thankfully I was able to remove this
+
+        /*private static Timer aTimer;
+        private static bool reenable = false;
+        public static void ReenableToolsTimer()
+        {
+            aTimer = new System.Timers.Timer();
+            aTimer.Interval = 300;
+
+            // Hook up the Elapsed event for the timer. 
+            aTimer.Elapsed += (a,b) =>
+            {
+                reenable = true;
+                aTimer.Stop();
+                aTimer.Dispose();
+            };
+
+            // Have the timer fire repeated events (true is the default)
+            aTimer.AutoReset = false;
+            
+            // Start the timer
+            aTimer.Enabled = true;
+        }*/
     }
 }

@@ -4,6 +4,13 @@ Version BETA 1.0.0
 January 2019
 
 <update>
+VERSION BETA 1.2.0
+
+- UI overhaul
+more...
+</update>
+
+<update>
 VERSION BETA 1.1.0
 - Elliptic roundabouts
 - New road snapping algorithm (and new bugs as a bonus)

@@ -4,7 +4,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.1.0 */
+/* Version BETA 1.2.0 */
 
 /* In the end I started raging that you can actually reference the nodes (and segments too) in two distinct ways, by their actual reference and
  * by their ushort ID. You allways have the other reference which you don't need. Because of that I created this class. I was too lazy to rewrite
