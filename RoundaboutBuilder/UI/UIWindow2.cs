@@ -1,4 +1,6 @@
-﻿using ColossalFramework.UI;
+﻿using ColossalFramework;
+using ColossalFramework.UI;
+using System;
 using UnityEngine;
 
 /* Version BETA 1.2.0 */
@@ -15,10 +17,23 @@ namespace RoundaboutBuilder.UI
 
         public bool keepOpen = true;
 
+        public static readonly SavedBool SavedSetupTmpe = new SavedBool("savedSetupTMPE", RoundAboutBuilder.settingsFileName, true, true);
+
         private ToolBaseExtended toolOnUI;
+        private AbstractPanel m_panelOnUI;
+        private AbstractPanel m_lastStandardPanel;
+
+        public RoundAboutPanel P_RoundAboutPanel;
+        public EllipsePanel_1 P_EllipsePanel_1;
+        public EllipsePanel_2 P_EllipsePanel_2;
+        public EllipsePanel_3 P_EllipsePanel_3;
+        public TmpeSetupPanel P_TmpeSetupPanel;
+
+        private UIPanelButton m_panelButton;
 
         private UIPanel m_topSection;
         private UIPanel m_bottomSection;
+        private UIPanel m_setupTmpeSection;
         private UIButton backButton;
         public UINetInfoDropDown dropDown;
 
@@ -43,7 +58,7 @@ namespace RoundaboutBuilder.UI
         protected override void OnMouseDown(UIMouseEventParameter p)
         {
             base.OnMouseDown(p);
-            if (toolOnUI != null)
+            if (toolOnUI != null && !m_panelOnUI.IsSpecialWindow)
                 toolOnUI.enabled = true; // Reenable the tool when user clicks in the window
         }
 
@@ -79,6 +94,12 @@ namespace RoundaboutBuilder.UI
             dragHandle.relativePosition = Vector3.zero;
             dragHandle.target = parent;
 
+            P_RoundAboutPanel = AddUIComponent<RoundAboutPanel>();
+            P_EllipsePanel_1 = AddUIComponent<EllipsePanel_1>();
+            P_EllipsePanel_2 = AddUIComponent<EllipsePanel_2>();
+            P_EllipsePanel_3 = AddUIComponent<EllipsePanel_3>();
+            P_TmpeSetupPanel = AddUIComponent<TmpeSetupPanel>();
+
             float cummulativeHeight = 8;
 
             /* Top section */
@@ -93,17 +114,47 @@ namespace RoundaboutBuilder.UI
             label.SendToBack();
             cummulativeHeight += label.height + 8;
 
-            dragHandle.height = cummulativeHeight;
-
-            dropDown = m_topSection.AddUIComponent<UINetInfoDropDown>();
-            dropDown.relativePosition = new Vector2(8, cummulativeHeight);
-            dropDown.width = width - 16;
-            cummulativeHeight += dropDown.height + 8;
-
             m_topSection.height = cummulativeHeight;
             m_topSection.width = width;
+            dragHandle.height = cummulativeHeight;
+
+            dropDown = AddUIComponent<UINetInfoDropDown>();
+            //dropDown.relativePosition = new Vector2(8, cummulativeHeight);
+            dropDown.width = width - 16;
+            //cummulativeHeight += dropDown.height + 8;
+
+            
 
             /* Bottom section */
+
+            m_setupTmpeSection = AddUIComponent<UIPanel>();
+            var setupTmpe = CreateCheckBox(m_setupTmpeSection);
+            setupTmpe.name = "RAB_setupTmpe";
+            setupTmpe.label.text = "Setup TMPE";
+            setupTmpe.tooltip = "Apply TMPE policies to the roundabout";
+            setupTmpe.isChecked = SavedSetupTmpe;
+            setupTmpe.relativePosition = new Vector3(8, 0);
+            setupTmpe.eventCheckChanged += (c, state) =>
+            {
+                SavedSetupTmpe.value = state;
+            };
+            var tmpeButton = CreateButton(m_setupTmpeSection);
+            tmpeButton.text = "...";
+            tmpeButton.tooltip = "TMPE settings";
+            tmpeButton.height = setupTmpe.height;
+            tmpeButton.width = 30;
+            tmpeButton.relativePosition = new Vector2(width - tmpeButton.width - 8, 0);
+            tmpeButton.eventClick += (c, p) =>
+            {
+                bool holder = this.keepOpen;
+                this.keepOpen = true;
+                toolOnUI.enabled = false;
+                this.keepOpen = holder;
+                SwitchWindow(P_TmpeSetupPanel);
+            };
+            m_setupTmpeSection.height = setupTmpe.height + 8;
+            //cummulativeHeight += keepOpen.height + 8;
+
             cummulativeHeight = 0;
             m_bottomSection = AddUIComponent<UIPanel>();
 
@@ -127,7 +178,9 @@ namespace RoundaboutBuilder.UI
             {
                 enabled = false;
                 if (toolOnUI != null)
+                {
                     toolOnUI.enabled = false;
+                }   
             };
 
             backButton = CreateButton(m_bottomSection);
@@ -137,7 +190,16 @@ namespace RoundaboutBuilder.UI
             {
                 if (backButton.isVisible)
                 {
-                    SwitchTool(RoundaboutTool.Instance);
+                    if(m_panelOnUI.IsSpecialWindow)
+                    {
+                        SwitchWindow(m_lastStandardPanel);
+                        toolOnUI.enabled = true;
+                    }
+                    else
+                    {
+                        toolOnUI.GoToFirstStage();
+                        SwitchTool(RoundaboutTool.Instance);
+                    }      
                 }
             };
             
@@ -149,39 +211,97 @@ namespace RoundaboutBuilder.UI
             /* Enable roundabout tool as default */
             SwitchTool(RoundaboutTool.Instance);
 
+            try
+            {
+                if(RoundAboutBuilder.ShowUIButton)
+                    m_panelButton = UIPanelButton.CreateButton();
+            }
+            catch(Exception e)
+            {
+                Debug.LogWarning("Failed to create UI button.");
+                Debug.LogWarning(e);
+            }
+            
+
             enabled = false;
         }
 
         internal void GoBack()
         {
             if (toolOnUI != null)
+            {
+                toolOnUI.GoToFirstStage();
                 toolOnUI.enabled = false;
+            }      
             SwitchTool( RoundaboutTool.Instance );
         }
 
         public void SwitchTool(ToolBaseExtended tool)
         {
-            //if (tool == toolOnUI) return;
+            if (tool == toolOnUI) return;
 
-            if(toolOnUI != null)
+            bool holder = this.keepOpen;
+            this.keepOpen = true;
+
+            if (tool is EllipseTool)
             {
-                RemoveUIComponent(toolOnUI.UIPanel);
-                Destroy(toolOnUI.UIPanel.gameObject);
+                SwitchWindow( P_EllipsePanel_1 );
             }
-
-            UIPanel toolPanel = AddUIComponent<UIPanel>();
-            toolPanel.width = width;
-            tool.InitUIComponent(toolPanel);
-
-            toolPanel.relativePosition = new Vector2(0, m_topSection.height);
-            m_bottomSection.relativePosition = new Vector2(0, m_topSection.height + toolPanel.height);
-
-            height = m_topSection.height + toolPanel.height + m_bottomSection.height;
-
-            backButton.isVisible = (tool == EllipseTool.Instance);
+            else
+            {
+                SwitchWindow( P_RoundAboutPanel );
+            }                
 
             tool.enabled = true;
             toolOnUI = tool;
+            this.keepOpen = holder;
+        }
+
+        public void SwitchWindow(AbstractPanel panel)
+        {
+            if (m_panelOnUI != null)
+            {
+                m_panelOnUI.isVisible = false;
+                if (!m_panelOnUI.IsSpecialWindow) m_lastStandardPanel = m_panelOnUI;
+            }           
+
+            panel.isVisible = true;
+            m_panelOnUI = panel;
+
+            float cumulativeHeight = m_topSection.height;
+
+            if(panel.ShowDropDown)
+            {
+                dropDown.relativePosition = new Vector2(8, cumulativeHeight);
+                cumulativeHeight += dropDown.height + 8;
+                dropDown.isVisible = true;
+            }
+            else
+            {
+                dropDown.isVisible = false;
+            }
+
+            panel.relativePosition = new Vector2(0, cumulativeHeight);
+            cumulativeHeight += panel.height;
+
+            if (ModLoadingExtension.tmpeDetected && panel.ShowTmpeSetup)
+            {
+                m_setupTmpeSection.relativePosition = new Vector2(0, cumulativeHeight);
+                cumulativeHeight += m_setupTmpeSection.height;
+                m_setupTmpeSection.isVisible = true;
+            }
+            else
+            {
+                m_setupTmpeSection.isVisible = false;
+            }
+
+            m_bottomSection.relativePosition = new Vector2(0, cumulativeHeight);
+            cumulativeHeight += m_bottomSection.height;
+
+            backButton.isVisible = panel.ShowBackButton;
+
+            height = cumulativeHeight;
+
         }
 
         public void IncreaseButton()
@@ -212,6 +332,8 @@ namespace RoundaboutBuilder.UI
             isVisible = true;
             if (toolOnUI != null)
                 toolOnUI.enabled = true;
+            /*if (m_panelButton != null)
+                m_panelButton.FocusSprites();*/
         }
 
         public override void OnDisable()
@@ -220,6 +342,8 @@ namespace RoundaboutBuilder.UI
             isVisible = false;
             if (toolOnUI != null)
                 toolOnUI.enabled = false;
+            /*if (m_panelButton != null)
+                m_panelButton.UnfocusSprites();*/
         }
 
         // cheat, see note at the top
@@ -268,6 +392,8 @@ namespace RoundaboutBuilder.UI
             checkBox.label.textScale = 0.9f;
             checkBox.label.relativePosition = new Vector3(22f, 2f);
 
+            checkBox.playAudioEvents = true;
+
             return checkBox;
         }
 
@@ -282,8 +408,18 @@ namespace RoundaboutBuilder.UI
             button.hoveredBgSprite = "ButtonMenuHovered";
             button.pressedBgSprite = "ButtonMenuPressed";
             button.canFocus = false;
+            button.playAudioEvents = true;
 
             return button;
         }
+
+        /* UI View Button. This is mostly copy pasta */
+
+
+
+        
+
+        // Token: 0x0400000F RID: 15
+        //private PropertyChangedEventHandler<int> builtinModeChangedHandler = null;
     }
 }

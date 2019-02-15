@@ -9,37 +9,35 @@ namespace RoundaboutBuilder.UI
 {
     class ResourceLoader
     {
-        public static UITextureAtlas CreateTextureAtlas(string atlasName, string[] spriteNames, string assemblyPath)
+        public static UITextureAtlas CreateTextureAtlas(string textureFile, string atlasName, Material baseMaterial, int spriteWidth, int spriteHeight, string[] spriteNames)
         {
-            int maxSize = 1024;
-            Texture2D texture2D = new Texture2D(maxSize, maxSize, TextureFormat.ARGB32, false);
-            Texture2D[] textures = new Texture2D[spriteNames.Length];
-            Rect[] regions = new Rect[spriteNames.Length];
-
-            for (int i = 0; i < spriteNames.Length; i++)
-                textures[i] = loadTextureFromAssembly(assemblyPath + spriteNames[i] + ".png");
-
-            regions = texture2D.PackTextures(textures, 2, maxSize);
-
-            UITextureAtlas textureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
-            Material material = UnityEngine.Object.Instantiate<Material>(UIView.GetAView().defaultAtlas.material);
+            Texture2D texture2D = new Texture2D(spriteWidth * spriteNames.Length, spriteHeight, TextureFormat.ARGB32, false);
+            texture2D.filterMode = FilterMode.Bilinear;
+            Assembly executingAssembly = Assembly.GetExecutingAssembly();
+            Stream manifestResourceStream = executingAssembly.GetManifestResourceStream("RoundaboutBuilder.Resources." + textureFile);
+            byte[] array = new byte[manifestResourceStream.Length];
+            manifestResourceStream.Read(array, 0, array.Length);
+            texture2D.LoadImage(array);
+            texture2D.Apply(true, true);
+            UITextureAtlas uitextureAtlas = ScriptableObject.CreateInstance<UITextureAtlas>();
+            Material material = UnityEngine.Object.Instantiate<Material>(baseMaterial);
             material.mainTexture = texture2D;
-            textureAtlas.material = material;
-            textureAtlas.name = atlasName;
-
-            for (int i = 0; i < spriteNames.Length; i++)
+            uitextureAtlas.material = material;
+            uitextureAtlas.name = atlasName;
+            int num2;
+            for (int i = 0; i < spriteNames.Length; i = num2)
             {
-                UITextureAtlas.SpriteInfo item = new UITextureAtlas.SpriteInfo
+                float num = 1f / (float)spriteNames.Length;
+                UITextureAtlas.SpriteInfo spriteInfo = new UITextureAtlas.SpriteInfo
                 {
                     name = spriteNames[i],
-                    texture = textures[i],
-                    region = regions[i],
+                    texture = texture2D,
+                    region = new Rect((float)i * num, 0f, num, 1f)
                 };
-
-                textureAtlas.AddSprite(item);
+                uitextureAtlas.AddSprite(spriteInfo);
+                num2 = i + 1;
             }
-
-            return textureAtlas;
+            return uitextureAtlas;
         }
 
         public static void AddTexturesInAtlas(UITextureAtlas atlas, Texture2D[] newTextures, bool locked = false)

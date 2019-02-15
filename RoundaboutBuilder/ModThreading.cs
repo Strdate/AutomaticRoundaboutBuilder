@@ -1,6 +1,8 @@
 ﻿using ColossalFramework;
 using ICities;
 using RoundaboutBuilder.UI;
+using System;
+using System.Collections.Generic;
 using System.Timers;
 using UnityEngine;
 
@@ -16,6 +18,13 @@ namespace RoundaboutBuilder
     public class ModThreading : ThreadingExtensionBase
     {
         private bool _processed = false;
+
+        public static ModThreading instance;
+
+        public ModThreading()
+        {
+            instance = this;
+        }
 
         public override void OnUpdate(float realTimeDelta, float simulationTimeDelta)
         {
@@ -52,27 +61,33 @@ namespace RoundaboutBuilder
                 _processed = false;
             }
 
-            /*if(reenable)
+            /* Delayed setup */
+            if(timeUp)
             {
-                reenable = false;
-            }*/
+                timeUp = false;
+                
+                try { actionStatic.Do(); }
+                catch(Exception e)
+                {
+                    Debug.LogWarning(e);
+                }
+                
+            }            
         }
 
-        /* This is so so disgusting */
-
-        // Thankfully I was able to remove this
-
-        /*private static Timer aTimer;
-        private static bool reenable = false;
-        public static void ReenableToolsTimer()
+        public static Provisional.Actions.Action actionStatic;
+        private static Timer aTimer;
+        private static bool timeUp = false;
+        public static void Timer(Provisional.Actions.Action action)
         {
+            actionStatic = action;
             aTimer = new System.Timers.Timer();
-            aTimer.Interval = 300;
+            aTimer.Interval = 30;
 
             // Hook up the Elapsed event for the timer. 
             aTimer.Elapsed += (a,b) =>
             {
-                reenable = true;
+                timeUp = true;
                 aTimer.Stop();
                 aTimer.Dispose();
             };
@@ -82,6 +97,7 @@ namespace RoundaboutBuilder
             
             // Start the timer
             aTimer.Enabled = true;
-        }*/
+        }
+
     }
 }

@@ -22,8 +22,6 @@ namespace RoundaboutBuilder.Tools
 
         public bool exists { get { return nodeId != 0; } }
 
-        private Randomizer randomizer;
-
         public ushort Create(NetInfo netInfo)
         {
             if(exists)
@@ -31,8 +29,7 @@ namespace RoundaboutBuilder.Tools
                 return nodeId;
             }
 
-            NetManager.instance.CreateNode(out ushort newNodeId, ref randomizer, netInfo, vector,
-                        Singleton<SimulationManager>.instance.m_currentBuildIndex + 1);
+            ushort newNodeId = NetAccess.CreateNode(netInfo, vector);
 
             nodeId = newNodeId;
             vector = node.m_position;
@@ -44,14 +41,12 @@ namespace RoundaboutBuilder.Tools
         public VectorNodeStruct(Vector3 vector)
         {
             this.vector = vector;
-            randomizer = Singleton<SimulationManager>.instance.m_randomizer;
         }
 
         public VectorNodeStruct(ushort nodeId)
         {
             this.nodeId = nodeId;
             this.vector = GetNode(nodeId).m_position;
-            randomizer = Singleton<SimulationManager>.instance.m_randomizer;
         }
 
         /* Utility */

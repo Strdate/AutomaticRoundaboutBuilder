@@ -5,20 +5,23 @@ using RoundaboutBuilder.UI;
 using System;
 using UnityEngine;
 
-/* By Strad, 01/2019 */
+/* By Strad, 02/2019 */
 
-/* Version BETA 1.2.0 */
+/* Version RELEASE 1.0.0 */
+
+/* Warning: I am lazy thus the version labels across the files may not be updated */
 
 namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "BETA 1.2.0";
+        public static readonly string VERSION = "RELEASE 1.0.0";
         public bool OldSnappingAlgorithm { get; private set; } = false;
 
         public const string settingsFileName = "RoundaboutBuilder";
 
         public static readonly Vector2 defWindowPosition = new Vector2(85, 10);
+        public static readonly SavedBool ShowUIButton = new SavedBool("showUIButton", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool UseExtraKeys = new SavedBool("useExtraPlusMinusKeys", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool UseOldSnappingAlgorithm = new SavedBool("useOldSnappingAlgorithm", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedInt savedWindowX = new SavedInt("windowX", settingsFileName, (int)defWindowPosition.x, true);
@@ -65,7 +68,15 @@ namespace RoundaboutBuilder
                 UIHelper group = helper.AddGroup(Name) as UIHelper;
                 UIPanel panel = group.self as UIPanel;
 
-                UICheckBox checkBox = (UICheckBox)group.AddCheckbox("Use +/- keys on main keyboard", UseExtraKeys.value, (b) =>
+                UICheckBox checkBox = (UICheckBox)group.AddCheckbox("Show mod icon on toolbar (needs reload)", ShowUIButton.value, (b) =>
+                {
+                    ShowUIButton.value = b;
+                });
+                checkBox.tooltip = "Show the Roundabout Builder icon in road tools panel (You can always use CTRL+O to open the mod menu)";
+
+                group.AddSpace(10);
+
+                checkBox = (UICheckBox)group.AddCheckbox("Use +/- keys on main keyboard", UseExtraKeys.value, (b) =>
                 {
                     UseExtraKeys.value = b;
                 });
@@ -92,7 +103,7 @@ namespace RoundaboutBuilder
 
                 group.AddSpace(10);
 
-                group.AddButton("Remove glitched roads (Save game inbefore!!!)", () =>
+                group.AddButton("Remove glitched roads (Save game inbefore)", () =>
                 {
                     Tools.GlitchedRoadsCheck.RemoveGlitchedRoads();
                 });

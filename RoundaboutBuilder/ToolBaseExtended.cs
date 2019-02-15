@@ -14,21 +14,12 @@ namespace RoundaboutBuilder
 {
     public abstract class ToolBaseExtended : ToolBase
     {
-        public UIPanel UIPanel { get; private set; }
-
         protected override void OnDisable()
         {
             base.OnDisable();
             if(UIWindow2.instance != null)
                 UIWindow2.instance.LostFocus();
             ToolsModifierControl.SetTool<DefaultTool>(); // Thanks to Elektrix for pointing this out
-        }
-
-        //public abstract void UIWindowMethod();
-
-        public virtual void InitUIComponent(UIPanel component)
-        {
-            UIPanel = component;
         }
 
         public override void RenderOverlay(RenderManager.CameraInfo cameraInfo)
@@ -55,6 +46,11 @@ namespace RoundaboutBuilder
 
         }
 
+        public virtual void GoToFirstStage()
+        {
+
+        }
+
         /* I need this code on multiple places, so I implement it as a static method... Return the node over which the mouse is hovering. */
         /* Copied from Elektrix's Segment Slope Smoother. Credit goes to him. */
         protected static ushort SelcetNode()
@@ -65,7 +61,7 @@ namespace RoundaboutBuilder
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastInput input = new RaycastInput(ray, Camera.main.farClipPlane);
             input.m_ignoreNodeFlags = NetNode.Flags.None;
-
+            
             input.m_ignoreSegmentFlags = NetSegment.Flags.All;
             input.m_ignoreParkFlags = DistrictPark.Flags.All;
             input.m_ignorePropFlags = PropInstance.Flags.All;
@@ -79,6 +75,7 @@ namespace RoundaboutBuilder
             input.m_ignoreTerrain = true;
 
             RayCast(input, out RaycastOutput output);
+            
             return output.m_netNode;
         }
 

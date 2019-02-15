@@ -21,7 +21,7 @@ namespace RoundaboutBuilder.Tools
             if (!ModLoadingExtension.LevelLoaded)
             {
                 ExceptionPanel notLoaded = UIView.library.ShowModal<ExceptionPanel>("ExceptionPanel");
-                notLoaded.SetMessage("Not In-Game", "Use this button when in-game to remove glitched roads. Experimental. Save game inbefore!!!", false);
+                notLoaded.SetMessage("Not In-Game", "Use this button when in-game to remove glitched roads", false);
                 return;
             }
 
@@ -80,7 +80,7 @@ namespace RoundaboutBuilder.Tools
             }
             else if (count > 0)
             {
-                message = $"Removed {count} segment{(count == 1 ? "" : "s")}! Please check that nothing unpleasant has happened to your game. Save it in a NEW file and reload it.";
+                message = $"Removed {count} segment{(count == 1 ? "" : "s")}! Please check that nothing unpleasant has happened to your game. Save it in a new file.";
             }
             else
             {

@@ -19,7 +19,6 @@ namespace RoundaboutBuilder
         private static readonly int DISTANCE_PADDING = 15;
 
         ushort m_hover;
-        private NumericTextField m_radiusField;
         //string m_radiusField.text = RADIUS_DEF.ToString();
 
         /* Main method , called when user cliks on a node to create a roundabout */
@@ -27,7 +26,7 @@ namespace RoundaboutBuilder
         {
             //Debug.Log(string.Format("Clicked on node ID {0}!", nodeID));
 
-            int radius = m_radiusField.Value;
+            int radius = UIWindow2.instance.P_RoundAboutPanel.RadiusField.Value;
             if (!NumericTextField.IsValid(radius))
             {
                 UIWindow2.instance.ThrowErrorMsg("Radius out of bounds!");
@@ -52,7 +51,7 @@ namespace RoundaboutBuilder
             {
                 GraphTraveller2 traveller = new GraphTraveller2(nodeID, radius, ellipse);
                 EdgeIntersections2 intersections = new EdgeIntersections2(traveller, nodeID, ellipse);
-                FinalConnector finalConnector = new FinalConnector(GetNode(nodeID).Info, intersections.Intersections, ellipse, true);
+                FinalConnector finalConnector = new FinalConnector(GetNode(nodeID).Info, intersections.Intersections, ellipse, true, intersections.TmpeActionGroup());
 
                 // Debug, don't forget to remove
                 /*foreach(VectorNodeStruct intersection in intersections.Intersections)
@@ -90,43 +89,14 @@ namespace RoundaboutBuilder
 
         /* UI methods */
 
-        public override void InitUIComponent(UIPanel component)
-        {
-            float cumulativeHeight = 0;
-            base.InitUIComponent(component);
-            UILabel labelRadius = component.AddUIComponent<UILabel>();
-            labelRadius.textScale = 0.9f;
-            labelRadius.text = "Radius:";
-            labelRadius.relativePosition = new Vector2(8, cumulativeHeight);
-            labelRadius.tooltip = "Press +/- to adjust";
-            labelRadius.SendToBack();
-
-            m_radiusField = component.AddUIComponent<NumericTextField>();
-            m_radiusField.relativePosition = new Vector2(component.parent.width - m_radiusField.width - 8, cumulativeHeight);
-            m_radiusField.tooltip = "Press +/- to adjust";
-            cumulativeHeight += m_radiusField.height + 8;
-
-            UIButton button = UIWindow2.CreateButton(component);
-            button.text = "Elliptic Roundabout...";
-            button.relativePosition = new Vector2(8, cumulativeHeight);
-            button.width = component.parent.width - 16;
-            button.eventClick += (c, p) =>
-            {
-                UIWindow2.instance.SwitchTool(EllipseTool.Instance);
-            };
-            cumulativeHeight += button.height + 8;
-
-            component.height = cumulativeHeight;
-        }
-
         public override void IncreaseButton()
         {
-            m_radiusField.Increase();
+            UIWindow2.instance.P_RoundAboutPanel.RadiusField.Increase();
         }
 
         public override void DecreaseButton()
         {
-            m_radiusField.Decrease();
+            UIWindow2.instance.P_RoundAboutPanel.RadiusField.Decrease();
         }
 
         /* This draws the UI circles on the map */
@@ -140,7 +110,7 @@ namespace RoundaboutBuilder
                 // thanks to SamsamTS because they're a UI god
                 // ..and then Strad stole it from all of you!!
                 RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, hoveredNode.m_position, 15f, hoveredNode.m_position.y - 1f, hoveredNode.m_position.y + 1f, true, true);
-                int radius = m_radiusField.Value;
+                int radius = UIWindow2.instance.P_RoundAboutPanel.RadiusField.Value;
                 if (NumericTextField.IsValid(radius))
                 {
                     float roadWidth = UIWindow2.instance.dropDown.Value.m_halfWidth;

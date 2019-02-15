@@ -1,7 +1,14 @@
 ﻿
 Automatic Roundabout Builder by Strad
-Version BETA 1.0.0
+Version RELEASE 1.0.0
 January 2019
+
+<update>
+VERSION RELEASE 1.0.0
+
+- UI Button
+- More TMPE policies
+</update>
 
 <update>
 VERSION BETA 1.2.0

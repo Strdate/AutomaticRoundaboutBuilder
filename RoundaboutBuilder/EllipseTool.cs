@@ -39,18 +39,18 @@ namespace RoundaboutBuilder
             Final // And then sets radii and stuff
         }
         Stage stage = Stage.CentralPoint;
-        bool controlVertices = true;
-
-        private NumericTextField m_radius1tf;
-        private NumericTextField m_radius2tf;
+        public bool ControlVertices = true;
 
         /* Debug */
         /*public List<Bezier2> debugDraw = new List<Bezier2>();
         public List<Vector3> debugDrawPositions = new List<Vector3>();
         bool yes = true; // :)*/
 
-        private void BuildEllipse()
+        public void BuildEllipse()
         {
+            if (ellipse == null)
+                UIWindow2.instance.ThrowErrorMsg("Invalid radii!");
+
             Ellipse toBeBuiltEllipse = ellipse;
             Ellipse ellipseWithPadding = ellipse;
             /* When the old snapping algorithm is enabled, we create secondary (bigger) ellipse, so the newly connected roads obtained by the 
@@ -67,7 +67,7 @@ namespace RoundaboutBuilder
             {
                 GraphTraveller2 traveller = new GraphTraveller2(centralNode, prevRadius1, ellipseWithPadding);
                 EdgeIntersections2 intersections = new EdgeIntersections2(traveller, centralNode, toBeBuiltEllipse);
-                FinalConnector finalConnector = new FinalConnector(GetNode(centralNode).Info, intersections.Intersections, toBeBuiltEllipse, controlVertices);
+                FinalConnector finalConnector = new FinalConnector(GetNode(centralNode).Info, intersections.Intersections, toBeBuiltEllipse, ControlVertices, intersections.TmpeActionGroup());
             }
             catch (Exception e)
             {
@@ -92,7 +92,7 @@ namespace RoundaboutBuilder
                         case Stage.CentralPoint:
                             centralNode = m_hover;
                             stage = Stage.MainAxis;
-                            UIWindow2.instance.SwitchTool(this);
+                            UIWindow2.instance.SwitchWindow(UIWindow2.instance.P_EllipsePanel_2);
                             break;
                         case Stage.MainAxis: if(m_hover == centralNode)
                             {
@@ -102,100 +102,10 @@ namespace RoundaboutBuilder
                             {
                                 axisNode = m_hover;
                                 stage = Stage.Final;
-                                UIWindow2.instance.SwitchTool(this);
+                                UIWindow2.instance.SwitchWindow(UIWindow2.instance.P_EllipsePanel_3);
                             } break;
                     }
                 }
-            }
-        }
-
-        /* UI methods */
-
-        public override void InitUIComponent(UIPanel component)
-        {
-            base.InitUIComponent(component);
-            UILabel label;
-            switch (stage)
-            {
-                case Stage.CentralPoint:
-                    label = component.AddUIComponent<UILabel>();
-                    label.text = "Step 1/3:\nSelect center of the elliptic roundabout (Nothing will be built yet)";
-                    label.wordWrap = true;
-                    label.textScale = 0.9f;
-                    label.autoSize = false;
-                    label.width = component.width - 16;
-                    label.relativePosition = new Vector2(8, 0);
-                    label.SendToBack();
-                    component.height = 122; // !!
-                    break;
-                case Stage.MainAxis:
-                    label = component.AddUIComponent<UILabel>();
-                    label.text = "Step 2/3:\nSelect any intersection on the main axis of the roundabout (Nothing will be built yet)";
-                    label.wordWrap = true;
-                    label.textScale = 0.9f;
-                    label.autoSize = false;
-                    label.width = component.width - 16;
-                    label.relativePosition = new Vector2(8, 0);
-                    label.SendToBack();
-                    component.height = 122; // !!
-                    break;
-                case Stage.Final:
-                    float cumulativeHeight = 0;
-
-                    UILabel labelRadius = component.AddUIComponent<UILabel>();
-                    labelRadius.textScale = 0.9f;
-                    labelRadius.text = "Main axis:";
-                    labelRadius.relativePosition = new Vector2(8, cumulativeHeight);
-                    labelRadius.tooltip = "Press SHIFT +/- to adjust";
-                    labelRadius.SendToBack();
-
-                    m_radius1tf = component.AddUIComponent<NumericTextField>();
-                    m_radius1tf.relativePosition = new Vector2(component.parent.width - m_radius1tf.width - 8, cumulativeHeight);
-                    m_radius1tf.tooltip = "Press SHIFT +/- to adjust";
-                    m_radius1tf.DefaultRadius = RADIUS1_DEF;
-                    m_radius1tf.text = RADIUS1_DEF.ToString();
-                    cumulativeHeight += m_radius1tf.height + 8;
-
-                    labelRadius = component.AddUIComponent<UILabel>();
-                    labelRadius.textScale = 0.9f;
-                    labelRadius.text = "Minor axis:";
-                    labelRadius.relativePosition = new Vector2(8, cumulativeHeight);
-                    labelRadius.tooltip = "Press CTRL +/- to adjust";
-                    labelRadius.SendToBack();
-
-                    m_radius2tf = component.AddUIComponent<NumericTextField>();
-                    m_radius2tf.relativePosition = new Vector2(component.parent.width - m_radius1tf.width - 8, cumulativeHeight);
-                    m_radius2tf.tooltip = "Press CTRL +/- to adjust";
-                    m_radius2tf.DefaultRadius = RADIUS2_DEF;
-                    m_radius2tf.text = RADIUS2_DEF.ToString();
-                    cumulativeHeight += m_radius2tf.height + 8;
-
-                    var buildButton = UIWindow2.CreateButton(component);
-                    buildButton.text = "Build";
-                    buildButton.relativePosition = new Vector2(8, cumulativeHeight);
-                    buildButton.eventClick += (c, p) =>
-                    {
-                        if (ellipse != null)
-                            BuildEllipse();
-                        else
-                            UIWindow2.instance.ThrowErrorMsg("Invalid radii!");
-                    };
-                    cumulativeHeight += buildButton.height + 8;
-
-                    var controlVertices = UIWindow2.CreateCheckBox(component);
-                    controlVertices.name = "RAB_controlVertices";
-                    controlVertices.label.text = "Insert control points";
-                    controlVertices.tooltip = "Control points are inserted on main axes to keep the ellipse in shape. See workshop page";
-                    controlVertices.isChecked = this.controlVertices;
-                    controlVertices.relativePosition = new Vector3(8, cumulativeHeight);
-                    controlVertices.eventCheckChanged += (c, state) =>
-                    {
-                        this.controlVertices = state;
-                    };
-                    cumulativeHeight += controlVertices.height + 8;
-
-                    component.height = cumulativeHeight;
-                    break;
             }
         }
 
@@ -203,12 +113,12 @@ namespace RoundaboutBuilder
         private bool Radius(out int radius1, out int radius2)
         {
             radius1 = radius2 = -1;
-            if (!NumericTextField.IsValid( m_radius1tf.Value ) || !NumericTextField.IsValid(m_radius2tf.Value))
+            if (!NumericTextField.IsValid(UIWindow2.instance.P_EllipsePanel_3.Radius1tf.Value ) || !NumericTextField.IsValid(UIWindow2.instance.P_EllipsePanel_3.Radius2tf.Value))
             {
                 return false;
             }
-            radius1 = m_radius1tf.Value;
-            radius2 = m_radius2tf.Value;
+            radius1 = UIWindow2.instance.P_EllipsePanel_3.Radius1tf.Value;
+            radius2 = UIWindow2.instance.P_EllipsePanel_3.Radius2tf.Value;
             if (radius2 > radius1)
             {
                 return false;
@@ -219,9 +129,9 @@ namespace RoundaboutBuilder
         public override void IncreaseButton()
         {
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) {
-                m_radius1tf.Increase();
+                UIWindow2.instance.P_EllipsePanel_3.Radius1tf.Increase();
             } else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) {
-                m_radius2tf.Increase();
+                UIWindow2.instance.P_EllipsePanel_3.Radius2tf.Increase();
             } else
             {
 
@@ -229,8 +139,8 @@ namespace RoundaboutBuilder
                 int newRadius2 = 0;
                 if (!Radius(out int radius1, out int radius2))
                 {
-                    m_radius1tf.text = RADIUS1_DEF.ToString();
-                    m_radius1tf.text = RADIUS2_DEF.ToString();
+                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS1_DEF.ToString();
+                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS2_DEF.ToString();
                     return;
                 }
                 else
@@ -241,8 +151,8 @@ namespace RoundaboutBuilder
                 }
                 if (NumericTextField.IsValid(newRadius1) && NumericTextField.IsValid(newRadius2) && newRadius1 >= newRadius2)
                 {
-                    m_radius1tf.text = newRadius1.ToString();
-                    m_radius2tf.text = newRadius2.ToString();
+                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = newRadius1.ToString();
+                    UIWindow2.instance.P_EllipsePanel_3.Radius2tf.text = newRadius2.ToString();
                 }
 
             }
@@ -252,11 +162,11 @@ namespace RoundaboutBuilder
         {
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
             {
-                m_radius1tf.Decrease();
+                UIWindow2.instance.P_EllipsePanel_3.Radius1tf.Decrease();
             }
             else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
             {
-                m_radius2tf.Decrease();
+                UIWindow2.instance.P_EllipsePanel_3.Radius2tf.Decrease();
             }
             else
             {
@@ -265,8 +175,8 @@ namespace RoundaboutBuilder
                 int newRadius2 = 0;
                 if (!Radius(out int radius1, out int radius2))
                 {
-                    m_radius1tf.text = RADIUS1_DEF.ToString();
-                    m_radius1tf.text = RADIUS2_DEF.ToString();
+                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS1_DEF.ToString();
+                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS2_DEF.ToString();
                     return;
                 }
                 else
@@ -277,8 +187,8 @@ namespace RoundaboutBuilder
                 }
                 if (NumericTextField.IsValid(newRadius1) && NumericTextField.IsValid(newRadius2) && newRadius1 >= newRadius2)
                 {
-                    m_radius1tf.text = newRadius1.ToString();
-                    m_radius2tf.text = newRadius2.ToString();
+                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = newRadius1.ToString();
+                    UIWindow2.instance.P_EllipsePanel_3.Radius2tf.text = newRadius2.ToString();
                 }
 
             }
@@ -287,8 +197,12 @@ namespace RoundaboutBuilder
         protected override void OnDisable()
         {
             base.OnDisable();
-            stage = Stage.CentralPoint;
             ellipse = null;
+        }
+
+        public override void GoToFirstStage()
+        {
+            stage = Stage.CentralPoint;
         }
 
         /* This draws UI shapes on the map. */

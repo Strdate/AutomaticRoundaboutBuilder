@@ -1,6 +1,8 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
+using Provisional.Actions;
 using RoundaboutBuilder.UI;
+using SharedEnvironment.Public.Actions;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,19 +21,19 @@ namespace RoundaboutBuilder.Tools
         public static readonly int ITERATIONS = 8;
         public static readonly int MIN_BEZIER_LENGTH = 10;
 
-        Randomizer randomizer;
         ushort CenterNodeId;
         NetNode CenterNode;
         GraphTraveller2 traveller;
         Ellipse ellipse;
+        private ActionGroup m_group = new ActionGroup("TMPE action group");
 
         public List<VectorNodeStruct> Intersections { get; private set; } = new List<VectorNodeStruct>();
+        
         private List<ushort> ToBeReleasedNodes = new List<ushort>();
         private List<ushort> ToBeReleasedSegments = new List<ushort>();
 
         public EdgeIntersections2(GraphTraveller2 traveller, ushort centerNodeId, Ellipse ellipse)
         {
-            randomizer = Singleton<SimulationManager>.instance.m_randomizer;
             CenterNodeId = centerNodeId;
             CenterNode = GetNode(centerNodeId);
             this.traveller = traveller;
@@ -51,7 +53,7 @@ namespace RoundaboutBuilder.Tools
             if (Intersections.Count == 0 && ellipse.IsCircle())
             {
                 Vector3 defaultIntersection = new Vector3(ellipse.RadiusMain, 0, 0) + ellipse.Center;
-                CreateNode(out ushort newNodeId, CenterNode.Info, defaultIntersection);
+                ushort newNodeId = NetAccess.CreateNode(CenterNode.Info, defaultIntersection);
                 Intersections.Add(new VectorNodeStruct(newNodeId));
             }
 
@@ -104,7 +106,7 @@ namespace RoundaboutBuilder.Tools
                         //EllipseTool.Instance.debugDraw.Add(outerBezier);
 
                         /* We create a node at the intersection. */
-                        CreateNode(out ushort newNodeId, CenterNode.Info, intersection);
+                        ushort newNodeId = NetAccess.CreateNode(CenterNode.Info, intersection);
                         Intersections.Add(new VectorNodeStruct(newNodeId));
 
                         BezierToSegment(outerBezier, traveller.OuterSegments[i], newNodeId, traveller.OuterNodes[i]);
@@ -145,7 +147,7 @@ namespace RoundaboutBuilder.Tools
                 ushort newNodeId;
                 ushort newSegmentId;
 
-                CreateNode(out newNodeId, CenterNode.Info, circleIntersection);
+                newNodeId = NetAccess.CreateNode(CenterNode.Info, circleIntersection);
 
                 Intersections.Add(new VectorNodeStruct(newNodeId));
                 //EllipseTool.Instance.debugDrawPositions.Add(Intersections.Last().vector);
@@ -177,10 +179,11 @@ namespace RoundaboutBuilder.Tools
                 }
 
 
-                NetManager.instance.CreateSegment(out newSegmentId, ref randomizer, curSegment.Info, newNodeId, traveller.OuterNodes[i],
-            startDirection, endDirection, Singleton<SimulationManager>.instance.m_currentBuildIndex + 1,
-                    Singleton<SimulationManager>.instance.m_currentBuildIndex, invert);
+                newSegmentId = NetAccess.CreateSegment(newNodeId, traveller.OuterNodes[i],
+            startDirection, endDirection, curSegment.Info, invert);
 
+                m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction(newSegmentId, true));
+                m_group.Actions.Add(new YieldSignAction(newSegmentId, true));
                 //Debug.Log(string.Format("Segment and node created... "));
             }
         }
@@ -238,10 +241,19 @@ namespace RoundaboutBuilder.Tools
                 invert = !invert;
             }
 
-            bool result = NetManager.instance.CreateSegment(out ushort newSegmentId, ref randomizer, oldSegment.Info, startNodeId, endNodeId,
-            startDirection, endDirection, Singleton<SimulationManager>.instance.m_currentBuildIndex + 1,
-                    Singleton<SimulationManager>.instance.m_currentBuildIndex, invert);
-            if (!result) UIWindow2.instance.ThrowErrorMsg("The game failed to create one of the road segments.");
+            try
+            {
+                ushort newSegmentId = NetAccess.CreateSegment(startNodeId, endNodeId,
+            startDirection, endDirection, oldSegment.Info, invert);
+
+                m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction(newSegmentId, true));
+                m_group.Actions.Add(new YieldSignAction(newSegmentId, true));
+            }
+            catch(Exception e)
+            {
+                UIWindow2.instance.ThrowErrorMsg("The game failed to create one of the road segments.");
+                Debug.LogError(e.ToString());
+            }            
         }
 
         /* Sometimes it happens that we split the road too close to another segment. If that occur, the roads do glitch. In that case 
@@ -314,72 +326,32 @@ namespace RoundaboutBuilder.Tools
             return beziers;
         }
 
+        public ActionGroup TmpeActionGroup() => m_group;
+
         private void ReleaseNodesAndSegments(GraphTraveller2 traveller)
         {
             foreach (ushort segment in traveller.InnerSegments)
             {
-                ReleaseSegment(segment);
+                NetAccess.ReleaseSegment(segment);
             }
             foreach (ushort segment in traveller.OuterSegments)
             {
-                ReleaseSegment(segment);
+                NetAccess.ReleaseSegment(segment);
             }
             foreach (ushort segment in ToBeReleasedSegments)
             {
-                ReleaseSegment(segment);
+                NetAccess.ReleaseSegment(segment);
             }
             foreach (ushort node in traveller.InnerNodes)
             {
-                ReleaseNode(node);
+                NetAccess.ReleaseNode(node);
             }
             foreach (ushort node in ToBeReleasedNodes)
             {
-                ReleaseNode(node);
+                NetAccess.ReleaseNode(node);
             }
         }
 
-        public static bool ReleaseSegment(ushort id)
-        {
-            if(id > 0 && (NetManager.instance.m_segments.m_buffer[id].m_flags & NetSegment.Flags.Created) != NetSegment.Flags.None)
-            {
-                NetManager.instance.ReleaseSegment(id, true);
-                return true;
-            }
-            else
-            {
-                Debug.LogWarning("Failed to release NetSegment " + id);
-                return false;
-            }
-        }
-
-        public static bool ReleaseNode(ushort id)
-        {
-            if (GetNode(id).CountSegments() > 0)
-            {
-                Debug.LogWarning("Failed to release NetNode " + id + ": Has segments");
-                return false;
-            }
-
-            if (id > 0 && (NetManager.instance.m_nodes.m_buffer[id].m_flags & NetNode.Flags.Created) != NetNode.Flags.None)
-            {
-                NetManager.instance.ReleaseNode(id);
-                return true;
-            }
-            else
-            {
-                Debug.LogWarning("Failed to release NetNode " + id);
-                return false;
-            }
-        }
-
-        public void CreateNode(out ushort nodeId,NetInfo info, Vector3 position)
-        {
-            bool result = NetManager.instance.CreateNode(out nodeId, ref randomizer, info, position,
-                Singleton<SimulationManager>.instance.m_currentBuildIndex + 1);
-
-            if (!result)
-                throw new Exception("Failed to create NetNode at " + position.ToString());
-        }
 
         /* Utility */
         public double Distance(Vector2 vec1,Vector2 vec2)

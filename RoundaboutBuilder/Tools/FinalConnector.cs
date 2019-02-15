@@ -1,5 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
+using Provisional.Actions;
+using SharedEnvironment.Public.Actions;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -28,14 +30,13 @@ namespace RoundaboutBuilder.Tools
         private bool leftHandTraffic;
         private Ellipse ellipse;
         private NetInfo centerNodeNetInfo;
+        private ActionGroup m_group;
 
         // Time to time something goes wrong. Let's make sure that we don't get stuck in infinite recursion.
         // Didn't happen to me since I degbugged it, but one never knows for sure.
         private int pleasenoinfiniterecursion;
 
-        Randomizer randomizer;
-
-        public FinalConnector(NetInfo centerNodeNetInfo, List<VectorNodeStruct> intersections, Ellipse ellipse, bool insertControllingVertices)
+        public FinalConnector(NetInfo centerNodeNetInfo, List<VectorNodeStruct> intersections, Ellipse ellipse, bool insertControllingVertices, ActionGroup tmpeActionGroup)
         {
             this.ellipse = ellipse;
             pleasenoinfiniterecursion = 0;
@@ -43,7 +44,7 @@ namespace RoundaboutBuilder.Tools
             this.centerNodeNetInfo = centerNodeNetInfo;
             leftHandTraffic = Singleton<SimulationManager>.instance.m_metaData.m_invertTraffic ==
                                     SimulationMetaData.MetaBool.True;
-            randomizer = Singleton<SimulationManager>.instance.m_randomizer;
+            m_group = tmpeActionGroup;
 
             if(!ellipse.IsCircle() && insertControllingVertices)
             {
@@ -56,6 +57,8 @@ namespace RoundaboutBuilder.Tools
             {
                 FindClosestAndConnect(intersections[i]);
             }
+
+            ModThreading.Timer(m_group);
         }
 
         private void FindClosestAndConnect(VectorNodeStruct intersection)
@@ -143,8 +146,7 @@ namespace RoundaboutBuilder.Tools
             NetNode oldNetNode = GetNode(prevNodeID);
             double angle = Ellipse.VectorsAngle(oldNetNode.m_position - ellipse.Center) + INTERMEDIATE_NODE_DISTANCE;
 
-            NetManager.instance.CreateNode(out ushort newNodeId, ref randomizer, oldNetNode.Info, ellipse.VectorAtAbsoluteAngle(angle),
-                Singleton<SimulationManager>.instance.m_currentBuildIndex + 1);
+            ushort newNodeId = NetAccess.CreateNode(oldNetNode.Info, ellipse.VectorAtAbsoluteAngle(angle));
 
             VectorNodeStruct newNode = new VectorNodeStruct(newNodeId);
 
@@ -179,36 +181,36 @@ namespace RoundaboutBuilder.Tools
 
             //NetInfo netPrefab = PrefabCollection<NetInfo>.FindLoaded("Oneway Road");
             NetInfo netPrefab = UI.UIWindow2.instance.dropDown.Value;
-            var result = NetManager.instance.CreateSegment(out ushort newSegmentId, ref randomizer, netPrefab, (leftHandTraffic ? vectorNode2 : vectorNode1).nodeId,
-                (leftHandTraffic ? vectorNode1 : vectorNode2).nodeId,
-                (leftHandTraffic ? vec2 : vec1), (leftHandTraffic ? vec1 : vec2), Singleton<SimulationManager>.instance.m_currentBuildIndex + 1,
-                        Singleton<SimulationManager>.instance.m_currentBuildIndex, invert);
+            ushort newSegmentId = NetAccess.CreateSegment(vectorNode1.nodeId, vectorNode2.nodeId, vec1, vec2, netPrefab, invert, leftHandTraffic);
 
             /* Sometime in the future ;) */
 
-            /*try
+            try
             {
                 SetupTMPE(newSegmentId);
             }
             catch (Exception e)
             {
                 Debug.LogError(e);
-            }*/
+            }
             //Debug.Log(string.Format("Building segment between nodes {0}, {1}, bezier scale {2}", node1, node2, scale));
         }
 
-        /*private void SetupTMPE(ushort segment)
+        private void SetupTMPE(ushort segment)
         {
             /* None of this below works: */
-            /*bool result = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetEnteringBlockedJunctionAllowed(segment, true, true);
-            bool result2 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetEnteringBlockedJunctionAllowed(segment, false, true);
-            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetPedestrianCrossingAllowed(segment, false, false);
-            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetPedestrianCrossingAllowed(segment, true, false);
-            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetUturnAllowed(segment, false, true);
-            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetLaneChangingAllowedWhenGoingStraight(segment, false, false);
-            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetLaneChangingAllowedWhenGoingStraight(segment, true, false);
-            Debug.Log($"Setting up tmpe. Result: {result}, {result2}");
-        }*/
+            /*bool resultPrev1 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.IsEnteringBlockedJunctionAllowed(segment,false);
+            bool resultPrev2 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.IsEnteringBlockedJunctionAllowed(segment,true);
+            bool result1 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetEnteringBlockedJunctionAllowed(segment, false, true);
+            bool result2 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetEnteringBlockedJunctionAllowed(segment, true, true);
+            bool resultPost1 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.IsEnteringBlockedJunctionAllowed(segment, false);
+            bool resultPost2 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.IsEnteringBlockedJunctionAllowed(segment, true);*/
+            /*Debug.Log($"Setting up tmpe segment {segment}. Result: {resultPrev1}, {resultPrev2}, {result1}, {result2}, {resultPost1}, {resultPost2}");
+            ModThreading.Timer(segment);*/
+            m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, true) );
+            m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, false) );
+            m_group.Actions.Add(new NoParkingAction(segment));
+        }
 
         /* Please for your own sake don't look at this method! There definitely exist algorithms that compute this with efficiency
          * better than the two nested FOR cycles, but whatever. Still better than O(n!), isn't it? (The first FOR cycle is in
