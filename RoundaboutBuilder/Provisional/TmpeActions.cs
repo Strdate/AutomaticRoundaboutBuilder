@@ -49,6 +49,46 @@ namespace SharedEnvironment.Public.Actions
 
     }
 
+    public class NoCrossingsAction : Provisional.Actions.Action
+    {
+        private ushort m_segment;
+        private bool m_startNode;
+
+        public NoCrossingsAction(ushort segment, bool startNode) : base("TMPE setup", false)
+        {
+            m_segment = segment;
+            m_startNode = startNode;
+        }
+
+        protected override void DoImplementation()
+        {
+            if (IsPolicyAllowed())
+                Implementation();
+        }
+
+        protected override void RedoImplementation()
+        {
+            if (IsPolicyAllowed())
+                Implementation();
+        }
+
+        protected override void UndoImplementation()
+        {
+            // ignore
+        }
+
+        protected void Implementation()
+        {
+            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetPedestrianCrossingAllowed(m_segment, m_startNode, false);
+        }
+
+        protected bool IsPolicyAllowed()
+        {
+            return ModLoadingExtension.tmpeDetected && UIWindow2.SavedSetupTmpe && TmpeSetupPanel.SavedNoCrossings;
+        }
+
+    }
+
     public class NoParkingAction : Provisional.Actions.Action
     {
         private ushort m_segment;

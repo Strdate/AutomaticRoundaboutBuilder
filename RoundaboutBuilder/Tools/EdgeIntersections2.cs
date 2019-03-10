@@ -9,7 +9,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.2.0 */
+/* Version RELEASE 1.1.0+ */
 
 /* This class takes the edge segments obrained by GraphTraveller2, creates a node where they intersect with the future roundabout and
  * connects that node with the outer node of the segment. */
@@ -86,16 +86,19 @@ namespace RoundaboutBuilder.Tools
                         segmentBeziers[i].Divide(out Bezier2 segementBezier1, out Bezier2 segementBezier2, t2);
                         Bezier2 outerBezier;
                         Vector2 outerNodePos = new Vector2(GetNode(traveller.OuterNodes[i]).m_position.x, GetNode(traveller.OuterNodes[i]).m_position.z);
+                        bool invert = false;
                         // outerBezier - the bezier outside the ellipse (not the one inside)
                         if (segementBezier1.Position(0f) == outerNodePos || segementBezier1.Position(1f) == outerNodePos)
                         {
                             //Debug.Log("first is outer");
-                            outerBezier = segementBezier1;
+                            outerBezier = segementBezier1.Invert();
+                            invert = true;
                         }
                         else if (segementBezier2.Position(0f) == outerNodePos || segementBezier2.Position(1f) == outerNodePos)
                         {
                             //Debug.Log("second is probably outer");
                             outerBezier = segementBezier2;
+                            invert = false;
                         }
                         else
                         {
@@ -109,7 +112,7 @@ namespace RoundaboutBuilder.Tools
                         ushort newNodeId = NetAccess.CreateNode(CenterNode.Info, intersection);
                         Intersections.Add(new VectorNodeStruct(newNodeId));
 
-                        BezierToSegment(outerBezier, traveller.OuterSegments[i], newNodeId, traveller.OuterNodes[i]);
+                        BezierToSegment(outerBezier, traveller.OuterSegments[i], newNodeId, traveller.OuterNodes[i], invert);
                     }
                 }
             }
@@ -188,14 +191,13 @@ namespace RoundaboutBuilder.Tools
             }
         }
 
-        private void BezierToSegment(Bezier2 bezier2, ushort oldSegmentId, ushort startNodeId, ushort endNodeId)
+        private void BezierToSegment(Bezier2 bezier2, ushort oldSegmentId, ushort startNodeId, ushort endNodeId, bool invert)
         {
             NetSegment oldSegment = GetSegment(oldSegmentId);
-            bool invert = false;
             Vector2 startDirection2d;
             Vector2 endDirection2d;
             Vector2 nodePos2d = new Vector2(GetNode(startNodeId).m_position.x, GetNode(startNodeId).m_position.z);
-            if ( Distance(nodePos2d,bezier2.Position(0f)) < 10e-3d)
+            /*if ( Distance(nodePos2d,bezier2.Position(0f)) < 10e-3d)
             {
                 //0f is on the ellipse
             }
@@ -208,7 +210,7 @@ namespace RoundaboutBuilder.Tools
             else
             {
                 throw new Exception(string.Format("Error - no intersection of bezier and point. Dist: {0}, {1}",Distance(nodePos2d,bezier2.Position(0f)), Distance(nodePos2d, bezier2.Position(1f))));
-            }
+            }*/
             startDirection2d = bezier2.Tangent(0f);
             endDirection2d = bezier2.Tangent(1f);
 

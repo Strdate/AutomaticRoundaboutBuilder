@@ -2,6 +2,8 @@
 using ColossalFramework.UI;
 using UnityEngine;
 
+/* Version RELEASE 1.0.2+ */
+
 namespace RoundaboutBuilder.UI
 {
     public abstract class AbstractPanel : UIPanel
@@ -16,6 +18,7 @@ namespace RoundaboutBuilder.UI
             isVisible = false;
             width = 204;
             height = 188;
+            clipChildren = true;
         }
     }
 
@@ -179,6 +182,7 @@ namespace RoundaboutBuilder.UI
         public static readonly SavedBool SavedEnterBlockedJunction = new SavedBool("tmpeEnterBlockedJunction", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool SavedNoParking = new SavedBool("tmpeNoParking", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool SavedPrioritySigns = new SavedBool("tmpePrioritySigns", RoundAboutBuilder.settingsFileName, false, true);
+        public static readonly SavedBool SavedNoCrossings = new SavedBool("tmpeNoCrossings", RoundAboutBuilder.settingsFileName, false, true);
 
         public TmpeSetupPanel()
         {
@@ -225,6 +229,18 @@ namespace RoundaboutBuilder.UI
             checkBox.eventCheckChanged += (c, state) =>
             {
                 SavedPrioritySigns.value = state;
+            };
+            cumulativeHeight += checkBox.height + 8;
+
+            checkBox = UIWindow2.CreateCheckBox(this);
+            checkBox.name = "RAB_noCrossings";
+            checkBox.label.text = "Disable crosswalks";
+            checkBox.tooltip = "Disallow pedestrians to cross to inner ring of the roundabout (Does not change visual appearance)";
+            checkBox.isChecked = SavedNoCrossings;
+            checkBox.relativePosition = new Vector3(8, cumulativeHeight);
+            checkBox.eventCheckChanged += (c, state) =>
+            {
+                SavedNoCrossings.value = state;
             };
             cumulativeHeight += checkBox.height + 8;
 

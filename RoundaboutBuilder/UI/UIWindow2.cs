@@ -3,11 +3,11 @@ using ColossalFramework.UI;
 using System;
 using UnityEngine;
 
-/* Version BETA 1.2.0 */
+/* Version RELEASE 1.0.1+ */
 
 /* By Strad, 2019 */
 
-/* Credit to SamsamTS a T__S from whom I copied big chunks of code */
+/* Credit to SamsamTS and T__S from whom I copied big chunks of code */
 
 namespace RoundaboutBuilder.UI
 {
@@ -128,6 +128,8 @@ namespace RoundaboutBuilder.UI
             /* Bottom section */
 
             m_setupTmpeSection = AddUIComponent<UIPanel>();
+            m_setupTmpeSection.width = 204f;
+            m_setupTmpeSection.clipChildren = true;
             var setupTmpe = CreateCheckBox(m_setupTmpeSection);
             setupTmpe.name = "RAB_setupTmpe";
             setupTmpe.label.text = "Setup TMPE";
@@ -164,6 +166,7 @@ namespace RoundaboutBuilder.UI
             keepOpen.tooltip = "Window won't close automatically when the tool is unselected";
             keepOpen.isChecked = true;
             keepOpen.relativePosition = new Vector3(8, cummulativeHeight);
+            keepOpen.width = 196; // width - padding
             keepOpen.eventCheckChanged += (c, state) =>
             {
                 this.keepOpen = state;
@@ -412,14 +415,5 @@ namespace RoundaboutBuilder.UI
 
             return button;
         }
-
-        /* UI View Button. This is mostly copy pasta */
-
-
-
-        
-
-        // Token: 0x0400000F RID: 15
-        //private PropertyChangedEventHandler<int> builtinModeChangedHandler = null;
     }
 }

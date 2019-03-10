@@ -8,7 +8,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.2.0 */
+/* Version RELEASE 1.1.0+ */
 
 namespace RoundaboutBuilder.Tools
 {
@@ -22,8 +22,9 @@ namespace RoundaboutBuilder.Tools
 
     public class FinalConnector
     {
-        private static readonly double MAX_ANGULAR_DISTANCE = Math.PI / 2d + 0.1d; // Maximal angular distance between two nodes on the circle
-        private static readonly double INTERMEDIATE_NODE_DISTANCE = Math.PI / 3d;
+        //Since RELEASE 1.1.0 this variable is dependent on radius
+        //private static readonly double MAX_ANGULAR_DISTANCE = Math.PI / 2d + 0.1d; // Maximal angular distance between two nodes on the circle
+        //private static readonly double INTERMEDIATE_NODE_DISTANCE = Math.PI / 3d;
         private static readonly int DISTANCE_MIN = 20; // Min distance from other nodes when inserting controlling node
 
         private List<VectorNodeStruct> intersections;
@@ -31,6 +32,7 @@ namespace RoundaboutBuilder.Tools
         private Ellipse ellipse;
         private NetInfo centerNodeNetInfo;
         private ActionGroup m_group;
+        private double m_maxAngDistance;
 
         // Time to time something goes wrong. Let's make sure that we don't get stuck in infinite recursion.
         // Didn't happen to me since I degbugged it, but one never knows for sure.
@@ -45,6 +47,9 @@ namespace RoundaboutBuilder.Tools
             leftHandTraffic = Singleton<SimulationManager>.instance.m_metaData.m_invertTraffic ==
                                     SimulationMetaData.MetaBool.True;
             m_group = tmpeActionGroup;
+
+            // For circles only
+            m_maxAngDistance = Math.Min(Math.PI * 25 / ellipse.RadiusMain , Math.PI/2 + 0.1d);
 
             if(!ellipse.IsCircle() && insertControllingVertices)
             {
@@ -69,9 +74,9 @@ namespace RoundaboutBuilder.Tools
 
             /* If the distance between two nodes is too great, we put in an intermediate node inbetween */
             // Old method, now using only for circles. Ellipses have control points instead
-            if (ellipse.IsCircle() && angDistance > MAX_ANGULAR_DISTANCE)
+            if (ellipse.IsCircle() && angDistance > m_maxAngDistance)
             {
-                closestNode = AddIntermediateNodeCircle(intersection.nodeId);
+                closestNode = AddIntermediateNodeCircle(intersection.nodeId,angDistance);
             }
             ConnectNodes(intersection, closestNode, angDistance);
         }
@@ -140,11 +145,11 @@ namespace RoundaboutBuilder.Tools
             return Ellipse.VectorsAngle(absPosition - ellipse.Center);
         }
 
-        /* Legacy algorithm. For circles only. */
-        private VectorNodeStruct AddIntermediateNodeCircle(ushort prevNodeID)
+        /* For circles only. */
+        private VectorNodeStruct AddIntermediateNodeCircle(ushort prevNodeID,double prevAngle)
         {
             NetNode oldNetNode = GetNode(prevNodeID);
-            double angle = Ellipse.VectorsAngle(oldNetNode.m_position - ellipse.Center) + INTERMEDIATE_NODE_DISTANCE;
+            double angle = Ellipse.VectorsAngle(oldNetNode.m_position - ellipse.Center) + prevAngle/Math.Ceiling(prevAngle/m_maxAngDistance);
 
             ushort newNodeId = NetAccess.CreateNode(oldNetNode.Info, ellipse.VectorAtAbsoluteAngle(angle));
 
@@ -209,6 +214,8 @@ namespace RoundaboutBuilder.Tools
             ModThreading.Timer(segment);*/
             m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, true) );
             m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, false) );
+            m_group.Actions.Add(new NoCrossingsAction(segment, true));
+            m_group.Actions.Add(new NoCrossingsAction(segment, false));
             m_group.Actions.Add(new NoParkingAction(segment));
         }
 

@@ -4,6 +4,13 @@ Version RELEASE 1.0.0
 January 2019
 
 <update>
+VERSION RELEASE 1.0.1
+
+- BUGFIX: UI components no more protrude from the widnow
+- Allowed key navigation in road dropdown menu
+</update>
+
+<update>
 VERSION RELEASE 1.0.0
 
 - UI Button

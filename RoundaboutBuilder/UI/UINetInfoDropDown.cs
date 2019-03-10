@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-/* Version BETA 1.2.0 */
+/* Version RELEASE 1.0.1+ */
 
 /* By Strad, 2019 */
 
@@ -17,6 +17,7 @@ namespace RoundaboutBuilder.UI
     {
         //StringBuilder sb = new StringBuilder();
         private NetInfo[] m_netInfos;
+        private SortedDictionary<string, NetInfo> m_dictionary;
 
         public UINetInfoDropDown()
         {
@@ -34,6 +35,7 @@ namespace RoundaboutBuilder.UI
             listHeight = 1000;
             listPosition = UIDropDown.PopupListPosition.Below;
             clampListToScreen = true;
+            builtinKeyNavigation = true;
             foregroundSpriteMode = UIForegroundSpriteMode.Stretch;
             popupColor = new Color32(45, 52, 61, 255);
             popupTextColor = new Color32(170, 170, 170, 255);
@@ -64,9 +66,6 @@ namespace RoundaboutBuilder.UI
             button.zOrder = 0;
             button.textScale = 0.8f;
 
-            //UIScrollbar scrollBar = AddUIComponent<UIScrollbar>();
-            //listScrollbar = scrollBar;
-
             eventSizeChanged += new PropertyChangedEventHandler<Vector2>((c, t) =>
             {
                 button.size = t; listWidth = (int)t.x;
@@ -94,7 +93,7 @@ namespace RoundaboutBuilder.UI
         private void Populate()
         {
             var count = PrefabCollection<NetInfo>.PrefabCount();
-            var sortedNetworks = new SortedDictionary<string, NetInfo>();
+            m_dictionary = new SortedDictionary<string, NetInfo>();
             for (uint i = 0; i < count; i++)
             {
                 var prefab = PrefabCollection<NetInfo>.GetPrefab(i);
@@ -106,13 +105,13 @@ namespace RoundaboutBuilder.UI
                     {
                         string beautified = GenerateBeautifiedNetName(prefab);
                         //sb.Append(beautified + " ");
-                        sortedNetworks[beautified] = prefab;
+                        m_dictionary[beautified] = prefab;
                     }
                 }
             }
 
-            items = sortedNetworks.Keys.ToArray();
-            m_netInfos = sortedNetworks.Values.ToArray();
+            items = m_dictionary.Keys.ToArray();
+            m_netInfos = m_dictionary.Values.ToArray();
 
             /* Set strandard oneway as default */
             selectedIndex = Array.IndexOf(m_netInfos, PrefabCollection<NetInfo>.FindLoaded("Oneway Road"));

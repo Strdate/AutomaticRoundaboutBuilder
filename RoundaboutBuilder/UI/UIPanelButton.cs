@@ -10,6 +10,11 @@ namespace RoundaboutBuilder.UI
     {
         public UIPanelButton()
         {
+            
+        }
+
+        public override void Start()
+        {
             var roadsOptionPanel = UIUtils.Instance.FindComponent<UIComponent>("RoadsOptionPanel", null, UIUtils.FindOptions.NameContains);
             var builtinTabstrip = UIUtils.Instance.FindComponent<UITabstrip>("ToolMode", roadsOptionPanel, UIUtils.FindOptions.None);
 
@@ -25,8 +30,15 @@ namespace RoundaboutBuilder.UI
                 "RoundaboutIcon",
                 "RoundaboutIconPressed"
             };
-            atlas = ResourceLoader.CreateTextureAtlas("sprites.png", "RoundaboutUI", uibutton.atlas.material, num, num2, spriteNames);
-            
+            if(ResourceLoader.GetAtlas("RoundaboutUI") == UIView.GetAView().defaultAtlas)
+            {
+                atlas = ResourceLoader.CreateTextureAtlas("sprites.png", "RoundaboutUI", uibutton.atlas.material, num, num2, spriteNames);
+            }
+            else
+            {
+                atlas = ResourceLoader.GetAtlas("RoundaboutUI");
+            }
+
             name = "RoundaboutButton";
             size = new Vector2((float)num, (float)num2);
             normalBgSprite = "RoundaboutButtonBg";

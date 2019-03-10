@@ -17,7 +17,7 @@ namespace RoundaboutBuilder
     {
         public static bool LevelLoaded = false;
         public static bool tmpeDetected = false;
-        private string _string = "Plugins: ";
+        //private string _string = "Plugins: ";
 
         // called when level loading begins
         public void OnCreated(ILoading loading)
@@ -28,10 +28,10 @@ namespace RoundaboutBuilder
                 if ((current.name.Contains("Traffic Manager") || current.publishedFileID.AsUInt64 == 583429740 || current.publishedFileID.AsUInt64 == 1637663252) && current.isEnabled)
                 {
                     tmpeDetected = true;
-                    _string += "[TMPE Detected!]";
+                    //_string += "[TMPE Detected!]";
                 }
             }
-            Debug.Log(_string);
+            //Debug.Log(_string);
         }
                             
 
@@ -56,7 +56,7 @@ namespace RoundaboutBuilder
                 UIView.GetAView().AddUIComponent(typeof(UIWindow2));
             }
 
-            Debug.Log(_string);
+            //Debug.Log(_string);
             LevelLoaded = true;
             //debug();
         }

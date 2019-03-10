@@ -7,7 +7,7 @@ using UnityEngine;
 
 /* By Strad, 02/2019 */
 
-/* Version RELEASE 1.0.0 */
+/* Version RELEASE 1.0.2 */
 
 /* Warning: I am lazy thus the version labels across the files may not be updated */
 
@@ -15,7 +15,7 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.0.0";
+        public static readonly string VERSION = "RELEASE 1.1.0";
         public bool OldSnappingAlgorithm { get; private set; } = false;
 
         public const string settingsFileName = "RoundaboutBuilder";
@@ -51,7 +51,7 @@ namespace RoundaboutBuilder
 
         public string Description
         {
-            get { return "Press CTRL+O to open menu. [" + VERSION + "]"; }
+            get { return "Press CTRL+O to open mod menu [" + VERSION + "]"; }
             //get { return "Automatically builds roundabouts. [" + VERSION + "]"; }
 
         }
