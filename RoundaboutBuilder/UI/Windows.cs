@@ -150,6 +150,7 @@ namespace RoundaboutBuilder.UI
             var buildButton = UIWindow2.CreateButton(this);
             buildButton.text = "Build";
             buildButton.relativePosition = new Vector2(8, cumulativeHeight);
+            buildButton.playAudioEvents = false;
             buildButton.eventClick += (c, p) =>
             {
                 EllipseTool.Instance.BuildEllipse();

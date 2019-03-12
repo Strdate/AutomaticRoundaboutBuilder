@@ -1,5 +1,6 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
+using System;
 using UnityEngine;
 
 /* By Strad, 01/2019 */
@@ -13,10 +14,12 @@ using UnityEngine;
 namespace RoundaboutBuilder.Tools
 {
     /* In the end not a struct. Whatever. */
-    public class VectorNodeStruct
+    public class VectorNodeStruct : IComparable<VectorNodeStruct>
     {
         public Vector3 vector { get; private set; } // not memory efficient, but doesn't make much difference. Sometimes I need to create the vector first before the node.
         public ushort nodeId { get; private set; } = 0;
+
+        public double angle = 0;
 
         public NetNode node { get { return GetNode(nodeId); } }
 
@@ -59,5 +62,16 @@ namespace RoundaboutBuilder.Tools
         {
             return Manager.m_nodes.m_buffer[id];
         }
+
+        public int CompareTo(VectorNodeStruct other)
+        {
+            if (angle - other.angle < 0.0001f)
+                return 0;
+            else if (angle > other.angle)
+                return -1;
+
+            return 1;
+        }
+
     }
 }

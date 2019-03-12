@@ -8,23 +8,16 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version RELEASE 1.1.0+ */
+/* Version RELEASE 1.2.0+ */
 
 namespace RoundaboutBuilder.Tools
 {
     /* This class takes the nodes obtained from EdgeIntersections2 and connects them together to create the final roundabout. */
 
-    /* Warning! This is not the most efficient algorithm on Earth, as you will see... */
-
     /* This is all such garbage with old algortithms mixing with new and other stuff... Not the nicest piece of code. */
-
-    /* To make this faster, you could use some pre-sorted list of nodes or something like that. I am not implementing that. (for now) */
 
     public class FinalConnector
     {
-        //Since RELEASE 1.1.0 this variable is dependent on radius
-        //private static readonly double MAX_ANGULAR_DISTANCE = Math.PI / 2d + 0.1d; // Maximal angular distance between two nodes on the circle
-        //private static readonly double INTERMEDIATE_NODE_DISTANCE = Math.PI / 3d;
         private static readonly int DISTANCE_MIN = 20; // Min distance from other nodes when inserting controlling node
 
         private List<VectorNodeStruct> intersections;
@@ -48,55 +41,64 @@ namespace RoundaboutBuilder.Tools
                                     SimulationMetaData.MetaBool.True;
             m_group = tmpeActionGroup;
 
-            // For circles only
+            // We ensure that the segments are not too long. For circles only (with ellipses it would be more difficult)
             m_maxAngDistance = Math.Min(Math.PI * 25 / ellipse.RadiusMain , Math.PI/2 + 0.1d);
 
-            if(!ellipse.IsCircle() && insertControllingVertices)
+            bool isCircle = ellipse.IsCircle();
+            if (!isCircle && insertControllingVertices)
             {
                 /* See doc in the method below */
                 InsertIntermediateNodes();
             }
 
-            /* Goes over all the nodes and conntets each of them to the angulary closest neighbour. (In a given direction) */
-            for (int i = 0; i < intersections.Count; i++)
+            int count = intersections.Count;
+            foreach (VectorNodeStruct item in intersections)
             {
-                FindClosestAndConnect(intersections[i]);
+                item.angle = Ellipse.VectorsAngle(item.vector - ellipse.Center);
+            }
+
+            /* We sort the nodes according to their angles */
+            intersections.Sort();
+
+            /* Goes over all the nodes and conntets each of them to the angulary closest neighbour. (In a given direction) */
+            
+            for (int i = 0; i < count; i++)
+            {
+                VectorNodeStruct prevNode = intersections[i];
+                if (isCircle)
+                    prevNode = CheckAngularDistance(intersections[i], intersections[(i + 1) % count]);
+                ConnectNodes(intersections[(i + 1) % count], prevNode);
             }
 
             ModThreading.Timer(m_group);
         }
 
-        private void FindClosestAndConnect(VectorNodeStruct intersection)
+        /* For circles only. */
+        private VectorNodeStruct CheckAngularDistance(VectorNodeStruct p1, VectorNodeStruct p2)
         {
-            recursionGuard();
-
-            VectorNodeStruct closestNode = getClosestNode(intersection.vector, out double angDistance);
+            VectorNodeStruct prevNode = p1;
+            double angDif = NormalizeAngle(prevNode.angle - p2.angle);
+            if (p1 == p2)
+                angDif = 2 * Math.PI;
 
             /* If the distance between two nodes is too great, we put in an intermediate node inbetween */
-            // Old method, now using only for circles. Ellipses have control points instead
-            if (ellipse.IsCircle() && angDistance > m_maxAngDistance)
+            while ( angDif > m_maxAngDistance )
             {
-                closestNode = AddIntermediateNodeCircle(intersection.nodeId,angDistance);
+                recursionGuard();
+
+                double angle = prevNode.angle - angDif / Math.Ceiling(angDif / m_maxAngDistance);
+                ushort newNodeId = NetAccess.CreateNode(centerNodeNetInfo, ellipse.VectorAtAbsoluteAngle(angle));
+                VectorNodeStruct newNode = new VectorNodeStruct(newNodeId);
+                newNode.angle = angle;
+
+                ConnectNodes(newNode, prevNode);
+
+                prevNode = newNode;
+                angDif = NormalizeAngle(prevNode.angle - p2.angle);
             }
-            ConnectNodes(intersection, closestNode, angDistance);
+
+            return prevNode;
         }
-
-        /*private VectorNodeStruct getNotTooCloseNode(Vector3 vector, out double angDistance)
-        {
-            VectorNodeStruct closestNode = getClosestNode(vector, out angDistance);
-
-            recursionGuard();
-
-            // if too close and the node actually does not exist
-            if (closestNode.nodeId == 0 && VectorDistance(closestNode.vector, vector) < DISTANCE_MIN)
-            {
-                intersections.Remove(closestNode);
-                closestNode = getNotTooCloseNode(vector, out angDistance);
-                Debug.Log("Node too close, removing from list");
-            }
-            return closestNode;
-        }*/
-
 
         /* Ellipse only. Adds nodes where the ellipse intersects its axes to keep it in shape. User can turn this off. Kepp in mind that since we can only
          * approximate the ellipse (maybe I am wrong), every node on its circumference changes its actual shape. */
@@ -134,34 +136,14 @@ namespace RoundaboutBuilder.Tools
             intersections.AddRange(newNodes);
         }
 
-        /*private double getConjugateAngle(double angle)
-        {
-            return 2 * Math.PI - angle;
-        }*/
-
         /* See ellipse class */
         private double getAbsoluteAngle(Vector3 absPosition)
         {
             return Ellipse.VectorsAngle(absPosition - ellipse.Center);
         }
 
-        /* For circles only. */
-        private VectorNodeStruct AddIntermediateNodeCircle(ushort prevNodeID,double prevAngle)
-        {
-            NetNode oldNetNode = GetNode(prevNodeID);
-            double angle = Ellipse.VectorsAngle(oldNetNode.m_position - ellipse.Center) + prevAngle/Math.Ceiling(prevAngle/m_maxAngDistance);
 
-            ushort newNodeId = NetAccess.CreateNode(oldNetNode.Info, ellipse.VectorAtAbsoluteAngle(angle));
-
-            VectorNodeStruct newNode = new VectorNodeStruct(newNodeId);
-
-            /* Recursively repeat this action */
-            FindClosestAndConnect(newNode);
-
-            return newNode;
-        }
-
-        private void ConnectNodes(VectorNodeStruct vectorNode1, VectorNodeStruct vectorNode2, double angle)
+        private void ConnectNodes(VectorNodeStruct vectorNode1, VectorNodeStruct vectorNode2)
         {
             bool invert = leftHandTraffic;
 
@@ -186,7 +168,7 @@ namespace RoundaboutBuilder.Tools
 
             //NetInfo netPrefab = PrefabCollection<NetInfo>.FindLoaded("Oneway Road");
             NetInfo netPrefab = UI.UIWindow2.instance.dropDown.Value;
-            ushort newSegmentId = NetAccess.CreateSegment(vectorNode1.nodeId, vectorNode2.nodeId, vec1, vec2, netPrefab, invert, leftHandTraffic);
+            ushort newSegmentId = NetAccess.CreateSegment(vectorNode1.nodeId, vectorNode2.nodeId, vec1, vec2, netPrefab, invert, leftHandTraffic, true);
 
             /* Sometime in the future ;) */
 
@@ -219,33 +201,10 @@ namespace RoundaboutBuilder.Tools
             m_group.Actions.Add(new NoParkingAction(segment));
         }
 
-        /* Please for your own sake don't look at this method! There definitely exist algorithms that compute this with efficiency
-         * better than the two nested FOR cycles, but whatever. Still better than O(n!), isn't it? (The first FOR cycle is in
-         * caller of this method) */
-        private VectorNodeStruct getClosestNode(Vector3 vector, out double curMinDist)
-        {
-            VectorNodeStruct curWinner = intersections[0];
-            curMinDist = 10d;
-            for (int i = 0; i < intersections.Count; i++)
-            {
-                VectorNodeStruct onLoop = intersections[i];
-                //ushort onLoopNodeID = intersections[i];
-                //NetNode onLoopNode = GetNode(onLoopNodeID);
-                double distance = VectorAngle(vector, ellipse.Center, onLoop.vector);
-                //Debug.Log(string.Format("Angular distance between nodes {0} and {1} is {2}.",nodeID,onLoopNodeID,distance));
-                if (distance < curMinDist)
-                {
-                    curWinner = onLoop;
-                    curMinDist = distance;
-                }
-            }
-            return curWinner;
-        }
-
         private void recursionGuard()
         {
             pleasenoinfiniterecursion++;
-            if (pleasenoinfiniterecursion > 30)
+            if (pleasenoinfiniterecursion > 200)
             {
                 throw new Exception("Something went wrong! Mod got stuck in infinite recursion.");
             }
@@ -253,36 +212,13 @@ namespace RoundaboutBuilder.Tools
 
         /* Utility */
 
-        /* Computes angular distance of two nodes
-         * Thanks to https://stackoverflow.com/a/16544330/5618300 */
-        private static double VectorAngle(Vector3 v1, Vector3 center, Vector3 v3)
-        {
-            //if (node1.m_position == node3.m_position) return 2 * Math.PI;
-            if (VectorDistance(v1, v3) < 0.01f) return (2 * Math.PI);
-            Vector3 vec1 = v1 - center;
-            Vector3 vec2 = v3 - center;
-            float dot = vec1.x * vec2.x + vec1.z * vec2.z;
-            float det = vec1.x * vec2.z - vec1.z * vec2.x;
-            double angle = Math.Atan2(det, dot);
-            if (angle > 0) return angle;
-
-            return (2 * Math.PI + angle);
-        }
         private static float VectorDistance(Vector3 v1, Vector3 v2) // Without Y coordinate
         {
             return (float)(Math.Sqrt(Math.Pow(v1.x - v2.x, 2) + Math.Pow(v1.z - v2.z, 2)));
         }
-        public static NetManager Manager
+        private static double NormalizeAngle(double angle)
         {
-            get { return Singleton<NetManager>.instance; }
-        }
-        public static NetNode GetNode(ushort id)
-        {
-            return Manager.m_nodes.m_buffer[id];
-        }
-        public static NetSegment GetSegment(ushort id)
-        {
-            return Manager.m_segments.m_buffer[id];
+            return (angle % (2 * Math.PI) < 0 ? angle + 2 * Math.PI : angle);
         }
     }
 
