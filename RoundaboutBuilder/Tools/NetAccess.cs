@@ -82,7 +82,7 @@ namespace RoundaboutBuilder.Tools
             var randomizer = Singleton<SimulationManager>.instance.m_randomizer;
 
             NetNode startNode = GetNode(startNodeId);
-            NetNode endNode = GetNode(startNodeId);
+            NetNode endNode = GetNode(endNodeId);
 
             if ((startNode.m_flags & NetNode.Flags.Created) == NetNode.Flags.None || (endNode.m_flags & NetNode.Flags.Created) == NetNode.Flags.None)
                 throw new Exception("Failed to create NetSegment: Invalid node(s)");
