@@ -25,7 +25,7 @@ namespace RoundaboutBuilder
             foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
             {
                 //_string += current.name + " ";
-                if ((current.name.Contains("Traffic Manager") || current.publishedFileID.AsUInt64 == 583429740 || current.publishedFileID.AsUInt64 == 1637663252) && current.isEnabled)
+                if ((current.name.Contains("TrafficManager") || current.publishedFileID.AsUInt64 == 583429740 || current.publishedFileID.AsUInt64 == 1637663252) && current.isEnabled)
                 {
                     tmpeDetected = true;
                     //_string += "[TMPE Detected!]";
@@ -56,6 +56,12 @@ namespace RoundaboutBuilder
                 UIView.GetAView().AddUIComponent(typeof(UIWindow2));
             }
 
+            /*if (NetInfoController.instance == null)
+            {
+                GameObject gameObject = new GameObject("RoundaboutBuilderNetinfoManager");
+                NetInfoController.instance = gameObject.AddComponent<NetInfoController>();
+            }*/
+
             //Debug.Log(_string);
             LevelLoaded = true;
             //debug();
@@ -76,7 +82,10 @@ namespace RoundaboutBuilder
         // called when unloading begins
         public void OnLevelUnloading()
         {
-            UIWindow2.instance.enabled = false;
+            if(UIWindow2.instance != null)
+            {
+                UIWindow2.instance.enabled = false;
+            }
             LevelLoaded = false;
         }
 

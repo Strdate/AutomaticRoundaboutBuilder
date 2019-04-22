@@ -7,7 +7,7 @@ using UnityEngine;
 
 /* By Strad, 02/2019 */
 
-/* Version RELEASE 1.2.1 */
+/* Version RELEASE 1.3.0 */
 
 /* Warning: I am lazy thus the version labels across the files may not be updated */
 
@@ -15,12 +15,15 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.2.1";
+        public static readonly string VERSION = "RELEASE 1.3.0";
         public bool OldSnappingAlgorithm { get; private set; } = false;
 
         public const string settingsFileName = "RoundaboutBuilder";
 
         public static readonly Vector2 defWindowPosition = new Vector2(85, 10);
+        public static readonly SavedBool SelectTwoWayRoads = new SavedBool("selectTwoWayRoads", RoundAboutBuilder.settingsFileName, false, true);
+        public static readonly SavedBool DoNotRemoveAnyRoads = new SavedBool("dontRemoveRoads", RoundAboutBuilder.settingsFileName, false, true);
+        public static readonly SavedBool FollowRoadToolSelection = new SavedBool("followRoadToolSelection", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool ShowUIButton = new SavedBool("showUIButton", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool UseExtraKeys = new SavedBool("useExtraPlusMinusKeys", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool UseOldSnappingAlgorithm = new SavedBool("useOldSnappingAlgorithm", RoundAboutBuilder.settingsFileName, false, true);
@@ -74,6 +77,12 @@ namespace RoundaboutBuilder
                 });
                 checkBox.tooltip = "Show the Roundabout Builder icon in road tools panel (You can always use CTRL+O to open the mod menu)";
 
+                checkBox = (UICheckBox)group.AddCheckbox("Use the selected road in roads menu as the roundabout road", FollowRoadToolSelection.value, (b) =>
+                {
+                    FollowRoadToolSelection.value = b;
+                });
+                checkBox.tooltip = "Your selected road for the roundabout will change as you browse through the roads menu";
+
                 group.AddSpace(10);
 
                 checkBox = (UICheckBox)group.AddCheckbox("Use +/- keys on main keyboard", UseExtraKeys.value, (b) =>
@@ -89,6 +98,18 @@ namespace RoundaboutBuilder
                     UseOldSnappingAlgorithm.value = b;
                 });
                 checkBox.tooltip = "Old snapping algorithm connects roads at 90° angle, but distorts their geometry";
+
+                checkBox = (UICheckBox)group.AddCheckbox("Allow selection of two-way roads", SelectTwoWayRoads.value, (b) =>
+                {
+                    SelectTwoWayRoads.value = b;
+                });
+                checkBox.tooltip = "You can select two-way roads for your roundabouts through the roads menu (if that option is enabled)";
+
+                checkBox = (UICheckBox)group.AddCheckbox("Do not remove or connect any roads (experimental)", DoNotRemoveAnyRoads.value, (b) =>
+                {
+                    DoNotRemoveAnyRoads.value = b;
+                });
+                checkBox.tooltip = "No roads will be removed or connected when the roundabout is built";
 
                 group.AddSpace(10);
 

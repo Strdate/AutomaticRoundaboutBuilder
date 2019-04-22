@@ -23,7 +23,7 @@ namespace RoundaboutBuilder.UI
             }
         }
 
-        public static readonly int RADIUS_MAX = 500;
+        public static readonly int RADIUS_MAX = 3000;
         public static readonly int RADIUS_MIN = 5;
         public int DefaultRadius = 40;
 

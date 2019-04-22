@@ -39,6 +39,11 @@ namespace RoundaboutBuilder.Tools
         public GraphTraveller2(ushort startNodeId, int radius1, Ellipse ellipse)
         {
             Ellipse = ellipse;
+            if (RoundAboutBuilder.DoNotRemoveAnyRoads)
+            {
+                OuterNodes = OuterSegments = InnerNodes = InnerSegments = new List<ushort>();
+                return;
+            }
             DFS(startNodeId);
             noInfiniteRecursion = 0;
             m_startNodeId = startNodeId;

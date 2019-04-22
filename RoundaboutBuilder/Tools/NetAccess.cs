@@ -8,6 +8,10 @@ using UnityEngine;
 
 namespace RoundaboutBuilder.Tools
 {
+    /* By Strad, 2019 */
+
+    /* This is a little library which makes net stuff (working with segments/nodes) easier. Feel free to reuse it */
+
     public static class NetAccess
     {
         public static bool ReleaseSegment(ushort id, bool tryReleaseNodes = false, bool suppressWarnings = false)

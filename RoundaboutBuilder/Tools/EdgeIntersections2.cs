@@ -221,7 +221,7 @@ namespace RoundaboutBuilder.Tools
              * In that case, we take one more segment away from the ellipse.*/
             if (VectorDistance(bezier2.a, bezier2.d) < MIN_BEZIER_LENGTH)
             {
-                Debug.Log("Segment is too short. Launching repair mechainsm." + VectorDistance(bezier2.a, bezier2.d));
+                //Debug.Log("Segment is too short. Launching repair mechainsm." + VectorDistance(bezier2.a, bezier2.d));
                 if(nextSegmentInfo(endNodeId, oldSegmentId, out ushort endNodeIdNew, out Vector3 endDirectionNew))
                 {
                     endNodeId = endNodeIdNew;

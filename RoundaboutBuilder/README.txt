@@ -1,7 +1,9 @@
 ﻿
 Automatic Roundabout Builder by Strad
-Version RELEASE 1.0.0
+Version RELEASE 1.3.0
 January 2019
+
+Well, this file is not updated. See Steam Workshop page
 
 <update>
 VERSION RELEASE 1.0.1

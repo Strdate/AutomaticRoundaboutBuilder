@@ -204,7 +204,7 @@ namespace RoundaboutBuilder.Tools
         private void recursionGuard()
         {
             pleasenoinfiniterecursion++;
-            if (pleasenoinfiniterecursion > 200)
+            if (pleasenoinfiniterecursion > 600)
             {
                 throw new Exception("Something went wrong! Mod got stuck in infinite recursion.");
             }

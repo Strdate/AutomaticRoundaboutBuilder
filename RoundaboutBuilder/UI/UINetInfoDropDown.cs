@@ -19,6 +19,8 @@ namespace RoundaboutBuilder.UI
         private NetInfo[] m_netInfos;
         private SortedDictionary<string, NetInfo> m_dictionary;
 
+        private NetInfo m_lastToolInfo;
+
         public UINetInfoDropDown()
         {
             atlas = ResourceLoader.GetAtlas("Ingame");
@@ -100,8 +102,7 @@ namespace RoundaboutBuilder.UI
                 if (prefab != null)
                 {
                     //Debug.Log($"Prefab {prefab.GetUncheckedLocalizedTitle()}, fl {prefab.m_hasBackwardVehicleLanes}, bl {prefab.m_hasForwardVehicleLanes}, car flag {(prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0}");
-                    if( (prefab.m_hasBackwardVehicleLanes ^ prefab.m_hasForwardVehicleLanes) && (prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0
-                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0)
+                    if( IsOneWay(prefab) )
                     {
                         string beautified = GenerateBeautifiedNetName(prefab);
                         //sb.Append(beautified + " ");
@@ -110,13 +111,20 @@ namespace RoundaboutBuilder.UI
                 }
             }
 
-            items = m_dictionary.Keys.ToArray();
-            m_netInfos = m_dictionary.Values.ToArray();
+            UpdateListWithPrefab(null);
+        }
 
-            /* Set strandard oneway as default */
-            selectedIndex = Array.IndexOf(m_netInfos, PrefabCollection<NetInfo>.FindLoaded("Oneway Road"));
+        /* Is one-way road? */
+        private static bool IsOneWay(NetInfo prefab)
+        {
+            return (prefab.m_hasBackwardVehicleLanes ^ prefab.m_hasForwardVehicleLanes) && (prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0
+                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0;
+        }
 
-            //Debug.Log($"Loaded {items.Length} netinfos.");
+        private static bool IsRoad(NetInfo prefab)
+        {
+            return (prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0
+                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0;
         }
 
         public static string GenerateBeautifiedNetName(NetInfo prefab)
@@ -143,6 +151,57 @@ namespace RoundaboutBuilder.UI
 
             //itemName = AddSpacesToSentence(itemName);
             return itemName;
+        }
+
+        /* The extraInfo is a prefab which user has selected in the roads menu and does not have to be in the list (It might not be one-way road)
+         * In that case we add it temporatily to the list */
+        private void UpdateListWithPrefab(NetInfo extraInfo)
+        {
+            if(m_lastToolInfo != null && !IsOneWay(m_lastToolInfo))
+            {
+                m_dictionary.Remove("[S] " + GenerateBeautifiedNetName(m_lastToolInfo));
+            }
+
+            if(extraInfo != null && !IsOneWay(extraInfo))
+            {
+                m_dictionary.Add("[S] " + GenerateBeautifiedNetName(extraInfo), extraInfo);
+            }
+
+            items = m_dictionary.Keys.ToArray();
+            m_netInfos = m_dictionary.Values.ToArray();
+
+            if(extraInfo != null)
+            {
+                selectedIndex = Array.IndexOf(m_netInfos, extraInfo);
+            }
+            else
+            {
+                /* Set strandard oneway as default */
+                selectedIndex = Array.IndexOf(m_netInfos, PrefabCollection<NetInfo>.FindLoaded("Oneway Road"));
+            }
+
+            //Debug.Log($"Loaded {items.Length} netinfos.");
+        }
+
+        /* Checks if user selected new road type, then changes the road in the dropdown 
+         * Code inspired by boformer's Network Skins. Thanks! */
+        public override void Update()
+        {
+            base.Update();
+
+            if(RoundAboutBuilder.FollowRoadToolSelection.value && UIWindow2.instance.enabled)
+            {
+                ToolBase currentTool = ToolsModifierControl.toolController.CurrentTool;
+                NetTool netTool = currentTool as NetTool;
+                if(netTool?.Prefab != null && (IsOneWay(netTool.Prefab) || ( IsRoad(netTool.Prefab) && RoundAboutBuilder.SelectTwoWayRoads.value) ))
+                {
+                    if(m_lastToolInfo == null || m_lastToolInfo != netTool.Prefab)
+                    {
+                        UpdateListWithPrefab(netTool.Prefab);
+                        m_lastToolInfo = netTool.Prefab;
+                    }
+                }
+            }
         }
     }
 }

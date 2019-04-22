@@ -8,6 +8,8 @@ namespace RoundaboutBuilder.UI
 {
     public class UIPanelButton : UIButton
     {
+        private const float BUTTON_HORIZONTAL_POSITION = 23;
+
         public UIPanelButton()
         {
             
@@ -51,7 +53,7 @@ namespace RoundaboutBuilder.UI
             tooltip = "Roundabout Builder (CTRL+O)";
             normalFgSprite = (disabledFgSprite = (hoveredFgSprite = (focusedFgSprite = "RoundaboutIcon")));
             pressedFgSprite = "RoundaboutIconPressed";
-            relativePosition = new Vector3(62f, 38f); //94,38
+            relativePosition = new Vector3(BUTTON_HORIZONTAL_POSITION, 38f); //94,38
             size = new Vector2((float)num, (float)num2);
         }
 

@@ -132,7 +132,7 @@ namespace RoundaboutBuilder.UI
             m_setupTmpeSection.clipChildren = true;
             var setupTmpe = CreateCheckBox(m_setupTmpeSection);
             setupTmpe.name = "RAB_setupTmpe";
-            setupTmpe.label.text = "Setup TMPE";
+            setupTmpe.label.text = "Set up TMPE";
             setupTmpe.tooltip = "Apply TMPE policies to the roundabout";
             setupTmpe.isChecked = SavedSetupTmpe;
             setupTmpe.relativePosition = new Vector3(8, 0);

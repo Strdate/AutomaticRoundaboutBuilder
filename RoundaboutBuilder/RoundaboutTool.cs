@@ -114,7 +114,8 @@ namespace RoundaboutBuilder
                 if (NumericTextField.IsValid(radius))
                 {
                     float roadWidth = UIWindow2.instance.dropDown.Value.m_halfWidth;
-                    RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.red, hoveredNode.m_position, 2 * radius, hoveredNode.m_position.y - 2f, hoveredNode.m_position.y + 2f, true, true);
+                    float innerCirleRadius = radius - roadWidth > 0 ? 2 * (radius - roadWidth) : 2 * radius;
+                    RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.red, hoveredNode.m_position, innerCirleRadius, hoveredNode.m_position.y - 2f, hoveredNode.m_position.y + 2f, true, true);
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.red, hoveredNode.m_position, 2 * (radius + roadWidth /*DISTANCE_PADDING - 5*/), hoveredNode.m_position.y - 1f, hoveredNode.m_position.y + 1f, true, true);
                 }
                 //RenderDirectionVectors(cameraInfo);
