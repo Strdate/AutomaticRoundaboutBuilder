@@ -105,7 +105,8 @@ namespace RoundaboutBuilder.UI
                     if( IsOneWay(prefab) )
                     {
                         string beautified = GenerateBeautifiedNetName(prefab);
-                        //sb.Append(beautified + " ");
+                        if (m_dictionary.ContainsKey(beautified))
+                            beautified += " [" + i + "]";
                         m_dictionary[beautified] = prefab;
                     }
                 }
@@ -167,17 +168,26 @@ namespace RoundaboutBuilder.UI
                 m_dictionary.Add("[S] " + GenerateBeautifiedNetName(extraInfo), extraInfo);
             }
 
+            // This should never happen, but I will leave there. Some NetInfos could have been missing from the list due to name duplicity, but that was
+            // solved in the Populate() method
+            if(extraInfo != null && IsOneWay(extraInfo) && !m_netInfos.Contains(extraInfo))
+            {
+                m_dictionary.Add(GenerateBeautifiedNetName(extraInfo) + " [E]", extraInfo);
+            }
+
             items = m_dictionary.Keys.ToArray();
             m_netInfos = m_dictionary.Values.ToArray();
 
             if(extraInfo != null)
             {
-                selectedIndex = Array.IndexOf(m_netInfos, extraInfo);
+                int i = Array.IndexOf(m_netInfos, extraInfo);
+                selectedIndex = i >= -1 ? i : selectedIndex;
             }
             else
             {
                 /* Set strandard oneway as default */
-                selectedIndex = Array.IndexOf(m_netInfos, PrefabCollection<NetInfo>.FindLoaded("Oneway Road"));
+                int i = Array.IndexOf(m_netInfos, PrefabCollection<NetInfo>.FindLoaded("Oneway Road"));
+                selectedIndex = i >= -1 ? i : selectedIndex;
             }
 
             //Debug.Log($"Loaded {items.Length} netinfos.");
