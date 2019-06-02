@@ -7,7 +7,7 @@ using UnityEngine;
 
 /* By Strad, 02/2019 */
 
-/* Version RELEASE 1.3.1 */
+/* Version RELEASE 1.3.2 */
 
 /* Warning: I am lazy thus the version labels across the files may not be updated */
 
@@ -15,7 +15,7 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.3.1";
+        public static readonly string VERSION = "RELEASE 1.3.2";
         public bool OldSnappingAlgorithm { get; private set; } = false;
 
         public const string settingsFileName = "RoundaboutBuilder";
@@ -27,6 +27,7 @@ namespace RoundaboutBuilder
         public static readonly SavedBool ShowUIButton = new SavedBool("showUIButton", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool UseExtraKeys = new SavedBool("useExtraPlusMinusKeys", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool UseOldSnappingAlgorithm = new SavedBool("useOldSnappingAlgorithm", RoundAboutBuilder.settingsFileName, false, true);
+        public static readonly SavedBool IncludeTunnelsAndBridges = new SavedBool("includeTunnelsAndBridges", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedInt savedWindowX = new SavedInt("windowX", settingsFileName, (int)defWindowPosition.x, true);
         public static readonly SavedInt savedWindowY = new SavedInt("windowY", settingsFileName, (int)defWindowPosition.y, true); 
 
@@ -102,6 +103,7 @@ namespace RoundaboutBuilder
                 checkBox = (UICheckBox)group.AddCheckbox("Allow selection of two-way roads", SelectTwoWayRoads.value, (b) =>
                 {
                     SelectTwoWayRoads.value = b;
+                    UIWindow2.instance.dropDown.Populate(); // Reload dropdown menu
                 });
                 checkBox.tooltip = "You can select two-way roads for your roundabouts through the roads menu (if that option is enabled)";
 
@@ -110,6 +112,13 @@ namespace RoundaboutBuilder
                     DoNotRemoveAnyRoads.value = b;
                 });
                 checkBox.tooltip = "No roads will be removed or connected when the roundabout is built";
+
+                checkBox = (UICheckBox)group.AddCheckbox("Include bridges and tunnels in the dropdown menu", IncludeTunnelsAndBridges.value, (b) =>
+                {
+                    IncludeTunnelsAndBridges.value = b;
+                    UIWindow2.instance.dropDown.Populate(); // Reload dropdown menu
+                });
+                checkBox.tooltip = "The dropdown menu will include tunnel, slope and bridge versions of roads";
 
                 group.AddSpace(10);
 

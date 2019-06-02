@@ -20,8 +20,8 @@ namespace RoundaboutBuilder.Tools
             {
                 try
                 {
-                    ushort node1 = GetSegment(id).m_startNode;
-                    ushort node2 = GetSegment(id).m_endNode;
+                    ushort node1 = Segment(id).m_startNode;
+                    ushort node2 = Segment(id).m_endNode;
                     NetManager.instance.ReleaseSegment(id, true);
                     if (tryReleaseNodes)
                     {
@@ -45,13 +45,13 @@ namespace RoundaboutBuilder.Tools
 
         public static bool ReleaseNode(ushort id, bool suppressWarnings = false)
         {
-            if ((GetNode(id).m_flags & NetNode.Flags.Created) == NetNode.Flags.None)
+            if ((Node(id).m_flags & NetNode.Flags.Created) == NetNode.Flags.None)
             {
                 if (!suppressWarnings) Debug.LogWarning("Failed to release NetNode " + id + ": Not Created");
                 return false;
             }
 
-            if (GetNode(id).CountSegments() > 0)
+            if (Node(id).CountSegments() > 0)
             {
                 if (!suppressWarnings) Debug.LogWarning("Failed to release NetNode " + id + ": Has segments");
                 return false;
@@ -85,8 +85,8 @@ namespace RoundaboutBuilder.Tools
         {
             var randomizer = Singleton<SimulationManager>.instance.m_randomizer;
 
-            NetNode startNode = GetNode(startNodeId);
-            NetNode endNode = GetNode(endNodeId);
+            NetNode startNode = Node(startNodeId);
+            NetNode endNode = Node(endNodeId);
 
             if ((startNode.m_flags & NetNode.Flags.Created) == NetNode.Flags.None || (endNode.m_flags & NetNode.Flags.Created) == NetNode.Flags.None)
                 throw new Exception("Failed to create NetSegment: Invalid node(s)");
@@ -134,16 +134,16 @@ namespace RoundaboutBuilder.Tools
         public static bool DoSegmentsIntersect(ushort segment1, ushort segment2, out float t1, out float t2)
         {
             // First segment data
-            NetSegment s1 = GetSegment(segment1);
+            NetSegment s1 = Segment(segment1);
             Bezier3 bezier = default(Bezier3);
 
             // Second segment data
-            NetSegment s2 = GetSegment(segment2);
+            NetSegment s2 = Segment(segment2);
             Bezier3 secondBezier = default(Bezier3);
 
             // Turn the segment data into a Bezier2 for easier calculations supported by the game
-            bezier.a = GetNode(s1.m_startNode).m_position;
-            bezier.d = GetNode(s1.m_endNode).m_position;
+            bezier.a = Node(s1.m_startNode).m_position;
+            bezier.d = Node(s1.m_endNode).m_position;
 
             bool smoothStart = (Singleton<NetManager>.instance.m_nodes.m_buffer[s1.m_startNode].m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
             bool smoothEnd = (Singleton<NetManager>.instance.m_nodes.m_buffer[s1.m_endNode].m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
@@ -153,8 +153,8 @@ namespace RoundaboutBuilder.Tools
             Bezier2 xz = Bezier2.XZ(bezier);
 
             // Second segment:
-            secondBezier.a = GetNode(s2.m_startNode).m_position;
-            secondBezier.d = GetNode(s2.m_endNode).m_position;
+            secondBezier.a = Node(s2.m_startNode).m_position;
+            secondBezier.d = Node(s2.m_endNode).m_position;
 
             smoothStart = (Singleton<NetManager>.instance.m_nodes.m_buffer[s2.m_startNode].m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
             smoothEnd = (Singleton<NetManager>.instance.m_nodes.m_buffer[s2.m_endNode].m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
@@ -173,7 +173,7 @@ namespace RoundaboutBuilder.Tools
         /// <returns></returns>
         public static ushort GetFirstSegment(ushort nodeId)
         {
-            return GetFirstSegment(GetNode(nodeId));
+            return GetFirstSegment(Node(nodeId));
         }
 
         public static ushort GetFirstSegment(NetNode node)
@@ -220,11 +220,11 @@ namespace RoundaboutBuilder.Tools
         {
             get { return Singleton<NetManager>.instance; }
         }
-        public static ref NetNode GetNode(ushort id)
+        public static ref NetNode Node(ushort id)
         {
             return ref Manager.m_nodes.m_buffer[id];
         }
-        public static ref NetSegment GetSegment(ushort id)
+        public static ref NetSegment Segment(ushort id)
         {
             return ref Manager.m_segments.m_buffer[id];
         }

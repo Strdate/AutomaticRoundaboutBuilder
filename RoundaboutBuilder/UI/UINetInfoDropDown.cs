@@ -17,7 +17,7 @@ namespace RoundaboutBuilder.UI
     {
         //StringBuilder sb = new StringBuilder();
         private NetInfo[] m_netInfos;
-        private SortedDictionary<string, NetInfo> m_dictionary;
+        private SortedDictionary<StringWithLaneCount, NetInfo> m_dictionary;
 
         private NetInfo m_lastToolInfo;
 
@@ -92,22 +92,24 @@ namespace RoundaboutBuilder.UI
         }
 
         /* Load road netinfos */
-        private void Populate()
+        public void Populate()
         {
             var count = PrefabCollection<NetInfo>.PrefabCount();
-            m_dictionary = new SortedDictionary<string, NetInfo>();
+            m_dictionary = new SortedDictionary<StringWithLaneCount, NetInfo>();
             for (uint i = 0; i < count; i++)
             {
                 var prefab = PrefabCollection<NetInfo>.GetPrefab(i);
                 if (prefab != null)
                 {
                     //Debug.Log($"Prefab {prefab.GetUncheckedLocalizedTitle()}, fl {prefab.m_hasBackwardVehicleLanes}, bl {prefab.m_hasForwardVehicleLanes}, car flag {(prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0}");
-                    if( IsOneWay(prefab) )
+                    if( IsOneWay(prefab) && (RoundAboutBuilder.IncludeTunnelsAndBridges.value || (!prefab.m_netAI.IsUnderground() && !prefab.m_netAI.IsOverground())) )
                     {
-                        string beautified = GenerateBeautifiedNetName(prefab);
-                        if (m_dictionary.ContainsKey(beautified))
-                            beautified += " [" + i + "]";
-                        m_dictionary[beautified] = prefab;
+                        StringWithLaneCount slc = new StringWithLaneCount(prefab);
+                        //beautified = (prefab.m_forwardVehicleLaneCount + prefab.m_backwardVehicleLaneCount) + "_" + beautified;
+                        if (m_dictionary.ContainsKey(slc))
+                            slc.Name += " [" + i + "]";
+                        m_dictionary[slc] = prefab;
+                        //Debug.Log("Loaded prefab: " + slc.Name + " ,underground: " + prefab.m_netAI.IsUnderground() + " ,overground: " + prefab.m_netAI.IsOverground());
                     }
                 }
             }
@@ -160,22 +162,22 @@ namespace RoundaboutBuilder.UI
         {
             if(m_lastToolInfo != null && !IsOneWay(m_lastToolInfo))
             {
-                m_dictionary.Remove("[S] " + GenerateBeautifiedNetName(m_lastToolInfo));
+                m_dictionary.Remove(new StringWithLaneCount(m_lastToolInfo," [S]"));
             }
 
             if(extraInfo != null && !IsOneWay(extraInfo))
             {
-                m_dictionary.Add("[S] " + GenerateBeautifiedNetName(extraInfo), extraInfo);
+                m_dictionary.Add(new StringWithLaneCount(extraInfo, " [S]"), extraInfo);
             }
 
             // This should never happen, but I will leave there. Some NetInfos could have been missing from the list due to name duplicity, but that was
             // solved in the Populate() method
             if(extraInfo != null && IsOneWay(extraInfo) && !m_netInfos.Contains(extraInfo))
             {
-                m_dictionary.Add(GenerateBeautifiedNetName(extraInfo) + " [E]", extraInfo);
+                m_dictionary.Add(new StringWithLaneCount(extraInfo, " [E]"), extraInfo);
             }
 
-            items = m_dictionary.Keys.ToArray();
+            items = m_dictionary.Keys.Select(x => x.Name).ToArray();
             m_netInfos = m_dictionary.Values.ToArray();
 
             if(extraInfo != null)
@@ -211,6 +213,46 @@ namespace RoundaboutBuilder.UI
                         m_lastToolInfo = netTool.Prefab;
                     }
                 }
+            }
+        }
+
+        private struct StringWithLaneCount : IComparable<StringWithLaneCount>
+        {
+            public string Name { get; set; }
+            public int LaneCount { get; set; }
+
+            public StringWithLaneCount(NetInfo prefab, string postfix = "")
+            {
+                Name = GenerateBeautifiedNetName(prefab) + postfix;
+                LaneCount = prefab.m_backwardVehicleLaneCount + prefab.m_forwardVehicleLaneCount;
+            }
+
+            public int CompareTo(StringWithLaneCount other)
+            {
+                int result = other.LaneCount.CompareTo(LaneCount);
+                if (result == 0)
+                    result = other.Name.CompareTo(Name);
+                return -result;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is StringWithLaneCount))
+                {
+                    return false;
+                }
+
+                var count = (StringWithLaneCount)obj;
+                return Name == count.Name &&
+                       LaneCount == count.LaneCount;
+            }
+
+            public override int GetHashCode()
+            {
+                var hashCode = -352197940;
+                hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+                hashCode = hashCode * -1521134295 + LaneCount.GetHashCode();
+                return hashCode;
             }
         }
     }

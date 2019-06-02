@@ -25,6 +25,7 @@ namespace RoundaboutBuilder.Tools
         NetNode CenterNode;
         GraphTraveller2 traveller;
         Ellipse ellipse;
+        bool followTerrain;
         private ActionGroup m_group = new ActionGroup("TMPE action group");
 
         public List<VectorNodeStruct> Intersections { get; private set; } = new List<VectorNodeStruct>();
@@ -32,12 +33,13 @@ namespace RoundaboutBuilder.Tools
         private List<ushort> ToBeReleasedNodes = new List<ushort>();
         private List<ushort> ToBeReleasedSegments = new List<ushort>();
 
-        public EdgeIntersections2(GraphTraveller2 traveller, ushort centerNodeId, Ellipse ellipse)
+        public EdgeIntersections2(GraphTraveller2 traveller, ushort centerNodeId, Ellipse ellipse, bool followTerrain = false)
         {
             CenterNodeId = centerNodeId;
-            CenterNode = GetNode(centerNodeId);
+            CenterNode = NetAccess.Node(centerNodeId);
             this.traveller = traveller;
             this.ellipse = ellipse;
+            this.followTerrain = followTerrain;
 
             if(RoundAboutBuilder.UseOldSnappingAlgorithm.value)
             {
@@ -85,7 +87,7 @@ namespace RoundaboutBuilder.Tools
                         Vector3 intersection = new Vector3(ellipseBeziers[j].Position(t1).x, CenterNode.m_position.y, ellipseBeziers[j].Position(t1).y);
                         segmentBeziers[i].Divide(out Bezier2 segementBezier1, out Bezier2 segementBezier2, t2);
                         Bezier2 outerBezier;
-                        Vector2 outerNodePos = new Vector2(GetNode(traveller.OuterNodes[i]).m_position.x, GetNode(traveller.OuterNodes[i]).m_position.z);
+                        Vector2 outerNodePos = new Vector2(NetAccess.Node(traveller.OuterNodes[i]).m_position.x, NetAccess.Node(traveller.OuterNodes[i]).m_position.z);
                         bool invert = false;
                         // outerBezier - the bezier outside the ellipse (not the one inside)
                         if (segementBezier1.Position(0f) == outerNodePos || segementBezier1.Position(1f) == outerNodePos)
@@ -107,6 +109,14 @@ namespace RoundaboutBuilder.Tools
 
                         //debug:
                         //EllipseTool.Instance.debugDraw.Add(outerBezier);
+
+                        /* Maybe in update 1.4.0 */
+                        /*if(followTerrain)
+                        {
+                            // Let's obtain the Y coordinate from the existing segment
+                            Vector3 foundIntersection = NetAccess.Segment(traveller.OuterSegments[i]).GetClosestPosition(intersection);
+                            intersection.y = foundIntersection.y;
+                        }*/
 
                         /* We create a node at the intersection. */
                         ushort newNodeId = NetAccess.CreateNode(CenterNode.Info, intersection);
@@ -131,7 +141,7 @@ namespace RoundaboutBuilder.Tools
 
             for (int i = 0; i < traveller.OuterNodes.Count; i++)
             {
-                NetNode curNode = GetNode(traveller.OuterNodes[i]);
+                NetNode curNode = NetAccess.Node(traveller.OuterNodes[i]);
                 Vector3 circleIntersection = new Vector3();
 
                 float directionX = (curNode.m_position.x - centerX) / VectorDistance(CenterNode.m_position, curNode.m_position);
@@ -155,7 +165,7 @@ namespace RoundaboutBuilder.Tools
                 Intersections.Add(new VectorNodeStruct(newNodeId));
                 //EllipseTool.Instance.debugDrawPositions.Add(Intersections.Last().vector);
 
-                NetSegment curSegment = GetSegment(traveller.OuterSegments[i]);
+                NetSegment curSegment = NetAccess.Segment(traveller.OuterSegments[i]);
 
                 /* For now ignoring anything regarding Y coordinate */
                 //float directionY2 = (GetNode(newNodeId).m_position.y - curNode.m_position.z) / NodeDistance(GetNode(newNodeId), curNode); 
@@ -193,10 +203,10 @@ namespace RoundaboutBuilder.Tools
 
         private void BezierToSegment(Bezier2 bezier2, ushort oldSegmentId, ushort startNodeId, ushort endNodeId, bool invert)
         {
-            NetSegment oldSegment = GetSegment(oldSegmentId);
+            NetSegment oldSegment = NetAccess.Segment(oldSegmentId);
             Vector2 startDirection2d;
             Vector2 endDirection2d;
-            Vector2 nodePos2d = new Vector2(GetNode(startNodeId).m_position.x, GetNode(startNodeId).m_position.z);
+            Vector2 nodePos2d = new Vector2(NetAccess.Node(startNodeId).m_position.x, NetAccess.Node(startNodeId).m_position.z);
             /*if ( Distance(nodePos2d,bezier2.Position(0f)) < 10e-3d)
             {
                 //0f is on the ellipse
@@ -263,10 +273,10 @@ namespace RoundaboutBuilder.Tools
          /* intersection - node outside the ellipse */
         private bool nextSegmentInfo(ushort intersection, ushort closeSegmentId, out ushort outerNodeId, out Vector3 directions)
         {
-            NetSegment closeSegment = GetSegment(closeSegmentId);
+            NetSegment closeSegment = NetAccess.Segment(closeSegmentId);
             outerNodeId = 0;
             directions = new Vector3(0,0,0);
-            NetNode node = GetNode(intersection);
+            NetNode node = NetAccess.Node(intersection);
             int segmentcount = node.CountSegments();
             /* If there is an intersection right behind the ellipse, we can't go on as we can merge only segments which are in fact
              * only one road without an intersection. */
@@ -290,8 +300,8 @@ namespace RoundaboutBuilder.Tools
                 if (nextSegmentId == 0)
                     return false;
             }
-            NetSegment nextSegment = GetSegment(nextSegmentId);
-            nextSegment = GetSegment(nextSegmentId);
+            NetSegment nextSegment = NetAccess.Segment(nextSegmentId);
+            nextSegment = NetAccess.Segment(nextSegmentId);
             outerNodeId = nextSegment.m_startNode;
             directions = nextSegment.m_startDirection;
             /* We need the node further away */
@@ -316,12 +326,12 @@ namespace RoundaboutBuilder.Tools
             List<Bezier2> beziers = new List<Bezier2>();
             for( int i = 0; i < netSegmentsIds.Count; i++)
             {
-                NetSegment netSegment = GetSegment(netSegmentsIds[i]);
-                bool smoothStart = (GetNode(netSegment.m_startNode).m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
-                bool smoothEnd = (GetNode(netSegment.m_endNode).m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
+                NetSegment netSegment = NetAccess.Segment(netSegmentsIds[i]);
+                bool smoothStart = (NetAccess.Node(netSegment.m_startNode).m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
+                bool smoothEnd = (NetAccess.Node(netSegment.m_endNode).m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
                 Bezier3 bezier = new Bezier3();
-                bezier.a = GetNode(netSegment.m_startNode).m_position;
-                bezier.d = GetNode(netSegment.m_endNode).m_position;
+                bezier.a = NetAccess.Node(netSegment.m_startNode).m_position;
+                bezier.d = NetAccess.Node(netSegment.m_endNode).m_position;
                 NetSegment.CalculateMiddlePoints(bezier.a, netSegment.m_startDirection, bezier.d, netSegment.m_endDirection, smoothStart, smoothEnd, out bezier.b, out bezier.c);
                 beziers.Add(Bezier2.XZ(bezier));
             }
@@ -365,18 +375,6 @@ namespace RoundaboutBuilder.Tools
         private static float VectorDistance(Vector3 v1, Vector3 v2) // Without Y coordinate
         {
             return (float)(Math.Sqrt(Math.Pow(v1.x - v2.x, 2) + Math.Pow(v1.z - v2.z, 2)));
-        }
-        public static NetManager Manager
-        {
-            get { return Singleton<NetManager>.instance; }
-        }
-        public static NetNode GetNode(ushort id)
-        {
-            return Manager.m_nodes.m_buffer[id];
-        }
-        public static NetSegment GetSegment(ushort id)
-        {
-            return Manager.m_segments.m_buffer[id];
         }
     }
 }

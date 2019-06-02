@@ -23,8 +23,9 @@ namespace RoundaboutBuilder.UI
             }
         }
 
-        public static readonly int RADIUS_MAX = 3000;
-        public static readonly int RADIUS_MIN = 5;
+        public const int RADIUS_MAX = 3000;
+        public const int RADIUS_MIN = 4;
+        public const int INCREMENT = 4;
         public int DefaultRadius = 40;
 
         public NumericTextField()
@@ -86,7 +87,7 @@ namespace RoundaboutBuilder.UI
             }
             else
             {
-                newValue = Convert.ToInt32(Math.Ceiling(new decimal(Value + 1) / new decimal(5))) * 5;
+                newValue = Convert.ToInt32(Math.Ceiling(new decimal(Value + 1) / new decimal(INCREMENT))) * INCREMENT;
             }
             if (IsValid(newValue)) text = newValue.ToString();
         }
@@ -102,7 +103,7 @@ namespace RoundaboutBuilder.UI
             }
             else
             {
-                newValue = Convert.ToInt32(Math.Floor(new decimal(Value - 1) / new decimal(5))) * 5;
+                newValue = Convert.ToInt32(Math.Floor(new decimal(Value - 1) / new decimal(INCREMENT))) * INCREMENT;
             }
             if (IsValid(newValue)) text = newValue.ToString();
         }
