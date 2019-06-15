@@ -5,7 +5,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.2.0 */
+/* Version RELEASE 1.4.0+ */
 
 namespace RoundaboutBuilder.Tools
 {
@@ -36,14 +36,9 @@ namespace RoundaboutBuilder.Tools
 
         /* Main part: */
 
-        public GraphTraveller2(ushort startNodeId, int radius1, Ellipse ellipse)
+        public GraphTraveller2(ushort startNodeId, Ellipse ellipse)
         {
             Ellipse = ellipse;
-            if (RoundAboutBuilder.DoNotRemoveAnyRoads)
-            {
-                OuterNodes = OuterSegments = InnerNodes = InnerSegments = new List<ushort>();
-                return;
-            }
             DFS(startNodeId);
             noInfiniteRecursion = 0;
             m_startNodeId = startNodeId;

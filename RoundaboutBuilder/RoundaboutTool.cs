@@ -26,12 +26,14 @@ namespace RoundaboutBuilder
         {
             //Debug.Log(string.Format("Clicked on node ID {0}!", nodeID));
 
-            int radius = UIWindow2.instance.P_RoundAboutPanel.RadiusField.Value;
-            if (!NumericTextField.IsValid(radius))
+            float? radiusQ = UIWindow2.instance.P_RoundAboutPanel.RadiusField.Value;
+            if (radiusQ == null)
             {
                 UIWindow2.instance.ThrowErrorMsg("Radius out of bounds!");
                 return;
             }
+
+            float radius = (float)radiusQ;
 
             if (!UIWindow2.instance.keepOpen)
                 UIWindow2.instance.LostFocus();
@@ -49,9 +51,14 @@ namespace RoundaboutBuilder
 
             try
             {
-                GraphTraveller2 traveller = new GraphTraveller2(nodeID, radius, ellipse);
-                EdgeIntersections2 intersections = new EdgeIntersections2(traveller, nodeID, ellipse, true);
-                FinalConnector finalConnector = new FinalConnector(GetNode(nodeID).Info, intersections.Intersections, ellipse, true, intersections.TmpeActionGroup()/*, true*/);
+                GraphTraveller2 traveller;
+                EdgeIntersections2 intersections = null;
+                if (!RoundAboutBuilder.DoNotRemoveAnyRoads)
+                {
+                    traveller = new GraphTraveller2(nodeID, ellipse);
+                    intersections = new EdgeIntersections2(traveller, nodeID, ellipse);
+                }
+                FinalConnector finalConnector = new FinalConnector(GetNode(nodeID).Info, intersections, ellipse, true);
 
                 // Debug, don't forget to remove
                 /*foreach(VectorNodeStruct intersection in intersections.Intersections)
@@ -87,6 +94,26 @@ namespace RoundaboutBuilder
             }
         }
 
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            try
+            {
+                UIWindow2.instance.P_RoundAboutPanel.label.text = "Click inside the window to reactivate";
+            }
+            catch(NullReferenceException) { }
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            try
+            {
+                UIWindow2.instance.P_RoundAboutPanel.label.text = "Hover mouse over an intersection";
+            }
+            catch (NullReferenceException) { }
+        }
+
         /* UI methods */
 
         public override void IncreaseButton()
@@ -112,13 +139,13 @@ namespace RoundaboutBuilder
                     // thanks to SamsamTS because they're a UI god
                     // ..and then Strad stole it from all of you!!
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, hoveredNode.m_position, 15f, hoveredNode.m_position.y - 1f, hoveredNode.m_position.y + 1f, true, true);
-                    int radius = UIWindow2.instance.P_RoundAboutPanel.RadiusField.Value;
-                    if (NumericTextField.IsValid(radius))
+                    float? radius = UIWindow2.instance.P_RoundAboutPanel.RadiusField.Value;
+                    if (radius != null)
                     {
                         float roadWidth = UIWindow2.instance.dropDown.Value.m_halfWidth; // There is a slight chance that this will throw an exception
-                        float innerCirleRadius = radius - roadWidth > 0 ? 2 * (radius - roadWidth) : 2 * radius;
+                        float innerCirleRadius = radius - roadWidth > 0 ? 2 * ((float)radius - roadWidth) : 2 * (float)radius;
                         RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.red, hoveredNode.m_position, innerCirleRadius, hoveredNode.m_position.y - 2f, hoveredNode.m_position.y + 2f, true, true);
-                        RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.red, hoveredNode.m_position, 2 * (radius + roadWidth /*DISTANCE_PADDING - 5*/), hoveredNode.m_position.y - 1f, hoveredNode.m_position.y + 1f, true, true);
+                        RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.red, hoveredNode.m_position, 2 * ((float)radius + roadWidth /*DISTANCE_PADDING - 5*/), hoveredNode.m_position.y - 1f, hoveredNode.m_position.y + 1f, true, true);
                     }
                     //RenderDirectionVectors(cameraInfo);
                 }

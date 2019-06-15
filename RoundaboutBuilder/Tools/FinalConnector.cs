@@ -26,22 +26,21 @@ namespace RoundaboutBuilder.Tools
         private NetInfo centerNodeNetInfo;
         private ActionGroup m_group;
         private double m_maxAngDistance;
-        private bool followTerrain;
 
         // Time to time something goes wrong. Let's make sure that we don't get stuck in infinite recursion.
         // Didn't happen to me since I degbugged it, but one never knows for sure.
         private int pleasenoinfiniterecursion;
 
-        public FinalConnector(NetInfo centerNodeNetInfo, List<VectorNodeStruct> intersections, Ellipse ellipse, bool insertControllingVertices, ActionGroup tmpeActionGroup, bool followTerrain = false)
+        public FinalConnector(NetInfo centerNodeNetInfo, EdgeIntersections2 edgeIntersections, Ellipse ellipse, bool insertControllingVertices)
         {
-            this.followTerrain = followTerrain;
+            intersections = edgeIntersections?.Intersections ?? new List<VectorNodeStruct>();
+            m_group = edgeIntersections?.TmpeActionGroup();
+
             this.ellipse = ellipse;
             pleasenoinfiniterecursion = 0;
-            this.intersections = intersections;
             this.centerNodeNetInfo = centerNodeNetInfo;
             leftHandTraffic = Singleton<SimulationManager>.instance.m_metaData.m_invertTraffic ==
                                     SimulationMetaData.MetaBool.True;
-            m_group = tmpeActionGroup;
 
             // We ensure that the segments are not too long. For circles only (with ellipses it would be more difficult)
             m_maxAngDistance = Math.Min(Math.PI * 25 / ellipse.RadiusMain , Math.PI/2 + 0.1d);
@@ -51,6 +50,14 @@ namespace RoundaboutBuilder.Tools
             {
                 /* See doc in the method below */
                 InsertIntermediateNodes();
+            }
+
+            /* If the list of edge nodes is empty, we add one default intersection. */
+            if (isCircle && intersections.Count == 0)
+            {
+                Vector3 defaultIntersection = new Vector3(ellipse.RadiusMain, 0, 0) + ellipse.Center;
+                ushort newNodeId = NetAccess.CreateNode(centerNodeNetInfo, defaultIntersection);
+                intersections.Add(new VectorNodeStruct(newNodeId));
             }
 
             int count = intersections.Count;
@@ -72,7 +79,10 @@ namespace RoundaboutBuilder.Tools
                 ConnectNodes(intersections[(i + 1) % count], prevNode);
             }
 
-            ModThreading.Timer(m_group);
+            if(m_group != null)
+            {
+                ModThreading.Timer(m_group);
+            }
         }
 
         /* For circles only. */
@@ -90,33 +100,7 @@ namespace RoundaboutBuilder.Tools
 
                 double angle = NormalizeAngle(prevNode.angle - angDif / Math.Ceiling(angDif / m_maxAngDistance));
                 Vector3 vector = ellipse.VectorAtAbsoluteAngle(angle);
-                /* Maybe in update 1.4.0 */
-                /*if(followTerrain)
-                {
-                    double finalHeight = 0;
-                    float terrainHeight = Singleton<TerrainManager>.instance.SampleOriginalRawHeightSmooth(vector);
-                    float slope = UI.UIWindow2.instance.dropDown.Value.m_maxSlope;
-                    double dist1 = angle * ellipse.RadiusMain;
-                    double dist2 = NormalizeAngle(angDif - angle) * ellipse.RadiusMain; // Sorry. My brain is too small to contain this.
-                    float height1 = prevNode.vector.y;
-                    float height2 = p2.vector.y;
-                    double maxHDist1 = 2 * dist1 * slope; // Got this equation from NetTool.CanCreateSegment method
-                    double maxHDist2 = 2 * dist2 * slope;
-                    double ceil1 = height1 + maxHDist1;
-                    double ceil2 = height2 + maxHDist2;
-                    double floor1 = height1 - maxHDist1;
-                    double floor2 = height2 - maxHDist2;
-                    if(floor1 >= ceil2 || floor2 >= ceil1)
-                    {
-                        float heightDif = height1 - height2;
-                        finalHeight = height1 - heightDif / (1 + dist2 / dist1);
-                    } else
-                    {
-                        finalHeight = Math.Min(terrainHeight, Math.Min(ceil1,ceil2));
-                        finalHeight = Math.Max(terrainHeight, Math.Max(floor1, floor2));
-                    }
-                    vector.y = (float) finalHeight;
-                }*/
+
                 ushort newNodeId = NetAccess.CreateNode(centerNodeNetInfo, vector);
                 VectorNodeStruct newNode = new VectorNodeStruct(newNodeId);
                 newNode.angle = angle;
@@ -215,6 +199,8 @@ namespace RoundaboutBuilder.Tools
 
         private void SetupTMPE(ushort segment)
         {
+            if (m_group == null)
+                return;
             /* None of this below works: */
             /*bool resultPrev1 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.IsEnteringBlockedJunctionAllowed(segment,false);
             bool resultPrev2 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.IsEnteringBlockedJunctionAllowed(segment,true);

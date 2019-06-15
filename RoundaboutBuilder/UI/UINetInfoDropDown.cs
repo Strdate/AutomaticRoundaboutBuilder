@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-/* Version RELEASE 1.0.1+ */
+/* Version RELEASE 1.4.0+ */
 
 /* By Strad, 2019 */
 
@@ -15,11 +15,19 @@ namespace RoundaboutBuilder.UI
 {
     public class UINetInfoDropDown : UIDropDown
     {
+        /*public enum PopulationMode
+        {
+            Standard,
+            FreeTool,
+            Unfiltered
+        }*/
+
         //StringBuilder sb = new StringBuilder();
         private NetInfo[] m_netInfos;
         private SortedDictionary<StringWithLaneCount, NetInfo> m_dictionary;
 
         private NetInfo m_lastToolInfo;
+        //private PopulationMode m_populationMode;
 
         public UINetInfoDropDown()
         {
@@ -92,17 +100,28 @@ namespace RoundaboutBuilder.UI
         }
 
         /* Load road netinfos */
-        public void Populate()
+        public void Populate(bool keepSelection = false)
         {
+            NetInfo lastSelection = null;
+            if(keepSelection)
+            {
+                try
+                {
+                    lastSelection = Value;
+                }
+                catch { keepSelection = false; }
+            }
+
             var count = PrefabCollection<NetInfo>.PrefabCount();
             m_dictionary = new SortedDictionary<StringWithLaneCount, NetInfo>();
+            bool freeCursor = UIWindow2.instance?.toolOnUI is FreeCursorTool;
             for (uint i = 0; i < count; i++)
             {
                 var prefab = PrefabCollection<NetInfo>.GetPrefab(i);
                 if (prefab != null)
                 {
                     //Debug.Log($"Prefab {prefab.GetUncheckedLocalizedTitle()}, fl {prefab.m_hasBackwardVehicleLanes}, bl {prefab.m_hasForwardVehicleLanes}, car flag {(prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0}");
-                    if( IsOneWay(prefab) && (RoundAboutBuilder.IncludeTunnelsAndBridges.value || (!prefab.m_netAI.IsUnderground() && !prefab.m_netAI.IsOverground())) )
+                    if( IsEligible(prefab, freeCursor) )
                     {
                         StringWithLaneCount slc = new StringWithLaneCount(prefab);
                         //beautified = (prefab.m_forwardVehicleLaneCount + prefab.m_backwardVehicleLaneCount) + "_" + beautified;
@@ -115,13 +134,41 @@ namespace RoundaboutBuilder.UI
             }
 
             UpdateListWithPrefab(null);
+
+            /* It seems that this code is there twice. (In this method and in the UpdateListWithPrefab method.) Yes, basically it is... :( */
+            if(keepSelection)
+            {
+                int i = Array.IndexOf(m_netInfos, lastSelection);
+                if (i > -1 && i < m_netInfos.Length)
+                {
+                    selectedIndex = i;
+                }
+            }
         }
 
-        /* Is one-way road? */
-        private static bool IsOneWay(NetInfo prefab)
+        /* Is prefab eligible to be in the list? (Must be oneway etc.) */
+        private bool IsEligible(NetInfo prefab, bool freeCursor)
         {
-            return (prefab.m_hasBackwardVehicleLanes ^ prefab.m_hasForwardVehicleLanes) && (prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0
-                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0;
+            if (RoundAboutBuilder.DoNotFilterPrefabs.value)
+                return true;
+
+            bool hasRoadLanes = prefab.m_hasBackwardVehicleLanes || prefab.m_hasForwardVehicleLanes;
+            bool isOneWay = prefab.m_hasBackwardVehicleLanes ^ prefab.m_hasForwardVehicleLanes;
+
+            if(freeCursor)
+            {
+                return (isOneWay && (prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0
+                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0)
+                        || prefab.m_class.name.IndexOf("pedestrian", StringComparison.OrdinalIgnoreCase) >= 0
+                        || prefab.m_class.name.IndexOf("train track", StringComparison.OrdinalIgnoreCase) >= 0
+                        || prefab.m_class.name.IndexOf("landscaping", StringComparison.OrdinalIgnoreCase) >= 0
+                        || prefab.m_class.name.IndexOf("beautification", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+            else
+            {
+                return (isOneWay && (prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0
+                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0 && (!prefab.m_netAI.IsUnderground() && !prefab.m_netAI.IsOverground()));
+            }
         }
 
         private static bool IsRoad(NetInfo prefab)
@@ -138,13 +185,13 @@ namespace RoundaboutBuilder.UI
 
             // Issue!!! This works only for English!!!
             itemName = Regex.Replace(itemName, "oneway", "", RegexOptions.IgnoreCase);
-            itemName = Regex.Replace(itemName, "one-way", "", RegexOptions.IgnoreCase);
+            itemName = Regex.Replace(itemName, "one-way", (RoundAboutBuilder.DoNotFilterPrefabs.value ? "ow" : ""), RegexOptions.IgnoreCase);
             itemName = Regex.Replace(itemName, "with", "", RegexOptions.IgnoreCase);
             itemName = Regex.Replace(itemName, "road", "Rd", RegexOptions.IgnoreCase);
             itemName = Regex.Replace(itemName, "highway", "Hway", RegexOptions.IgnoreCase);
             itemName = Regex.Replace(itemName, "decorative", "Decor", RegexOptions.IgnoreCase);
 
-            itemName = Regex.Replace(itemName, "Einbahnstraße", "", RegexOptions.IgnoreCase);
+            itemName = Regex.Replace(itemName, "Einbahnstraße", (RoundAboutBuilder.DoNotFilterPrefabs.value ? "ow" : ""), RegexOptions.IgnoreCase);
 
             // replace spaces at start and end
             itemName = itemName.Trim();
@@ -160,19 +207,20 @@ namespace RoundaboutBuilder.UI
          * In that case we add it temporatily to the list */
         private void UpdateListWithPrefab(NetInfo extraInfo)
         {
-            if(m_lastToolInfo != null && !IsOneWay(m_lastToolInfo))
+            bool freeCursor = UIWindow2.instance?.toolOnUI is FreeCursorTool;
+            if (m_lastToolInfo != null && !IsEligible(m_lastToolInfo, freeCursor))
             {
                 m_dictionary.Remove(new StringWithLaneCount(m_lastToolInfo," [S]"));
             }
 
-            if(extraInfo != null && !IsOneWay(extraInfo))
+            if(extraInfo != null && !IsEligible(extraInfo, freeCursor))
             {
                 m_dictionary.Add(new StringWithLaneCount(extraInfo, " [S]"), extraInfo);
             }
 
             // This should never happen, but I will leave there. Some NetInfos could have been missing from the list due to name duplicity, but that was
             // solved in the Populate() method
-            if(extraInfo != null && IsOneWay(extraInfo) && !m_netInfos.Contains(extraInfo))
+            if(extraInfo != null && IsEligible(extraInfo, freeCursor) && !m_netInfos.Contains(extraInfo))
             {
                 m_dictionary.Add(new StringWithLaneCount(extraInfo, " [E]"), extraInfo);
             }
@@ -189,7 +237,10 @@ namespace RoundaboutBuilder.UI
             {
                 /* Set strandard oneway as default */
                 int i = Array.IndexOf(m_netInfos, PrefabCollection<NetInfo>.FindLoaded("Oneway Road"));
-                selectedIndex = i >= -1 ? i : selectedIndex;
+                if (i > -1 && i < m_netInfos.Length)
+                {
+                    selectedIndex = i;
+                }
             }
 
             //Debug.Log($"Loaded {items.Length} netinfos.");
@@ -200,12 +251,12 @@ namespace RoundaboutBuilder.UI
         public override void Update()
         {
             base.Update();
-
-            if(RoundAboutBuilder.FollowRoadToolSelection.value && UIWindow2.instance.enabled)
+            bool freeCursor = UIWindow2.instance?.toolOnUI is FreeCursorTool;
+            if (RoundAboutBuilder.FollowRoadToolSelection.value && UIWindow2.instance.enabled)
             {
                 ToolBase currentTool = ToolsModifierControl.toolController.CurrentTool;
                 NetTool netTool = currentTool as NetTool;
-                if(netTool?.Prefab != null && (IsOneWay(netTool.Prefab) || ( IsRoad(netTool.Prefab) && RoundAboutBuilder.SelectTwoWayRoads.value) ))
+                if(netTool?.Prefab != null && (IsEligible(netTool.Prefab, freeCursor) || ( IsRoad(netTool.Prefab) && RoundAboutBuilder.SelectTwoWayRoads.value) ))
                 {
                     if(m_lastToolInfo == null || m_lastToolInfo != netTool.Prefab)
                     {

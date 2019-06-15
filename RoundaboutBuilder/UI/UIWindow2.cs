@@ -3,7 +3,7 @@ using ColossalFramework.UI;
 using System;
 using UnityEngine;
 
-/* Version RELEASE 1.0.1+ */
+/* Version RELEASE 1.4.0+ */
 
 /* By Strad, 2019 */
 
@@ -19,7 +19,7 @@ namespace RoundaboutBuilder.UI
 
         public static readonly SavedBool SavedSetupTmpe = new SavedBool("savedSetupTMPE", RoundAboutBuilder.settingsFileName, true, true);
 
-        private ToolBaseExtended toolOnUI;
+        public ToolBaseExtended toolOnUI;
         private AbstractPanel m_panelOnUI;
         private AbstractPanel m_lastStandardPanel;
 
@@ -28,6 +28,7 @@ namespace RoundaboutBuilder.UI
         public EllipsePanel_2 P_EllipsePanel_2;
         public EllipsePanel_3 P_EllipsePanel_3;
         public TmpeSetupPanel P_TmpeSetupPanel;
+        public FreeToolPanel P_FreeToolPanel;
 
         private UIPanelButton m_panelButton;
 
@@ -99,6 +100,8 @@ namespace RoundaboutBuilder.UI
             P_EllipsePanel_2 = AddUIComponent<EllipsePanel_2>();
             P_EllipsePanel_3 = AddUIComponent<EllipsePanel_3>();
             P_TmpeSetupPanel = AddUIComponent<TmpeSetupPanel>();
+            P_FreeToolPanel = AddUIComponent<FreeToolPanel>();
+            //P_RoundAboutPanel.height = 104f; // cheat
 
             float cummulativeHeight = 8;
 
@@ -245,18 +248,21 @@ namespace RoundaboutBuilder.UI
 
             bool holder = this.keepOpen;
             this.keepOpen = true;
+            toolOnUI = tool;
 
             if (tool is EllipseTool)
             {
                 SwitchWindow( P_EllipsePanel_1 );
             }
-            else
+            else if(tool is RoundaboutTool)
             {
                 SwitchWindow( P_RoundAboutPanel );
-            }                
+            }else
+            {
+                SwitchWindow( P_FreeToolPanel );
+            }
 
             tool.enabled = true;
-            toolOnUI = tool;
             this.keepOpen = holder;
         }
 
@@ -283,6 +289,7 @@ namespace RoundaboutBuilder.UI
             {
                 dropDown.isVisible = false;
             }
+            dropDown.Populate(true);
 
             panel.relativePosition = new Vector2(0, cumulativeHeight);
             cumulativeHeight += panel.height;
@@ -305,18 +312,6 @@ namespace RoundaboutBuilder.UI
 
             height = cumulativeHeight;
 
-        }
-
-        public void IncreaseButton()
-        {
-            if (toolOnUI != null)
-                toolOnUI.IncreaseButton();
-        }
-
-        public void DecreaseButton()
-        {
-            if (toolOnUI != null)
-                toolOnUI.DecreaseButton();
         }
 
         public void LostFocus()

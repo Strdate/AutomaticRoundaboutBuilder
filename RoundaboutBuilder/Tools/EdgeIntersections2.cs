@@ -9,7 +9,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version RELEASE 1.1.0+ */
+/* Version RELEASE 1.4.0+ */
 
 /* This class takes the edge segments obrained by GraphTraveller2, creates a node where they intersect with the future roundabout and
  * connects that node with the outer node of the segment. */
@@ -25,7 +25,6 @@ namespace RoundaboutBuilder.Tools
         NetNode CenterNode;
         GraphTraveller2 traveller;
         Ellipse ellipse;
-        bool followTerrain;
         private ActionGroup m_group = new ActionGroup("TMPE action group");
 
         public List<VectorNodeStruct> Intersections { get; private set; } = new List<VectorNodeStruct>();
@@ -33,13 +32,12 @@ namespace RoundaboutBuilder.Tools
         private List<ushort> ToBeReleasedNodes = new List<ushort>();
         private List<ushort> ToBeReleasedSegments = new List<ushort>();
 
-        public EdgeIntersections2(GraphTraveller2 traveller, ushort centerNodeId, Ellipse ellipse, bool followTerrain = false)
+        public EdgeIntersections2(GraphTraveller2 traveller, ushort centerNodeId, Ellipse ellipse)
         {
             CenterNodeId = centerNodeId;
             CenterNode = NetAccess.Node(centerNodeId);
             this.traveller = traveller;
             this.ellipse = ellipse;
-            this.followTerrain = followTerrain;
 
             if(RoundAboutBuilder.UseOldSnappingAlgorithm.value)
             {
@@ -48,15 +46,6 @@ namespace RoundaboutBuilder.Tools
             else
             {
                 SnappingAlgorithmNew();
-            }
-
-
-            /* If the list of edge nodes is empty, we add one default intersection. Legacy algorithm */
-            if (Intersections.Count == 0 && ellipse.IsCircle())
-            {
-                Vector3 defaultIntersection = new Vector3(ellipse.RadiusMain, 0, 0) + ellipse.Center;
-                ushort newNodeId = NetAccess.CreateNode(CenterNode.Info, defaultIntersection);
-                Intersections.Add(new VectorNodeStruct(newNodeId));
             }
 
             ReleaseNodesAndSegments(traveller);
@@ -110,14 +99,6 @@ namespace RoundaboutBuilder.Tools
                         //debug:
                         //EllipseTool.Instance.debugDraw.Add(outerBezier);
 
-                        /* Maybe in update 1.4.0 */
-                        /*if(followTerrain)
-                        {
-                            // Let's obtain the Y coordinate from the existing segment
-                            Vector3 foundIntersection = NetAccess.Segment(traveller.OuterSegments[i]).GetClosestPosition(intersection);
-                            intersection.y = foundIntersection.y;
-                        }*/
-
                         /* We create a node at the intersection. */
                         ushort newNodeId = NetAccess.CreateNode(CenterNode.Info, intersection);
                         Intersections.Add(new VectorNodeStruct(newNodeId));
@@ -148,7 +129,7 @@ namespace RoundaboutBuilder.Tools
                 float directionZ = (curNode.m_position.z - centerZ) / VectorDistance(CenterNode.m_position, curNode.m_position);
 
                 float radius = (float)ellipse.RadiusAtAbsoluteAngle(Math.Abs(Ellipse.VectorsAngle(curNode.m_position - ellipse.Center)));
-                if (radius > UI.NumericTextField.RADIUS_MAX)
+                if (radius > 10000)
                 {
                     throw new Exception("Algortithm error");
                 }

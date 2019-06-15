@@ -6,7 +6,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.2.0 */
+/* Version RELEASE 1.4.0+ */
 
 /* Most of this is copied from Elektrix's Segment Slope Smoother.
  * The oter part is copied from somewhere as well, but unfortunately I don't remeber from where. */
@@ -48,6 +48,8 @@ namespace RoundaboutBuilder
                 RoundaboutTool.Instance.enabled = false;
                 EllipseTool.Instance = toolController.gameObject.AddComponent<EllipseTool>();
                 EllipseTool.Instance.enabled = false;
+                FreeCursorTool.Instance = toolController.gameObject.AddComponent<FreeCursorTool>();
+                FreeCursorTool.Instance.enabled = false;
             }
 
             //instatiate UI

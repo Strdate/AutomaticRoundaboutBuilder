@@ -5,7 +5,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.2.0 */
+/* Version RELEASE 1.4.0+ */
 
 namespace RoundaboutBuilder.Tools
 {
@@ -16,8 +16,8 @@ namespace RoundaboutBuilder.Tools
          * From ellipse geometry should be multiple of four, so that the points hit the four main control points. */
         public static readonly int DENSITY = 8;
 
-        public int RadiusMain { get; private set; }
-        public int RadiusMinor { get; private set; }
+        public float RadiusMain { get; private set; }
+        public float RadiusMinor { get; private set; }
 
         public Vector3 Center { get; private set; }
         public Vector3 Focal1 { get; private set; }
@@ -31,7 +31,7 @@ namespace RoundaboutBuilder.Tools
         private Vector3 mainAxisDirection;
 
 
-        public Ellipse(Vector3 center, Vector3 mainAxisDirection, int radiusMain, int radiusMinor)
+        public Ellipse(Vector3 center, Vector3 mainAxisDirection, float radiusMain, float radiusMinor)
         {
             Center = center;
             RadiusMain = radiusMain;
@@ -51,7 +51,7 @@ namespace RoundaboutBuilder.Tools
 
         public bool IsCircle()
         {
-            return RadiusMain == RadiusMinor;
+            return RadiusMain - RadiusMinor < 0.0001f;
         }
 
         /* Well, the vector density is uniform on the circle, but not on the ellipse. But whatever... */

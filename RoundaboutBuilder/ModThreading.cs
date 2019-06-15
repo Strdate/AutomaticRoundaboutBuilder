@@ -8,7 +8,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.2.0 */
+/* Version RELEASE 1.4.0+ */
 
 /* This was shamelessly stolen from bomormer's tutorial on Simtropolis. He takes the credit.
  * https://community.simtropolis.com/forums/topic/73490-modding-tutorial-3-show-limits/ */
@@ -28,10 +28,12 @@ namespace RoundaboutBuilder
 
         public override void OnUpdate(float realTimeDelta, float simulationTimeDelta)
         {
-            if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKey(KeyCode.O))
+            if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKey(KeyCode.O) )
             {
                 // cancel if they key input was already processed in a previous frame
-                if (_processed) return;
+
+                if (_processed)
+                    return;
 
                 _processed = true;
 
@@ -43,21 +45,11 @@ namespace RoundaboutBuilder
                 //NodeSelection.instance.enabled = UIWindow.Instance.enabled;
 
             }
-            else if (UIWindow2.instance.enabled && (Input.GetKey("[+]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey("=") )))
+            else if(UIWindow2.instance.enabled)
             {
-                if (_processed) return;
-                UIWindow2.instance.IncreaseButton();
-                _processed = true;
-            }
-            else if (UIWindow2.instance.enabled && (Input.GetKey("[-]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey("-") )))
+                _processed = KeysPressed();
+            } else
             {
-                if (_processed) return;
-                UIWindow2.instance.DecreaseButton();
-                _processed = true;
-            }
-            else
-            {
-                // not both keys pressed: Reset processed state
                 _processed = false;
             }
 
@@ -75,6 +67,40 @@ namespace RoundaboutBuilder
             }            
         }
 
+        private bool KeysPressed()
+        {
+            if (Input.GetKey("[+]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey("=")))
+            {
+                if (_processed)
+                    return true;
+                UIWindow2.instance.toolOnUI?.IncreaseButton();
+                return true;
+            }
+
+            if (Input.GetKey("[-]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey("-")))
+            {
+                if (_processed)
+                    return true;
+                UIWindow2.instance.toolOnUI?.DecreaseButton();
+                return true;
+            }
+            if(Input.GetKey(KeyCode.PageUp))
+            {
+                if (_processed)
+                    return true;
+                UIWindow2.instance.toolOnUI?.PgUpButton();
+                return true;
+            }
+            if (Input.GetKey(KeyCode.PageDown))
+            {
+                if (_processed)
+                    return true;
+                UIWindow2.instance.toolOnUI?.PgDnButton();
+                return true;
+            }
+            return false;
+        }
+
         public static Provisional.Actions.Action actionStatic;
         private static Timer aTimer;
         private static bool timeUp = false;
@@ -82,7 +108,7 @@ namespace RoundaboutBuilder
         {
             actionStatic = action;
             aTimer = new System.Timers.Timer();
-            aTimer.Interval = 30;
+            aTimer.Interval = 80;
 
             // Hook up the Elapsed event for the timer. 
             aTimer.Elapsed += (a,b) =>

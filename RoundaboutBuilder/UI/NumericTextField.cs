@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 
-/* Version BETA 1.2.0 */
+/* Version RELEASE 1.4.0+ */
 
 /* By Strad, 2019 */
 
@@ -14,19 +14,19 @@ namespace RoundaboutBuilder.UI
     {
         private string prevText = "";
 
-        public int Value
+        public float? Value
         {
             get
             {
-                if (int.TryParse(text, out int result)) return result;
-                else return -1;
+                if (float.TryParse(text, out float result) && IsValid(result)) return result;
+                else return null;
             }
         }
 
-        public const int RADIUS_MAX = 3000;
-        public const int RADIUS_MIN = 4;
-        public const int INCREMENT = 4;
-        public int DefaultRadius = 40;
+        public float MaxVal = 3000f;
+        public float MinVal = 4f;
+        public int Increment = 8;
+        public float DefaultVal = 40f;
 
         public NumericTextField()
         {
@@ -46,16 +46,16 @@ namespace RoundaboutBuilder.UI
             color = new Color32(255, 255, 255, 255);
             textScale = 0.9f;
             useDropShadow = true;
-            text = DefaultRadius.ToString();
+            text = DefaultVal.ToString();
         }
 
-        public static bool IsValid(string text)
+        private bool IsValid(string text)
         {
-            return int.TryParse(text, out int result) && IsValid(result);
+            return float.TryParse(text, out float result) && IsValid(result);
         }
-        public static bool IsValid(int value)
+        public bool IsValid(float value)
         {
-            return value >= RADIUS_MIN && value <= RADIUS_MAX;
+            return value >= MinVal && value <= MaxVal;
         }
 
         protected override void OnTextChanged()
@@ -65,7 +65,7 @@ namespace RoundaboutBuilder.UI
 
             if (text == prevText) return;*/
 
-            if (int.TryParse(text, out int result) || text == "" )
+            if (int.TryParse(text, out int result) || text == "" || text == "-" )
             {
                 prevText = text;
             } 
@@ -80,14 +80,14 @@ namespace RoundaboutBuilder.UI
         public void Increase()
         {
             int newValue = 0;
-            if (!IsValid(Value))
+            if (Value == null)
             {
-                text = DefaultRadius.ToString();
+                text = DefaultVal.ToString();
                 return;
             }
             else
             {
-                newValue = Convert.ToInt32(Math.Ceiling(new decimal(Value + 1) / new decimal(INCREMENT))) * INCREMENT;
+                newValue = Convert.ToInt32(Math.Ceiling( (double)(Value + 1) / (Increment))) * Increment;
             }
             if (IsValid(newValue)) text = newValue.ToString();
         }
@@ -96,14 +96,14 @@ namespace RoundaboutBuilder.UI
         public void Decrease()
         {
             int newValue = 0;
-            if (!IsValid(Value))
+            if (Value == null)
             {
-                text = DefaultRadius.ToString();
+                text = DefaultVal.ToString();
                 return;
             }
             else
             {
-                newValue = Convert.ToInt32(Math.Floor(new decimal(Value - 1) / new decimal(INCREMENT))) * INCREMENT;
+                newValue = Convert.ToInt32(Math.Floor((double)(Value - 1) / (Increment))) * Increment;
             }
             if (IsValid(newValue)) text = newValue.ToString();
         }

@@ -46,6 +46,16 @@ namespace RoundaboutBuilder
 
         }
 
+        public virtual void PgUpButton()
+        {
+
+        }
+
+        public virtual void PgDnButton()
+        {
+
+        }
+
         public virtual void GoToFirstStage()
         {
 
@@ -55,7 +65,7 @@ namespace RoundaboutBuilder
         /* Copied from Elektrix's Segment Slope Smoother. Credit goes to him. */
         protected static ushort SelcetNode()
         {
-            if (UIWindow2.instance.containsMouse)
+            if (UIWindow2.instance.containsMouse || (UIView.IsInsideUI() || !Cursor.visible))
                 return 0;
 
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);

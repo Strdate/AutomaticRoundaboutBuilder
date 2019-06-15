@@ -7,7 +7,7 @@ using UnityEngine;
 
 /* By Strad, 01/2019 */
 
-/* Version BETA 1.2.0 */
+/* Version RELEASE 1.4.0+ */
 
 namespace RoundaboutBuilder
 {
@@ -27,8 +27,8 @@ namespace RoundaboutBuilder
         ushort axisNode;
 
         // Saving radii from the last frame so that we don't have to recalculate the ellipse every time
-        int prevRadius1 = 0;
-        int prevRadius2 = 0;
+        float prevRadius1 = 0;
+        float prevRadius2 = 0;
         Ellipse ellipse;
 
         // UI:
@@ -65,9 +65,9 @@ namespace RoundaboutBuilder
 
             try
             {
-                GraphTraveller2 traveller = new GraphTraveller2(centralNode, prevRadius1, ellipseWithPadding);
+                GraphTraveller2 traveller = new GraphTraveller2(centralNode, ellipseWithPadding);
                 EdgeIntersections2 intersections = new EdgeIntersections2(traveller, centralNode, toBeBuiltEllipse);
-                FinalConnector finalConnector = new FinalConnector(GetNode(centralNode).Info, intersections.Intersections, toBeBuiltEllipse, ControlVertices, intersections.TmpeActionGroup());
+                FinalConnector finalConnector = new FinalConnector(GetNode(centralNode).Info, intersections, toBeBuiltEllipse, ControlVertices);
             }
             catch (Exception e)
             {
@@ -110,15 +110,19 @@ namespace RoundaboutBuilder
         }
 
         /* Returns radii */
-        private bool Radius(out int radius1, out int radius2)
+        private bool Radius(out float radius1, out float radius2)
         {
             radius1 = radius2 = -1;
-            if (!NumericTextField.IsValid(UIWindow2.instance.P_EllipsePanel_3.Radius1tf.Value ) || !NumericTextField.IsValid(UIWindow2.instance.P_EllipsePanel_3.Radius2tf.Value))
+            float? radius1Q = UIWindow2.instance.P_EllipsePanel_3.Radius1tf.Value;
+            float? radius2Q = UIWindow2.instance.P_EllipsePanel_3.Radius2tf.Value;
+            if (radius1Q == null || radius2Q == null)
             {
                 return false;
             }
-            radius1 = UIWindow2.instance.P_EllipsePanel_3.Radius1tf.Value;
-            radius2 = UIWindow2.instance.P_EllipsePanel_3.Radius2tf.Value;
+
+            radius1 = (float)radius1Q;
+            radius2 = (float)radius2Q;
+
             if (radius2 > radius1)
             {
                 return false;
@@ -137,7 +141,7 @@ namespace RoundaboutBuilder
 
                 int newRadius1 = 0;
                 int newRadius2 = 0;
-                if (!Radius(out int radius1, out int radius2))
+                if (!Radius(out float radius1, out float radius2))
                 {
                     UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS1_DEF.ToString();
                     UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS2_DEF.ToString();
@@ -149,7 +153,7 @@ namespace RoundaboutBuilder
                     newRadius1 = Convert.ToInt32(Math.Ceiling(new decimal(radius1 + 1) / new decimal(5))) * 5;
                     newRadius2 = Convert.ToInt32(ratio * newRadius1);
                 }
-                if (NumericTextField.IsValid(newRadius1) && NumericTextField.IsValid(newRadius2) && newRadius1 >= newRadius2)
+                if (UIWindow2.instance.P_EllipsePanel_3.Radius1tf.IsValid(newRadius1) && UIWindow2.instance.P_EllipsePanel_3.Radius2tf.IsValid(newRadius2) && newRadius1 >= newRadius2)
                 {
                     UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = newRadius1.ToString();
                     UIWindow2.instance.P_EllipsePanel_3.Radius2tf.text = newRadius2.ToString();
@@ -173,7 +177,7 @@ namespace RoundaboutBuilder
 
                 int newRadius1 = 0;
                 int newRadius2 = 0;
-                if (!Radius(out int radius1, out int radius2))
+                if (!Radius(out float radius1, out float radius2))
                 {
                     UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS1_DEF.ToString();
                     UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS2_DEF.ToString();
@@ -185,7 +189,7 @@ namespace RoundaboutBuilder
                     newRadius1 = Convert.ToInt32(Math.Floor(new decimal(radius1 - 1) / new decimal(5))) * 5;
                     newRadius2 = Convert.ToInt32(ratio * newRadius1);
                 }
-                if (NumericTextField.IsValid(newRadius1) && NumericTextField.IsValid(newRadius2) && newRadius1 >= newRadius2)
+                if (UIWindow2.instance.P_EllipsePanel_3.Radius1tf.IsValid(newRadius1) && UIWindow2.instance.P_EllipsePanel_3.Radius2tf.IsValid(newRadius2) && newRadius1 >= newRadius2)
                 {
                     UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = newRadius1.ToString();
                     UIWindow2.instance.P_EllipsePanel_3.Radius2tf.text = newRadius2.ToString();
@@ -227,7 +231,7 @@ namespace RoundaboutBuilder
                     NetNode axisNodeDraw = GetNode(axisNode);
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.green, axisNodeDraw.m_position, 15f, axisNodeDraw.m_position.y - 1f, axisNodeDraw.m_position.y + 1f, true, true);
 
-                    if(Radius(out int radius1, out int radius2))
+                    if(Radius(out float radius1, out float radius2))
                     {
                         /* If the radiuses didn't change, we don't have to generate new ellipse. */
                         if(radius1 == prevRadius1 && radius2 == prevRadius2 && ellipse != null)

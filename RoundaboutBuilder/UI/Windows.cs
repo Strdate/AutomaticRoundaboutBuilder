@@ -2,7 +2,7 @@
 using ColossalFramework.UI;
 using UnityEngine;
 
-/* Version RELEASE 1.0.2+ */
+/* Version RELEASE 1.4.0+ */
 
 namespace RoundaboutBuilder.UI
 {
@@ -17,7 +17,7 @@ namespace RoundaboutBuilder.UI
         {
             isVisible = false;
             width = 204;
-            height = 188;
+            height = 218;
             clipChildren = true;
         }
     }
@@ -29,9 +29,10 @@ namespace RoundaboutBuilder.UI
         public override bool ShowBackButton => false;
         public override bool IsSpecialWindow => false;
 
-        public NumericTextField RadiusField { get; }
+        public NumericTextField RadiusField { get; private set; }
+        public UILabel label { get; private set; }
 
-        public RoundAboutPanel()
+        public override void Start()
         {
             float cumulativeHeight = 0;
             UILabel labelRadius = AddUIComponent<UILabel>();
@@ -47,6 +48,17 @@ namespace RoundaboutBuilder.UI
             cumulativeHeight += RadiusField.height + 8;
 
             UIButton button = UIWindow2.CreateButton(this);
+            button.text = "Free Cursor...";
+            button.tooltip = "Create roundabouts anywhere (Warning! Roads won't be removed or connected)";
+            button.relativePosition = new Vector2(8, cumulativeHeight);
+            button.width = width - 16;
+            button.eventClick += (c, p) =>
+            {
+                UIWindow2.instance.SwitchTool(FreeCursorTool.Instance);
+            };
+            cumulativeHeight += button.height + 8;
+
+            button = UIWindow2.CreateButton(this);
             button.text = "Elliptic Roundabout...";
             button.relativePosition = new Vector2(8, cumulativeHeight);
             button.width = width - 16;
@@ -55,6 +67,89 @@ namespace RoundaboutBuilder.UI
                 UIWindow2.instance.SwitchTool(EllipseTool.Instance);
             };
             cumulativeHeight += button.height + 8;
+
+            label = AddUIComponent<UILabel>();
+            label.text = "Hover mouse over an intersection";
+            label.wordWrap = true;
+            label.textScale = 0.9f;
+            label.autoSize = false;
+            label.width = width - 16;
+            label.height = 48;
+            label.relativePosition = new Vector2(8, cumulativeHeight);
+            label.SendToBack();
+            cumulativeHeight += label.height;
+
+            height = cumulativeHeight;
+
+            UIWindow2.instance.SwitchWindow(this);
+        }
+    }
+
+    public class FreeToolPanel : AbstractPanel
+    {
+        public override bool ShowDropDown => true;
+        public override bool ShowTmpeSetup => false;
+        public override bool ShowBackButton => true;
+        public override bool IsSpecialWindow => false;
+
+        public NumericTextField RadiusField { get; private set; }
+        public NumericTextField ElevationField { get; private set; }
+
+        public override void Start()
+        {
+            float cumulativeHeight = 0;
+            UILabel labelRadius = AddUIComponent<UILabel>();
+            labelRadius.textScale = 0.9f;
+            labelRadius.text = "Radius:";
+            labelRadius.relativePosition = new Vector2(8, cumulativeHeight);
+            labelRadius.tooltip = "Press +/- to adjust";
+            labelRadius.SendToBack();
+
+            RadiusField = AddUIComponent<NumericTextField>();
+            RadiusField.relativePosition = new Vector2(width - RadiusField.width - 8, cumulativeHeight);
+            RadiusField.tooltip = "Press +/- to adjust";
+            cumulativeHeight += RadiusField.height + 8;
+
+            UILabel labelElevation = AddUIComponent<UILabel>();
+            labelElevation.textScale = 0.9f;
+            labelElevation.text = "Elevation:";
+            labelElevation.relativePosition = new Vector2(8, cumulativeHeight);
+            labelElevation.tooltip = "Press PgUp/PgDn to adjust";
+            labelElevation.SendToBack();
+
+            ElevationField = AddUIComponent<NumericTextField>();
+            ElevationField.relativePosition = new Vector2(width - ElevationField.width - 8, cumulativeHeight);
+            ElevationField.tooltip = "Press PgUp/PgDn to adjust";
+            ElevationField.MinVal = -500f;
+            ElevationField.MaxVal = 1000f;
+            ElevationField.Increment = 3;
+            ElevationField.DefaultVal = 0;
+            ElevationField.text = "0";
+            cumulativeHeight += ElevationField.height + 8;
+
+            UILabel label = AddUIComponent<UILabel>();
+            label.text = "Roads won't be removed or connected";
+            label.wordWrap = true;
+            label.textScale = 0.9f;
+            label.autoSize = false;
+            label.width = width - 16;
+            label.height = 96;
+            label.relativePosition = new Vector2(8, cumulativeHeight);
+            label.SendToBack();
+            cumulativeHeight += label.height;
+
+            var absoluteElevation = UIWindow2.CreateCheckBox(this);
+            absoluteElevation.name = "RAB_absoluteElevation";
+            absoluteElevation.label.text = "Absolute elevation";
+            absoluteElevation.tooltip = "Elevation will be measured from zero level instead of terrain level";
+            absoluteElevation.isChecked = EllipseTool.Instance.ControlVertices;
+            absoluteElevation.relativePosition = new Vector3(8, cumulativeHeight);
+            absoluteElevation.isChecked = false;
+            absoluteElevation.eventCheckChanged += (c, state) =>
+            {
+                FreeCursorTool.Instance.AbsoluteElevation = state;
+            };
+            cumulativeHeight += absoluteElevation.height + 8;
 
             height = cumulativeHeight;
         }
@@ -67,7 +162,7 @@ namespace RoundaboutBuilder.UI
         public override bool ShowBackButton => true;
         public override bool IsSpecialWindow => false;
 
-        public EllipsePanel_1()
+        public override void Start()
         {
             UILabel label = AddUIComponent<UILabel>();
             label.text = "Step 1/3:\nSelect center of the elliptic roundabout (Nothing will be built yet)";
@@ -88,7 +183,7 @@ namespace RoundaboutBuilder.UI
         public override bool ShowBackButton => true;
         public override bool IsSpecialWindow => false;
 
-        public EllipsePanel_2()
+        public override void Start()
         {
             UILabel label = AddUIComponent<UILabel>();
             label.text = "Step 2/3:\nSelect any intersection on the main axis of the roundabout (Nothing will be built yet)";
@@ -112,10 +207,10 @@ namespace RoundaboutBuilder.UI
         public static readonly int RADIUS1_DEF = 60;
         public static readonly int RADIUS2_DEF = 40;
 
-        public NumericTextField Radius1tf { get;  }
-        public NumericTextField Radius2tf { get; }
+        public NumericTextField Radius1tf { get; private set; }
+        public NumericTextField Radius2tf { get; private set; }
 
-        public EllipsePanel_3()
+        public override void Start()
         {
             float cumulativeHeight = 0;
 
@@ -129,7 +224,7 @@ namespace RoundaboutBuilder.UI
             Radius1tf = AddUIComponent<NumericTextField>();
             Radius1tf.relativePosition = new Vector2(width - Radius1tf.width - 8, cumulativeHeight);
             Radius1tf.tooltip = "Press SHIFT +/- to adjust";
-            Radius1tf.DefaultRadius = RADIUS1_DEF;
+            Radius1tf.DefaultVal = RADIUS1_DEF;
             Radius1tf.text = RADIUS1_DEF.ToString();
             cumulativeHeight += Radius1tf.height + 8;
 
@@ -143,7 +238,7 @@ namespace RoundaboutBuilder.UI
             Radius2tf = AddUIComponent<NumericTextField>();
             Radius2tf.relativePosition = new Vector2(204 - Radius1tf.width - 8, cumulativeHeight);
             Radius2tf.tooltip = "Press CTRL +/- to adjust";
-            Radius2tf.DefaultRadius = RADIUS2_DEF;
+            Radius2tf.DefaultVal = RADIUS2_DEF;
             Radius2tf.text = RADIUS2_DEF.ToString();
             cumulativeHeight += Radius2tf.height + 8;
 
@@ -185,7 +280,7 @@ namespace RoundaboutBuilder.UI
         public static readonly SavedBool SavedPrioritySigns = new SavedBool("tmpePrioritySigns", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedBool SavedNoCrossings = new SavedBool("tmpeNoCrossings", RoundAboutBuilder.settingsFileName, false, true);
 
-        public TmpeSetupPanel()
+        public override void Start()
         {
             float cumulativeHeight = 8;
 
