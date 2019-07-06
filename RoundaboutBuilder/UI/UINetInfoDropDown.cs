@@ -84,19 +84,85 @@ namespace RoundaboutBuilder.UI
             Populate();
         }
 
-        protected override void OnSelectedIndexChanged()
-        {
-            UIWindow2.instance.MouseInWindowCheat = true;
-            //UIWindow2.instance.ChangeSizeDebug();
-            //ModThreading.ReenableToolsTimer();
-        }
-
         public NetInfo Value
         {
             get
             {
-                return m_netInfos[selectedIndex];
+                NetInfo prefab = m_netInfos[selectedIndex];
+                try
+                {
+                    if(ModLoadingExtension.fineRoadToolDetected)
+                        prefab = FineRoadToolSelection(prefab);
+                }
+                catch { }
+                return prefab;
             }
+        }
+
+        /* We change the road mode according to Fine Road Tool */
+        private static NetInfo FineRoadToolSelection(NetInfo prefab)
+        {
+            RoadAI roadAI = prefab.m_netAI as RoadAI;
+            if(roadAI != null)
+            {
+                // If the user has manually selected underground/overground mode, we let it be
+                if(!roadAI.IsUnderground() && !roadAI.IsOverground())
+                {
+                    switch(FineRoadTool.FineRoadTool.instance.mode)
+                    {
+                        case FineRoadTool.Mode.Ground:
+                            return roadAI.m_info;
+                        case FineRoadTool.Mode.Elevated:    
+                        case FineRoadTool.Mode.Bridge:
+                            if (roadAI.m_elevatedInfo != null)
+                            {
+                                return roadAI.m_elevatedInfo;
+                            }
+                            break;
+                        case FineRoadTool.Mode.Tunnel:
+                            if (roadAI.m_tunnelInfo != null)
+                            {
+                                return roadAI.m_tunnelInfo;
+                            }
+                            break;
+                        case FineRoadTool.Mode.Normal:
+                        case FineRoadTool.Mode.Single:
+                            break;
+                    }
+                }
+            }
+
+            PedestrianPathAI pedestrianAI = prefab.m_netAI as PedestrianPathAI;
+            if (pedestrianAI != null)
+            {
+                // If the user has manually selected underground/overground mode, we let it be
+                if (!pedestrianAI.IsUnderground() && !pedestrianAI.IsOverground())
+                {
+                    switch (FineRoadTool.FineRoadTool.instance.mode)
+                    {
+                        case FineRoadTool.Mode.Ground:
+                            return pedestrianAI.m_info;
+                        case FineRoadTool.Mode.Elevated:
+                        case FineRoadTool.Mode.Bridge:
+                            if (pedestrianAI.m_elevatedInfo != null)
+                            {
+                                return pedestrianAI.m_elevatedInfo;
+                            }
+                            break;
+                        case FineRoadTool.Mode.Tunnel:
+                            if (pedestrianAI.m_tunnelInfo != null)
+                            {
+                                return pedestrianAI.m_tunnelInfo;
+                            }
+                            break;
+                        case FineRoadTool.Mode.Normal:
+                        case FineRoadTool.Mode.Single:
+                            break;
+                    }
+                }
+            }
+
+            return prefab;
         }
 
         /* Load road netinfos */
@@ -152,13 +218,16 @@ namespace RoundaboutBuilder.UI
             if (RoundAboutBuilder.DoNotFilterPrefabs.value)
                 return true;
 
+            if (prefab.m_netAI.IsUnderground() || prefab.m_netAI.IsOverground())
+                return false;
+
             bool hasRoadLanes = prefab.m_hasBackwardVehicleLanes || prefab.m_hasForwardVehicleLanes;
             bool isOneWay = prefab.m_hasBackwardVehicleLanes ^ prefab.m_hasForwardVehicleLanes;
 
             if(freeCursor)
             {
                 return (isOneWay && (prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0
-                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0)
+                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0 )
                         || prefab.m_class.name.IndexOf("pedestrian", StringComparison.OrdinalIgnoreCase) >= 0
                         || prefab.m_class.name.IndexOf("train track", StringComparison.OrdinalIgnoreCase) >= 0
                         || prefab.m_class.name.IndexOf("landscaping", StringComparison.OrdinalIgnoreCase) >= 0
@@ -167,7 +236,7 @@ namespace RoundaboutBuilder.UI
             else
             {
                 return (isOneWay && (prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0
-                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0 && (!prefab.m_netAI.IsUnderground() && !prefab.m_netAI.IsOverground()));
+                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0 /*&& (!prefab.m_netAI.IsUnderground() && !prefab.m_netAI.IsOverground())*/);
             }
         }
 

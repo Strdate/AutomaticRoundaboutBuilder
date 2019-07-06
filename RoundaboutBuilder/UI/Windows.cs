@@ -69,7 +69,7 @@ namespace RoundaboutBuilder.UI
             cumulativeHeight += button.height + 8;
 
             label = AddUIComponent<UILabel>();
-            label.text = "Hover mouse over an intersection";
+            label.text = "Tip: Use Fine Road Tool for elevated roads";
             label.wordWrap = true;
             label.textScale = 0.9f;
             label.autoSize = false;
@@ -128,7 +128,7 @@ namespace RoundaboutBuilder.UI
             cumulativeHeight += ElevationField.height + 8;
 
             UILabel label = AddUIComponent<UILabel>();
-            label.text = "Roads won't be removed or connected";
+            label.text = "Roads won't be removed or connected\nUse Fine Road Tool for elevated roads";
             label.wordWrap = true;
             label.textScale = 0.9f;
             label.autoSize = false;

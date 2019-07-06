@@ -18,7 +18,6 @@ namespace RoundaboutBuilder
 
         private static readonly int DISTANCE_PADDING = 15;
 
-        ushort m_hover;
         //string m_radiusField.text = RADIUS_DEF.ToString();
 
         /* Main method , called when user cliks on a node to create a roundabout */
@@ -41,11 +40,11 @@ namespace RoundaboutBuilder
             /* These lines of code do all the work. See documentation in respective classes. */
             /* When the old snapping algorithm is enabled, we create secondary (bigger) ellipse, so the newly connected roads obtained by the 
              * graph traveller are not too short. They will be at least as long as the padding. */
-            Ellipse ellipse = new Ellipse(GetNode(nodeID).m_position, new Vector3(0f, 0f, 0f), radius, radius);
+            Ellipse ellipse = new Ellipse(NetAccess.Node(nodeID).m_position, new Vector3(0f, 0f, 0f), radius, radius);
             Ellipse ellipseWithPadding = ellipse;
             if (RoundAboutBuilder.UseOldSnappingAlgorithm.value)
             {
-                ellipseWithPadding = new Ellipse(GetNode(nodeID).m_position, new Vector3(0f, 0f, 0f), radius + DISTANCE_PADDING, radius + DISTANCE_PADDING);
+                ellipseWithPadding = new Ellipse(NetAccess.Node(nodeID).m_position, new Vector3(0f, 0f, 0f), radius + DISTANCE_PADDING, radius + DISTANCE_PADDING);
             }
 
 
@@ -58,7 +57,10 @@ namespace RoundaboutBuilder
                     traveller = new GraphTraveller2(nodeID, ellipse);
                     intersections = new EdgeIntersections2(traveller, nodeID, ellipse);
                 }
-                FinalConnector finalConnector = new FinalConnector(GetNode(nodeID).Info, intersections, ellipse, true);
+                FinalConnector finalConnector = new FinalConnector(NetAccess.Node(nodeID).Info, intersections, ellipse, true);
+
+                // Easter egg
+                RoundAboutBuilder.EasterEggToggle();
 
                 // Debug, don't forget to remove
                 /*foreach(VectorNodeStruct intersection in intersections.Intersections)
@@ -75,22 +77,12 @@ namespace RoundaboutBuilder
 
         }
 
-        /* This last part was more or less copied from Elektrix's Segment Slope Smoother. He takes the credit. 
-         * https://github.com/CosignCosine/CS-SegmentSlopeSmoother
-         * https://steamcommunity.com/sharedfiles/filedetails/?id=1597198847 */
-
-        protected override void OnToolUpdate()
+        protected override void OnClick()
         {
-            base.OnToolUpdate();
-
-            m_hover = SelcetNode();
-
-            if (m_hover != 0)
+            base.OnClick();
+            if(m_hoverNode != 0)
             {
-                if (Input.GetMouseButtonUp(0))
-                {
-                    CreateRoundabout(m_hover);
-                }
+                CreateRoundabout(m_hoverNode);
             }
         }
 
@@ -109,7 +101,7 @@ namespace RoundaboutBuilder
             base.OnEnable();
             try
             {
-                UIWindow2.instance.P_RoundAboutPanel.label.text = "Hover mouse over an intersection";
+                UIWindow2.instance.P_RoundAboutPanel.label.text = "Tip: Use Fine Road Tool for elevated roads";
             }
             catch (NullReferenceException) { }
         }
@@ -131,9 +123,9 @@ namespace RoundaboutBuilder
         {
             try
             {
-                if (m_hover != 0)
+                if (m_hoverNode != 0)
                 {
-                    NetNode hoveredNode = GetNode(m_hover);
+                    NetNode hoveredNode = NetAccess.Node(m_hoverNode);
 
                     // kinda stole this color from Move It!
                     // thanks to SamsamTS because they're a UI god
@@ -148,6 +140,12 @@ namespace RoundaboutBuilder
                         RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.red, hoveredNode.m_position, 2 * ((float)radius + roadWidth /*DISTANCE_PADDING - 5*/), hoveredNode.m_position.y - 1f, hoveredNode.m_position.y + 1f, true, true);
                     }
                     //RenderDirectionVectors(cameraInfo);
+                    RenderHoveringLabel("Click to build\nPress +/- to adjust radius");
+                }
+                else
+                {
+                    RenderMousePositionCircle(cameraInfo);
+                    RenderHoveringLabel("Hover mouse over intersection");
                 }
             }
             catch (Exception e)

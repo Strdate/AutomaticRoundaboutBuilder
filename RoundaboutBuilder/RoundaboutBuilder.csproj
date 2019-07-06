@@ -38,6 +38,10 @@
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ColossalManaged.dll</HintPath>
     </Reference>
     <Reference Include="CSUtil.Commons, Version=1.0.6877.41442, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="FineRoadTool, Version=1.0.6723.1560, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\workshop\content\255710\651322972\FineRoadTool.dll</HintPath>
+    </Reference>
     <Reference Include="ICities">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ICities.dll</HintPath>
     </Reference>
@@ -76,6 +80,7 @@
     <Compile Include="Tools\NetAccess.cs" />
     <Compile Include="Tools\VectorNodeStruct.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\HoveringLabel.cs" />
     <Compile Include="UI\NumericTextField.cs" />
     <Compile Include="UI\ResourceLoader.cs" />
     <Compile Include="UI\UINetInfoDropDown.cs" />

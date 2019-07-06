@@ -15,7 +15,7 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.4.0";
+        public static readonly string VERSION = "RELEASE 1.5.0";
 
         public const string settingsFileName = "RoundaboutBuilder";
 
@@ -28,7 +28,8 @@ namespace RoundaboutBuilder
         public static readonly SavedBool UseOldSnappingAlgorithm = new SavedBool("useOldSnappingAlgorithm", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedBool DoNotFilterPrefabs = new SavedBool("doNotFilterPrefabs", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedInt savedWindowX = new SavedInt("windowX", settingsFileName, (int)defWindowPosition.x, true);
-        public static readonly SavedInt savedWindowY = new SavedInt("windowY", settingsFileName, (int)defWindowPosition.y, true); 
+        public static readonly SavedInt savedWindowY = new SavedInt("windowY", settingsFileName, (int)defWindowPosition.y, true);
+        public static readonly SavedInt TotalRoundaboutsBuilt = new SavedInt("totalRoundaboutsBuilt", settingsFileName, 0, true);
 
         public RoundAboutBuilder()
         {
@@ -143,6 +144,24 @@ namespace RoundaboutBuilder
                 Debug.Log("OnSettingsUI failed");
                 Debug.LogException(e);
             }
+        }
+
+        // Easter egg
+        public static void EasterEggToggle()
+        {
+            try
+            {
+                int requiredCount = 1024;
+                if (TotalRoundaboutsBuilt.value < int.MaxValue)
+                    TotalRoundaboutsBuilt.value++;
+                if (TotalRoundaboutsBuilt.value == requiredCount)
+                {
+                    UIWindow2.instance.ThrowErrorMsg("Congratulations! You've built " + requiredCount + " roundabouts in total! Do you live in France?\n" +
+                        "Fun fact: There is more than 32000 roundabouts in France, which is about one roundabout every 30 km. But the country with the highest number of roundabouts" +
+                        " per km is the United Kingdom (25000 in total/one every 15 km). Thanks to Scott Batson from Quora for this summary (2015)");
+                }
+            }
+            catch { }
         }
     }
 }

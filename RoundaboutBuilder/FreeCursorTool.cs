@@ -18,8 +18,6 @@ namespace RoundaboutBuilder
 
         public bool AbsoluteElevation { get; set; }
 
-        private Vector3 m_hover;
-
         public void CreateRoundabout()
         {
             float? radiusQ = UIWindow2.instance.P_FreeToolPanel.RadiusField.Value;
@@ -41,7 +39,7 @@ namespace RoundaboutBuilder
             if (!UIWindow2.instance.keepOpen)
                 UIWindow2.instance.LostFocus();
 
-            Vector3 vector = m_hover;
+            Vector3 vector = m_hoverPos;
             if (AbsoluteElevation)
             {
                 vector.y = elevation;
@@ -65,6 +63,9 @@ namespace RoundaboutBuilder
             try
             {
                 FinalConnector finalConnector = new FinalConnector(UI.UIWindow2.instance.dropDown.Value, null, ellipse, false);
+
+                // Easter egg
+                RoundAboutBuilder.EasterEggToggle();
             }
             catch (Exception e)
             {
@@ -73,23 +74,10 @@ namespace RoundaboutBuilder
             }
         }
 
-        protected override void OnToolUpdate()
+        protected override void OnClick()
         {
-            base.OnToolUpdate();
-
-            if (UIView.IsInsideUI() || !Cursor.visible) return;
-
-            Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastInput input = new RaycastInput(mouseRay, Camera.main.farClipPlane);
-            input.m_ignoreTerrain = false;
-            RayCast(input, out RaycastOutput output);
-
-            m_hover = output.m_hitPos;
-
-            if (Input.GetMouseButtonUp(0))
-            {
-                CreateRoundabout();
-            }
+            base.OnClick();
+            CreateRoundabout();
         }
 
         protected override void RenderOverlayExtended(RenderManager.CameraInfo cameraInfo)
@@ -108,7 +96,7 @@ namespace RoundaboutBuilder
                 float radius = (float)radiusQ;
                 float elevation = (float)elevationFieldQ;
 
-                Vector3 vector2 = m_hover;
+                Vector3 vector2 = m_hoverPos;
                 if (AbsoluteElevation)
                 {
                     vector2.y = elevation;
@@ -126,12 +114,12 @@ namespace RoundaboutBuilder
                 RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, vector2, 15f, vector2.y - 1f, vector2.y + 1f, true, true);
                 //RenderDirectionVectors(cameraInfo);
 
-                float terrainHeight = m_hover.y;
+                float terrainHeight = m_hoverPos.y;
 
                 // If the preview is not on the ground, we create a shadow
                 if ((AbsoluteElevation && Mathf.Abs(terrainHeight - elevation) > 0.01f) || (!AbsoluteElevation && Mathf.Abs(elevation) > 0.01f))
                 {
-                    Vector3 vector = m_hover;
+                    Vector3 vector = m_hoverPos;
                     vector.y = terrainHeight;
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, vector, 15f, vector.y - 2f, vector.y + 2f, true, true);
 

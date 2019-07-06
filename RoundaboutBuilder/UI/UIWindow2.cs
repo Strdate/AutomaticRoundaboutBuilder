@@ -30,21 +30,15 @@ namespace RoundaboutBuilder.UI
         public TmpeSetupPanel P_TmpeSetupPanel;
         public FreeToolPanel P_FreeToolPanel;
 
-        private UIPanelButton m_panelButton;
+        public HoveringLabel m_hoveringLabel;
+
+        private UIPanelButton m_panelButton; // On main toolbar
 
         private UIPanel m_topSection;
         private UIPanel m_bottomSection;
         private UIPanel m_setupTmpeSection;
         private UIButton backButton;
         public UINetInfoDropDown dropDown;
-
-        /* If you have a dropdown and user selects an item which is in the list outside the window boundary, the containsMouse method still returns true.
-         * This is a bug in the game itself. I have to use a 'cheat' to sort it out. */
-        internal bool MouseInWindowCheat = false;
-
-        //public static UIPanel toolOptionsPanel = null;
-
-        //private UIPanel m_toolOptionsPanel;
 
         public UIWindow2()
         {
@@ -214,6 +208,9 @@ namespace RoundaboutBuilder.UI
             m_bottomSection.height = cummulativeHeight;
             m_bottomSection.width = width;
 
+            m_hoveringLabel = AddUIComponent<HoveringLabel>();
+            m_hoveringLabel.isVisible = false;
+
             /* Enable roundabout tool as default */
             SwitchTool(RoundaboutTool.Instance);
 
@@ -342,19 +339,6 @@ namespace RoundaboutBuilder.UI
                 toolOnUI.enabled = false;
             /*if (m_panelButton != null)
                 m_panelButton.UnfocusSprites();*/
-        }
-
-        // cheat, see note at the top
-        public new bool containsMouse
-        {
-            get {
-                return (MouseInWindowCheat ? false : base.containsMouse);
-            }
-        }
-
-        protected override void OnMouseEnter(UIMouseEventParameter p)
-        {
-            MouseInWindowCheat = false;
         }
 
         public void ThrowErrorMsg(string content, bool error = false)

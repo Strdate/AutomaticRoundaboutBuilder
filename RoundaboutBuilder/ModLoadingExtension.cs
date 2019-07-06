@@ -17,11 +17,14 @@ namespace RoundaboutBuilder
     {
         public static bool LevelLoaded = false;
         public static bool tmpeDetected = false;
+        public static bool fineRoadToolDetected = false;
         //private string _string = "Plugins: ";
 
         // called when level loading begins
         public void OnCreated(ILoading loading)
         {
+            tmpeDetected = false;
+            fineRoadToolDetected = false;
             foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
             {
                 //_string += current.name + " ";
@@ -29,11 +32,13 @@ namespace RoundaboutBuilder
                 {
                     tmpeDetected = true;
                     //_string += "[TMPE Detected!]";
+                } else if ((current.name.Contains("FineRoadTool") || current.publishedFileID.AsUInt64 == 651322972) && current.isEnabled)
+                {
+                    fineRoadToolDetected = true;
                 }
             }
             //Debug.Log(_string);
         }
-                            
 
         // called when level is loaded
         public void OnLevelLoaded(LoadMode mode)
