@@ -91,7 +91,7 @@ namespace RoundaboutBuilder
             base.OnDisable();
             try
             {
-                UIWindow2.instance.P_RoundAboutPanel.label.text = "Click inside the window to reactivate";
+                UIWindow2.instance.P_RoundAboutPanel.label.text = "Click inside the window to reactivate the tool";
             }
             catch(NullReferenceException) { }
         }

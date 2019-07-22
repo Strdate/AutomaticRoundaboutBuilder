@@ -210,8 +210,8 @@ namespace RoundaboutBuilder.Tools
             bool resultPost2 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.IsEnteringBlockedJunctionAllowed(segment, true);*/
             /*Debug.Log($"Setting up tmpe segment {segment}. Result: {resultPrev1}, {resultPrev2}, {result1}, {result2}, {resultPost1}, {resultPost2}");
             ModThreading.Timer(segment);*/
-            m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, true) );
-            m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, false) );
+            m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, true, false) );
+            m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, false, false) );
             m_group.Actions.Add(new NoCrossingsAction(segment, true));
             m_group.Actions.Add(new NoCrossingsAction(segment, false));
             m_group.Actions.Add(new NoParkingAction(segment));

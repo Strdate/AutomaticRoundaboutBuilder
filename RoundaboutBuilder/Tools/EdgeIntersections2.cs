@@ -176,7 +176,7 @@ namespace RoundaboutBuilder.Tools
                 newSegmentId = NetAccess.CreateSegment(newNodeId, traveller.OuterNodes[i],
             startDirection, endDirection, curSegment.Info, invert);
 
-                m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction(newSegmentId, true));
+                m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction(newSegmentId, true, true));
                 m_group.Actions.Add(new YieldSignAction(newSegmentId, true));
                 //Debug.Log(string.Format("Segment and node created... "));
             }
@@ -239,7 +239,7 @@ namespace RoundaboutBuilder.Tools
                 ushort newSegmentId = NetAccess.CreateSegment(startNodeId, endNodeId,
             startDirection, endDirection, oldSegment.Info, invert);
 
-                m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction(newSegmentId, true));
+                m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction(newSegmentId, true, true));
                 m_group.Actions.Add(new YieldSignAction(newSegmentId, true));
             }
             catch(Exception e)

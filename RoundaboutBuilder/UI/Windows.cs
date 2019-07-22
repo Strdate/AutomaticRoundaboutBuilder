@@ -275,7 +275,8 @@ namespace RoundaboutBuilder.UI
         public override bool ShowBackButton => true;
         public override bool IsSpecialWindow => true;
 
-        public static readonly SavedBool SavedEnterBlockedJunction = new SavedBool("tmpeEnterBlockedJunction", RoundAboutBuilder.settingsFileName, true, true);
+        public static readonly SavedBool SavedEnterBlockedYieldingRoad = new SavedBool("tmpeEnterBlockedJunction", RoundAboutBuilder.settingsFileName, true, true);
+        public static readonly SavedBool SavedEnterBlockedMainRoad = new SavedBool("tmpeEnterBlockedJunctionMainRoad", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool SavedNoParking = new SavedBool("tmpeNoParking", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool SavedPrioritySigns = new SavedBool("tmpePrioritySigns", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedBool SavedNoCrossings = new SavedBool("tmpeNoCrossings", RoundAboutBuilder.settingsFileName, false, true);
@@ -293,14 +294,26 @@ namespace RoundaboutBuilder.UI
             cumulativeHeight += label.height + 8;
 
             var checkBox = UIWindow2.CreateCheckBox(this);
-            checkBox.name = "RAB_enterBlockedJunction";
-            checkBox.label.text = "Enter blocked junct.";
-            checkBox.tooltip = "Allow vehicles to enter blocked junctions (TMPE policy)";
-            checkBox.isChecked = SavedEnterBlockedJunction;
+            checkBox.name = "RAB_enterBlockedJunctionMainRoad";
+            checkBox.label.text = "Enter junct. main r.";
+            checkBox.tooltip = "Allow vehicles on the roundabout to enter blocked junctions (TMPE policy)";
+            checkBox.isChecked = SavedEnterBlockedMainRoad;
             checkBox.relativePosition = new Vector3(8, cumulativeHeight);
             checkBox.eventCheckChanged += (c, state) =>
             {
-                SavedEnterBlockedJunction.value = state;
+                SavedEnterBlockedMainRoad.value = state;
+            };
+            cumulativeHeight += checkBox.height + 8;
+
+            checkBox = UIWindow2.CreateCheckBox(this);
+            checkBox.name = "RAB_enterBlockedJunctionYieldingRoad";
+            checkBox.label.text = "Enter junct. yield. r.";
+            checkBox.tooltip = "Allow vehicles entering the roundabout to enter blocked junction (TMPE policy)";
+            checkBox.isChecked = SavedEnterBlockedYieldingRoad;
+            checkBox.relativePosition = new Vector3(8, cumulativeHeight);
+            checkBox.eventCheckChanged += (c, state) =>
+            {
+                SavedEnterBlockedYieldingRoad.value = state;
             };
             cumulativeHeight += checkBox.height + 8;
 

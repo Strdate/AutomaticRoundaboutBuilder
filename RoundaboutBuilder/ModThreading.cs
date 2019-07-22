@@ -108,7 +108,7 @@ namespace RoundaboutBuilder
         {
             actionStatic = action;
             aTimer = new System.Timers.Timer();
-            aTimer.Interval = 80;
+            aTimer.Interval = 500;
 
             // Hook up the Elapsed event for the timer. 
             aTimer.Elapsed += (a,b) =>

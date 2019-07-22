@@ -126,7 +126,7 @@ namespace RoundaboutBuilder
 
         protected static void RenderHoveringLabel(string text)
         {
-            UIWindow2.instance.m_hoveringLabel.relativePosition = UIView.GetAView().ScreenPointToGUI(Input.mousePosition) + new Vector2(-20, 0);
+            UIWindow2.instance.m_hoveringLabel.absolutePosition = UIView.GetAView().ScreenPointToGUI(Input.mousePosition) + new Vector2(50, 30);
             UIWindow2.instance.m_hoveringLabel.SetValue(text);
             UIWindow2.instance.m_hoveringLabel.isVisible = true;
         }

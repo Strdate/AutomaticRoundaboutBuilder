@@ -14,10 +14,14 @@ namespace SharedEnvironment.Public.Actions
         private ushort m_segment;
         private bool m_startNode;
 
-        public EnteringBlockedJunctionAllowedAction(ushort segment, bool startNode) : base("TMPE setup", false)
+        // Is it the main roundabout road or road entering the roundabout
+        private bool m_yieldingRoad;
+
+        public EnteringBlockedJunctionAllowedAction(ushort segment, bool startNode, bool yieldingRoad) : base("TMPE setup", false)
         {
             m_segment = segment;
             m_startNode = startNode;
+            m_yieldingRoad = yieldingRoad;
         }
 
         protected override void DoImplementation()
@@ -44,7 +48,8 @@ namespace SharedEnvironment.Public.Actions
 
         protected bool IsPolicyAllowed()
         {
-            return ModLoadingExtension.tmpeDetected && UIWindow2.SavedSetupTmpe && TmpeSetupPanel.SavedEnterBlockedJunction;
+            return ModLoadingExtension.tmpeDetected && UIWindow2.SavedSetupTmpe && (
+                (!m_yieldingRoad && TmpeSetupPanel.SavedEnterBlockedMainRoad.value) || (m_yieldingRoad && TmpeSetupPanel.SavedEnterBlockedYieldingRoad.value));
         }
 
     }

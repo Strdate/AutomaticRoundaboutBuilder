@@ -1,4 +1,5 @@
 ﻿using ColossalFramework;
+using ColossalFramework.PlatformServices;
 using ColossalFramework.UI;
 using System;
 using UnityEngine;
@@ -97,6 +98,29 @@ namespace RoundaboutBuilder.UI
             P_FreeToolPanel = AddUIComponent<FreeToolPanel>();
             //P_RoundAboutPanel.height = 104f; // cheat
 
+            // From Elektrix's Road Tools
+            UIButton openDescription = AddUIComponent<UIButton>();
+            openDescription.relativePosition = new Vector3(width - 24f, 8f);
+            openDescription.size = new Vector3(15f, 15f);
+            openDescription.normalFgSprite = "ToolbarIconHelp";
+            openDescription.name = "RAB_workshopButton";
+            openDescription.tooltip = "Roundabout Builder [" + RoundAboutBuilder.VERSION + "] by Strad\nOpen in Steam Workshop";
+            SetupButtonStateSprites(ref openDescription, "OptionBase", true);
+            if (!PlatformService.IsOverlayEnabled())
+            {
+                openDescription.isVisible = false;
+                openDescription.isEnabled = false;
+            }
+            openDescription.eventClicked += delegate (UIComponent component, UIMouseEventParameter click)
+            {
+                if (PlatformService.IsOverlayEnabled())
+                {
+                    PlatformService.ActivateGameOverlayToWorkshopItem(RoundAboutBuilder.WORKSHOP_FILE_ID);
+                }
+                openDescription.Unfocus();
+            };
+            // -- Elektrix
+
             float cummulativeHeight = 8;
 
             /* Top section */
@@ -120,7 +144,6 @@ namespace RoundaboutBuilder.UI
             dropDown.width = width - 16;
             //cummulativeHeight += dropDown.height + 8;
 
-            
 
             /* Bottom section */
 
@@ -393,6 +416,16 @@ namespace RoundaboutBuilder.UI
             button.playAudioEvents = true;
 
             return button;
+        }
+
+        // Ripped from Elektrix
+        public static void SetupButtonStateSprites(ref UIButton button, string spriteName, bool noNormal = false)
+        {
+            button.normalBgSprite = spriteName + (noNormal ? "" : "Normal");
+            button.hoveredBgSprite = spriteName + "Hovered";
+            button.focusedBgSprite = spriteName + "Focused";
+            button.pressedBgSprite = spriteName + "Pressed";
+            button.disabledBgSprite = spriteName + "Disabled";
         }
     }
 }

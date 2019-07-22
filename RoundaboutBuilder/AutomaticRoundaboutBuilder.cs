@@ -1,4 +1,5 @@
 ﻿using ColossalFramework;
+using ColossalFramework.PlatformServices;
 using ColossalFramework.UI;
 using ICities;
 using RoundaboutBuilder.UI;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 /* By Strad, 02/2019 */
 
-/* Version RELEASE 1.4.0 */
+/* Version RELEASE 1.5.1 */
 
 /* Warning: I am lazy thus the version labels across the files may not be updated */
 
@@ -15,7 +16,8 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.5.0";
+        public static readonly string VERSION = "RELEASE 1.5.1";
+        public static readonly PublishedFileId WORKSHOP_FILE_ID = new PublishedFileId(1625704117uL);
 
         public const string settingsFileName = "RoundaboutBuilder";
 
