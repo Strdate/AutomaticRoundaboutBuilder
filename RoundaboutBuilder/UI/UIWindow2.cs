@@ -113,7 +113,7 @@ namespace RoundaboutBuilder.UI
             }
             openDescription.eventClicked += delegate (UIComponent component, UIMouseEventParameter click)
             {
-                if (PlatformService.IsOverlayEnabled())
+                if (PlatformService.IsOverlayEnabled() && RoundAboutBuilder.WORKSHOP_FILE_ID != null)
                 {
                     PlatformService.ActivateGameOverlayToWorkshopItem(RoundAboutBuilder.WORKSHOP_FILE_ID);
                 }

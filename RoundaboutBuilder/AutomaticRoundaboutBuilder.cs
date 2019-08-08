@@ -16,8 +16,8 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.5.1";
-        public static readonly PublishedFileId WORKSHOP_FILE_ID = new PublishedFileId(1625704117uL);
+        public static readonly string VERSION = "RELEASE 1.5.2";
+        public static PublishedFileId WORKSHOP_FILE_ID;
 
         public const string settingsFileName = "RoundaboutBuilder";
 
@@ -64,7 +64,14 @@ namespace RoundaboutBuilder
 
         public void OnEnabled()
         {
-            //Debug.Log("Mod onenabled");
+            // Probably useless
+            try
+            {
+                WORKSHOP_FILE_ID = new PublishedFileId(1625704117uL);
+            } catch
+            {
+                Debug.Log("Error when assigning Workshop File ID");
+            }
         }
 
         public void OnSettingsUI(UIHelperBase helper)
