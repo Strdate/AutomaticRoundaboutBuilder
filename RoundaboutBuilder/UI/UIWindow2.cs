@@ -33,8 +33,6 @@ namespace RoundaboutBuilder.UI
 
         public HoveringLabel m_hoveringLabel;
 
-        private UIPanelButton m_panelButton; // On main toolbar
-
         private UIPanel m_topSection;
         private UIPanel m_bottomSection;
         private UIPanel m_setupTmpeSection;
@@ -237,16 +235,17 @@ namespace RoundaboutBuilder.UI
             /* Enable roundabout tool as default */
             SwitchTool(RoundaboutTool.Instance);
 
-            try
+            // Is done by modthreading from 1.5.3 on
+            /*try
             {
                 if(RoundAboutBuilder.ShowUIButton)
-                    m_panelButton = UIPanelButton.CreateButton();
+                   UIPanelButton.CreateButton();
             }
             catch(Exception e)
             {
                 Debug.LogWarning("Failed to create UI button.");
                 Debug.LogWarning(e);
-            }
+            }*/
             
 
             enabled = false;

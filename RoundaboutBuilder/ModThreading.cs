@@ -53,6 +53,12 @@ namespace RoundaboutBuilder
                 _processed = false;
             }
 
+            /* Check for UI panel button */
+            if(UIWindow2.instance && !UIPanelButton.Instance) // If UIPanel has been already initialized && button missing
+            {
+                UIPanelButton.CreateButton();
+            }
+
             /* Delayed setup */
             if(timeUp)
             {

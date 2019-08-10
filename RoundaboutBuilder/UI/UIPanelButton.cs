@@ -8,11 +8,13 @@ namespace RoundaboutBuilder.UI
 {
     public class UIPanelButton : UIButton
     {
+        public static UIPanelButton Instance;
+
         private const float BUTTON_HORIZONTAL_POSITION = 23;
 
         public UIPanelButton()
         {
-            
+            Instance = this;
         }
 
         public override void Start()
@@ -88,10 +90,19 @@ namespace RoundaboutBuilder.UI
             size = new Vector2(32, 32);
         }*/
 
-        public static UIPanelButton CreateButton()
+        public static void CreateButton()
         {
             var roadsOptionPanel = UIUtils.Instance.FindComponent<UIComponent>("RoadsOptionPanel", null, UIUtils.FindOptions.NameContains);
-            return roadsOptionPanel.AddUIComponent<UIPanelButton>();
+            if(roadsOptionPanel && !Instance)
+            {
+                try
+                {
+                    roadsOptionPanel.AddUIComponent<UIPanelButton>();
+                } catch
+                {
+                    Debug.LogWarning("Failed to create UIPanelButton!");
+                }
+            }
         }
     }
 
