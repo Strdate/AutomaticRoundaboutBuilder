@@ -8,7 +8,7 @@ using UnityEngine;
 
 /* By Strad, 02/2019 */
 
-/* Version RELEASE 1.5.1 */
+/* Version RELEASE 1.5.4 */
 
 /* Warning: I am lazy thus the version labels across the files may not be updated */
 
@@ -16,7 +16,7 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.5.3";
+        public static readonly string VERSION = "RELEASE 1.5.4";
         public static PublishedFileId WORKSHOP_FILE_ID;
 
         public const string settingsFileName = "RoundaboutBuilder";
