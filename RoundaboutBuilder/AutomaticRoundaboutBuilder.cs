@@ -8,7 +8,7 @@ using UnityEngine;
 
 /* By Strad, 02/2019 */
 
-/* Version RELEASE 1.5.4 */
+/* Version RELEASE 1.6.0 */
 
 /* Warning: I am lazy thus the version labels across the files may not be updated */
 
@@ -16,10 +16,14 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.5.4";
+        public static readonly string VERSION = "RELEASE 1.6.0";
         public static PublishedFileId WORKSHOP_FILE_ID;
 
         public const string settingsFileName = "RoundaboutBuilder";
+
+        public static readonly SavedInputKey ModShortcut = new SavedInputKey("modShortcut", settingsFileName, SavedInputKey.Encode(KeyCode.O, true, false, false), true);
+        public static readonly SavedInputKey IncreaseShortcut = new SavedInputKey("increaseShortcut", settingsFileName, SavedInputKey.Encode(KeyCode.Equals, false, false, false), true);
+        public static readonly SavedInputKey DecreaseShortcut = new SavedInputKey("decreaseShortcut", settingsFileName, SavedInputKey.Encode(KeyCode.Minus, false, false, false), true);
 
         public static readonly Vector2 defWindowPosition = new Vector2(85, 10);
         public static readonly SavedBool SelectTwoWayRoads = new SavedBool("selectTwoWayRoads", RoundAboutBuilder.settingsFileName, false, true);
@@ -93,29 +97,6 @@ namespace RoundaboutBuilder
                 });
                 checkBox.tooltip = "Your selected road for the roundabout will change as you browse through the roads menu";
 
-                group.AddSpace(10);
-
-                checkBox = (UICheckBox)group.AddCheckbox("Use +/- keys on main keyboard", UseExtraKeys.value, (b) =>
-                {
-                    UseExtraKeys.value = b;
-                });
-                checkBox.tooltip = "If checked, you can use +/- keys on the main keyboard besides the ones on the numpad";
-
-                group.AddTextfield("Increase radius", "+", (b) => Debug.Log("Increase change" + b), (b) =>
-                {
-                    ExtraKeyIncrease.value = b;
-                }
-                );
-
-                group.AddTextfield("Decrease radius", "-", (b) => Debug.Log("Increase change" + b), (b) =>
-                {
-                    ExtraKeyDecrease.value = b;
-                }
-                );
-
-
-                group.AddSpace(10);
-
                 checkBox = (UICheckBox)group.AddCheckbox("Use old snapping algorithm", UseOldSnappingAlgorithm.value, (b) =>
                 {
                     UseOldSnappingAlgorithm.value = b;
@@ -135,12 +116,22 @@ namespace RoundaboutBuilder
                 });
                 checkBox.tooltip = "No roads will be removed or connected when the roundabout is built";
 
-                checkBox = (UICheckBox)group.AddCheckbox("Do not filter prefabs", DoNotFilterPrefabs.value, (b) =>
+                checkBox = (UICheckBox)group.AddCheckbox("Do not filter prefabs (include all networks in the menu)", DoNotFilterPrefabs.value, (b) =>
                 {
                     DoNotFilterPrefabs.value = b;
                     UIWindow2.instance.dropDown.Populate(); // Reload dropdown menu
                 });
                 checkBox.tooltip = "The dropdown menu will include all prefabs available, not only one-way roads";
+
+                checkBox = (UICheckBox)group.AddCheckbox("Use secondary increase / decrease radius keys", UseExtraKeys.value, (b) =>
+                {
+                    UseExtraKeys.value = b;
+                });
+                checkBox.tooltip = "If checked, you can use bound keys from the list below to increase / decrease radius (besides the ones on numpad)";
+
+                group.AddSpace(10);
+
+                panel.gameObject.AddComponent<OptionsKeymapping>();
 
                 group.AddSpace(10);
 

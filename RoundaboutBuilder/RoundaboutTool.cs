@@ -101,7 +101,17 @@ namespace RoundaboutBuilder
             base.OnEnable();
             try
             {
-                UIWindow2.instance.P_RoundAboutPanel.label.text = "Tip: Use Fine Road Tool for elevated roads";
+                System.Random rand = new System.Random();
+                string text = ""; // a little bit of advertising never hurt anyone
+                switch(rand.Next(6))
+                {
+                    case 0: case 1: text =  "Tip: Use Fine Road Tool for elevated roads"; break;
+                    case 2: case 3: text =  "Tip: Use this with any network (see options)"; break;
+                    case 4: text =          "Tip: Check out Smart Intersection Builder!"; break;
+                    case 5: text =          "Tip: Check out Adjust Pathfinding mod!"; break;
+                    default: text =         "Tip: Use Fine Road Tool for elevated roads"; break;
+                }
+                UIWindow2.instance.P_RoundAboutPanel.label.text = text;
             }
             catch (NullReferenceException) { }
         }

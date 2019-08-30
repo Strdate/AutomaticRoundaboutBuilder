@@ -81,6 +81,7 @@
     <Compile Include="Tools\VectorNodeStruct.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\HoveringLabel.cs" />
+    <Compile Include="UI\KeyMappings.cs" />
     <Compile Include="UI\NumericTextField.cs" />
     <Compile Include="UI\ResourceLoader.cs" />
     <Compile Include="UI\UINetInfoDropDown.cs" />

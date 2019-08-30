@@ -2,6 +2,8 @@
 using ColossalFramework.UI;
 using ICities;
 using RoundaboutBuilder.UI;
+using System;
+using System.Linq;
 using UnityEngine;
 
 /* By Strad, 01/2019 */
@@ -18,7 +20,9 @@ namespace RoundaboutBuilder
         public static bool LevelLoaded = false;
         public static bool tmpeDetected = false;
         public static bool fineRoadToolDetected = false;
-        //private string _string = "Plugins: ";
+
+        public static readonly UInt64[] TMPE_IDs = { 583429740, 1637663252, 1806963141 };
+        public static readonly UInt64[] FINE_ROAD_ANARCHY_IDs = { 651322972, 1844442251 };
 
         // called when level loading begins
         public void OnCreated(ILoading loading)
@@ -28,11 +32,11 @@ namespace RoundaboutBuilder
             foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
             {
                 //_string += current.name + " ";
-                if ((current.name.Contains("TrafficManager") || current.publishedFileID.AsUInt64 == 583429740 || current.publishedFileID.AsUInt64 == 1637663252) && current.isEnabled)
+                if (!tmpeDetected && current.isEnabled && (current.name.Contains("TrafficManager") || TMPE_IDs.Contains( current.publishedFileID.AsUInt64 )))
                 {
                     tmpeDetected = true;
                     //_string += "[TMPE Detected!]";
-                } else if ((current.name.Contains("FineRoadTool") || current.publishedFileID.AsUInt64 == 651322972) && current.isEnabled)
+                } else if (!fineRoadToolDetected && current.isEnabled &&(current.name.Contains("FineRoadTool") || FINE_ROAD_ANARCHY_IDs.Contains( current.publishedFileID.AsUInt64 )))
                 {
                     fineRoadToolDetected = true;
                 }

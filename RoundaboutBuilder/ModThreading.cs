@@ -28,7 +28,7 @@ namespace RoundaboutBuilder
 
         public override void OnUpdate(float realTimeDelta, float simulationTimeDelta)
         {
-            if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKey(KeyCode.O) )
+            if (RoundAboutBuilder.ModShortcut.IsPressed())
             {
                 // cancel if they key input was already processed in a previous frame
 
@@ -75,7 +75,7 @@ namespace RoundaboutBuilder
 
         private bool KeysPressed()
         {
-            if (Input.GetKey("[+]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey(ExtraKeyIncrease.value)))
+            if (Input.GetKey("[+]") || (RoundAboutBuilder.UseExtraKeys.value && RoundAboutBuilder.IncreaseShortcut.IsPressed()))
             {
                 if (_processed)
                     return true;
@@ -83,7 +83,7 @@ namespace RoundaboutBuilder
                 return true;
             }
 
-            if (Input.GetKey("[-]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey(ExtraKeyDecrease.value)))
+            if (Input.GetKey("[-]") || (RoundAboutBuilder.UseExtraKeys.value && RoundAboutBuilder.DecreaseShortcut.IsPressed()))
             {
                 if (_processed)
                     return true;
