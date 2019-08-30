@@ -101,13 +101,13 @@ namespace RoundaboutBuilder
                 });
                 checkBox.tooltip = "If checked, you can use +/- keys on the main keyboard besides the ones on the numpad";
 
-                group.AddTextfield("Increase radius", "+", (b) => Debug.Log("Increase change" + b) ,(b) =>
+                group.AddTextfield("Increase radius", "+", (b) => Debug.Log("Increase change" + b), (b) =>
                 {
                     ExtraKeyIncrease.value = b;
                 }
                 );
 
-                group.AddTextfield("Decrease radius", "-", (b) => Debug.Log("Increase change" + b),(b) =>
+                group.AddTextfield("Decrease radius", "-", (b) => Debug.Log("Increase change" + b), (b) =>
                 {
                     ExtraKeyDecrease.value = b;
                 }
