@@ -75,7 +75,7 @@ namespace RoundaboutBuilder
 
         private bool KeysPressed()
         {
-            if (Input.GetKey("[+]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey("=")))
+            if (Input.GetKey("[+]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey(ExtraKeyIncrease.value)))
             {
                 if (_processed)
                     return true;
@@ -83,7 +83,7 @@ namespace RoundaboutBuilder
                 return true;
             }
 
-            if (Input.GetKey("[-]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey("-")))
+            if (Input.GetKey("[-]") || (RoundAboutBuilder.UseExtraKeys.value && Input.GetKey(ExtraKeyDecrease.value)))
             {
                 if (_processed)
                     return true;
