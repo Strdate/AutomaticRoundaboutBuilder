@@ -67,15 +67,16 @@ namespace RoundaboutBuilder
                 UIView.GetAView().AddUIComponent(typeof(UIWindow2));
             }
 
-            /*if (NetInfoController.instance == null)
+            //update msg
+            if(!RoundAboutBuilder.SeenUpdateMsg)
             {
-                GameObject gameObject = new GameObject("RoundaboutBuilderNetinfoManager");
-                NetInfoController.instance = gameObject.AddComponent<NetInfoController>();
-            }*/
+                UIWindow2.instance.ThrowErrorMsg("Roundabout Builder now supports undo! Yaay! Moreover, building costs are now taken from your account.\n" +
+                    "Please report any bugs on the Steam Workshop page.");
+                RoundAboutBuilder.SeenUpdateMsg.value = true;
+            }
 
-            //Debug.Log(_string);
+            
             LevelLoaded = true;
-            //debug();
         }
 
         /*private void debug()

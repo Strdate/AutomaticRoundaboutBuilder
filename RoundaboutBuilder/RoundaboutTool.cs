@@ -40,11 +40,11 @@ namespace RoundaboutBuilder
             /* These lines of code do all the work. See documentation in respective classes. */
             /* When the old snapping algorithm is enabled, we create secondary (bigger) ellipse, so the newly connected roads obtained by the 
              * graph traveller are not too short. They will be at least as long as the padding. */
-            Ellipse ellipse = new Ellipse(NetAccess.Node(nodeID).m_position, new Vector3(0f, 0f, 0f), radius, radius);
+            Ellipse ellipse = new Ellipse(NetUtil.Node(nodeID).m_position, new Vector3(0f, 0f, 0f), radius, radius);
             Ellipse ellipseWithPadding = ellipse;
             if (RoundAboutBuilder.UseOldSnappingAlgorithm.value)
             {
-                ellipseWithPadding = new Ellipse(NetAccess.Node(nodeID).m_position, new Vector3(0f, 0f, 0f), radius + DISTANCE_PADDING, radius + DISTANCE_PADDING);
+                ellipseWithPadding = new Ellipse(NetUtil.Node(nodeID).m_position, new Vector3(0f, 0f, 0f), radius + DISTANCE_PADDING, radius + DISTANCE_PADDING);
             }
 
 
@@ -57,7 +57,7 @@ namespace RoundaboutBuilder
                     traveller = new GraphTraveller2(nodeID, ellipse);
                     intersections = new EdgeIntersections2(traveller, nodeID, ellipse);
                 }
-                FinalConnector finalConnector = new FinalConnector(NetAccess.Node(nodeID).Info, intersections, ellipse, true);
+                FinalConnector finalConnector = new FinalConnector(NetUtil.Node(nodeID).Info, intersections, ellipse, true);
 
                 // Easter egg
                 RoundAboutBuilder.EasterEggToggle();
@@ -68,6 +68,10 @@ namespace RoundaboutBuilder
                     Debug.Log($"May have/Has restrictions: {TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.MayHaveJunctionRestrictions(intersection.nodeId)}, {TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.HasJunctionRestrictions(intersection.nodeId)}");
                 }*/
 
+            }
+            catch (PlayerException e)
+            {
+                UIWindow2.instance.ThrowErrorMsg(e.Message);
             }
             catch (Exception e)
             {
@@ -133,9 +137,12 @@ namespace RoundaboutBuilder
         {
             try
             {
+                if (insideUI)
+                    return;
+
                 if (m_hoverNode != 0)
                 {
-                    NetNode hoveredNode = NetAccess.Node(m_hoverNode);
+                    NetNode hoveredNode = NetUtil.Node(m_hoverNode);
 
                     // kinda stole this color from Move It!
                     // thanks to SamsamTS because they're a UI god

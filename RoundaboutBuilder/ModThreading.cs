@@ -1,6 +1,8 @@
 ﻿using ColossalFramework;
 using ICities;
+using RoundaboutBuilder.Tools;
 using RoundaboutBuilder.UI;
+using SharedEnvironment;
 using System;
 using System.Collections.Generic;
 using System.Timers;
@@ -64,7 +66,7 @@ namespace RoundaboutBuilder
             {
                 timeUp = false;
                 
-                try { actionStatic.Do(); }
+                try { actionTMPE.Do(); }
                 catch(Exception e)
                 {
                     Debug.LogWarning(e);
@@ -90,7 +92,18 @@ namespace RoundaboutBuilder
                 UIWindow2.instance.toolOnUI?.DecreaseButton();
                 return true;
             }
-            if(Input.GetKey(KeyCode.PageUp))
+
+            // Undo last action
+            if (UIWindow2.instance.toolOnUI != null && UIWindow2.instance.toolOnUI.enabled && 
+                (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKey(KeyCode.Z))
+            {
+                if (_processed)
+                    return true;
+                UndoAction();
+                return true;
+            }
+
+            if (Input.GetKey(KeyCode.PageUp))
             {
                 if (_processed)
                     return true;
@@ -107,12 +120,37 @@ namespace RoundaboutBuilder
             return false;
         }
 
-        public static Provisional.Actions.Action actionStatic;
+        public static void PushAction(GameAction actionRoads, GameAction actionTMPE)
+        {
+            ModThreading.actionRoads = actionRoads;
+            TimerTMPE(actionTMPE);
+            actionRoads.Do();
+            UIWindow2.instance.undoButton.isEnabled = true;
+        }
+
+        public static void UndoAction()
+        {
+            /*try {
+                if (CheckMoney.ChargePlayer(actionRoads.UndoCost(), ((ActionGroup) actionRoads).Actions[0]); //...
+                return;
+            } catch { }*/
+            
+            if(actionRoads != null)
+            {
+                actionRoads.Undo();
+                actionRoads = null;
+                UIWindow2.instance.undoButton.isEnabled = false;
+            }
+        }
+
+        private static GameAction actionTMPE;
+        private static GameAction actionRoads;
+
         private static Timer aTimer;
         private static bool timeUp = false;
-        public static void Timer(Provisional.Actions.Action action)
+        private static void TimerTMPE(GameAction action)
         {
-            actionStatic = action;
+            actionTMPE = action;
             aTimer = new System.Timers.Timer();
             aTimer.Interval = 500;
 

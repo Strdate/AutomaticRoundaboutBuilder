@@ -12,7 +12,7 @@ namespace RoundaboutBuilder.Tools
 
     /* This is a little library which makes net stuff (working with segments/nodes) easier. Feel free to reuse it */
 
-    public static class NetAccess
+    public static class NetUtil
     {
         public static bool ReleaseSegment(ushort id, bool tryReleaseNodes = false, bool suppressWarnings = false)
         {
@@ -38,7 +38,7 @@ namespace RoundaboutBuilder.Tools
             }
             else
             {
-                if (!suppressWarnings) Debug.LogWarning("Failed to release NetSegment " + id + "Segment does not exist");
+                if (!suppressWarnings) Debug.LogWarning("Failed to release NetSegment " + id + ": Segment does not exist");
                 return false;
             }
         }
@@ -128,6 +128,16 @@ namespace RoundaboutBuilder.Tools
         public static bool ExistsNode(NetNode node)
         {
             return (node.m_flags & NetNode.Flags.Created) != NetNode.Flags.None;
+        }
+
+        public static ushort NetinfoToIndex(NetInfo netInfo)
+        {
+            return (ushort)Mathf.Clamp(netInfo.m_prefabDataIndex, 0, 65535);
+        }
+
+        public static NetInfo NetinfoFromIndex(ushort index)
+        {
+            return PrefabCollection<NetInfo>.GetPrefab(index);
         }
 
         /* From Elektrix */

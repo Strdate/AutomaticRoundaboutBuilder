@@ -1,8 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
-using Provisional.Actions;
 using RoundaboutBuilder.UI;
-using SharedEnvironment.Public.Actions;
+using SharedEnvironment;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -25,17 +24,21 @@ namespace RoundaboutBuilder.Tools
         NetNode CenterNode;
         GraphTraveller2 traveller;
         Ellipse ellipse;
-        private ActionGroup m_group = new ActionGroup("TMPE action group");
 
-        public List<VectorNodeStruct> Intersections { get; private set; } = new List<VectorNodeStruct>();
+        public ActionGroup ActionGroupTMPE { get; private set; } = new ActionGroup("TMPE action group");
+        public ActionGroup ActionGroupRoads { get; private set; } = new ActionGroup("Build roundabout");
+
+        public List<RoundaboutNode> Intersections { get; private set; } = new List<RoundaboutNode>();
         
-        private List<ushort> ToBeReleasedNodes = new List<ushort>();
-        private List<ushort> ToBeReleasedSegments = new List<ushort>();
+        private List<WrappedNode> ToBeReleasedNodes = new List<WrappedNode>();
+        private List<WrappedSegment> ToBeReleasedSegments = new List<WrappedSegment>();
+
+        public WrappersDictionary networkDictionary = new WrappersDictionary();
 
         public EdgeIntersections2(GraphTraveller2 traveller, ushort centerNodeId, Ellipse ellipse)
         {
             CenterNodeId = centerNodeId;
-            CenterNode = NetAccess.Node(centerNodeId);
+            CenterNode = NetUtil.Node(centerNodeId);
             this.traveller = traveller;
             this.ellipse = ellipse;
 
@@ -76,7 +79,7 @@ namespace RoundaboutBuilder.Tools
                         Vector3 intersection = new Vector3(ellipseBeziers[j].Position(t1).x, CenterNode.m_position.y, ellipseBeziers[j].Position(t1).y);
                         segmentBeziers[i].Divide(out Bezier2 segementBezier1, out Bezier2 segementBezier2, t2);
                         Bezier2 outerBezier;
-                        Vector2 outerNodePos = new Vector2(NetAccess.Node(traveller.OuterNodes[i]).m_position.x, NetAccess.Node(traveller.OuterNodes[i]).m_position.z);
+                        Vector2 outerNodePos = new Vector2(NetUtil.Node(traveller.OuterNodes[i]).m_position.x, NetUtil.Node(traveller.OuterNodes[i]).m_position.z);
                         bool invert = false;
                         // outerBezier - the bezier outside the ellipse (not the one inside)
                         if (segementBezier1.Position(0f) == outerNodePos || segementBezier1.Position(1f) == outerNodePos)
@@ -100,10 +103,17 @@ namespace RoundaboutBuilder.Tools
                         //EllipseTool.Instance.debugDraw.Add(outerBezier);
 
                         /* We create a node at the intersection. */
-                        ushort newNodeId = NetAccess.CreateNode(CenterNode.Info, intersection);
-                        Intersections.Add(new VectorNodeStruct(newNodeId));
+                        WrappedNode newNode = new WrappedNode();
+                        newNode.Position = intersection;
+                        newNode.NetInfo = CenterNode.Info;
+                        RoundaboutNode raNode = new RoundaboutNode(newNode);
+                        raNode.Create(ActionGroupRoads);
+                        Intersections.Add(raNode);
 
-                        BezierToSegment(outerBezier, traveller.OuterSegments[i], newNodeId, traveller.OuterNodes[i], invert);
+                        WrappedNode outerNode = networkDictionary.RegisterNode(traveller.OuterNodes[i]);
+                        WrappedSegment outerSegment = networkDictionary.RegisterSegment(traveller.OuterSegments[i]);
+
+                        BezierToSegment(outerBezier, outerSegment, newNode, outerNode, invert);
                     }
                 }
             }
@@ -122,7 +132,7 @@ namespace RoundaboutBuilder.Tools
 
             for (int i = 0; i < traveller.OuterNodes.Count; i++)
             {
-                NetNode curNode = NetAccess.Node(traveller.OuterNodes[i]);
+                NetNode curNode = NetUtil.Node(traveller.OuterNodes[i]);
                 Vector3 circleIntersection = new Vector3();
 
                 float directionX = (curNode.m_position.x - centerX) / VectorDistance(CenterNode.m_position, curNode.m_position);
@@ -138,15 +148,18 @@ namespace RoundaboutBuilder.Tools
                 circleIntersection.y = centerY;
                 circleIntersection.z = (directionZ * radius + centerZ);
 
-                ushort newNodeId;
-                ushort newSegmentId;
+                WrappedNode newNode;
+                WrappedSegment newSegment;
 
-                newNodeId = NetAccess.CreateNode(CenterNode.Info, circleIntersection);
-
-                Intersections.Add(new VectorNodeStruct(newNodeId));
+                newNode = new WrappedNode();
+                newNode.NetInfo = CenterNode.Info;
+                newNode.Position = circleIntersection;
+                RoundaboutNode raNode = new RoundaboutNode(newNode);
+                raNode.Create(ActionGroupRoads);
+                Intersections.Add(raNode);
                 //EllipseTool.Instance.debugDrawPositions.Add(Intersections.Last().vector);
 
-                NetSegment curSegment = NetAccess.Segment(traveller.OuterSegments[i]);
+                NetSegment curSegment = NetUtil.Segment(traveller.OuterSegments[i]);
 
                 /* For now ignoring anything regarding Y coordinate */
                 //float directionY2 = (GetNode(newNodeId).m_position.y - curNode.m_position.z) / NodeDistance(GetNode(newNodeId), curNode); 
@@ -172,36 +185,28 @@ namespace RoundaboutBuilder.Tools
                     invert = false;
                 }
 
+                newSegment = new WrappedSegment();
+                newSegment.StartNode = newNode;
+                newSegment.EndNode = networkDictionary.RegisterNode(traveller.OuterNodes[i]);
+                newSegment.StartDirection = startDirection;
+                newSegment.EndDirection = endDirection;
+                newSegment.NetInfo = curSegment.Info;
+                newSegment.Invert = invert;
+                ActionGroupRoads.Actions.Add(newSegment);
 
-                newSegmentId = NetAccess.CreateSegment(newNodeId, traveller.OuterNodes[i],
-            startDirection, endDirection, curSegment.Info, invert);
-
-                m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction(newSegmentId, true, true));
-                m_group.Actions.Add(new YieldSignAction(newSegmentId, true));
+                ActionGroupTMPE.Actions.Add(new EnteringBlockedJunctionAllowedAction(newSegment, true, true));
+                ActionGroupTMPE.Actions.Add(new YieldSignAction(newSegment, true));
                 //Debug.Log(string.Format("Segment and node created... "));
             }
         }
 
-        private void BezierToSegment(Bezier2 bezier2, ushort oldSegmentId, ushort startNodeId, ushort endNodeId, bool invert)
+        private void BezierToSegment(Bezier2 bezier2, WrappedSegment oldSegmentW, WrappedNode startNodeW, WrappedNode endNodeW, bool invert)
         {
-            NetSegment oldSegment = NetAccess.Segment(oldSegmentId);
+            NetSegment oldSegment = oldSegmentW.Get;
             Vector2 startDirection2d;
             Vector2 endDirection2d;
-            Vector2 nodePos2d = new Vector2(NetAccess.Node(startNodeId).m_position.x, NetAccess.Node(startNodeId).m_position.z);
-            /*if ( Distance(nodePos2d,bezier2.Position(0f)) < 10e-3d)
-            {
-                //0f is on the ellipse
-            }
-            else if(Distance(nodePos2d, bezier2.Position(1f)) < 10e-3d)
-            {
-                //1f is on the ellipse
-                bezier2 = bezier2.Invert();
-                invert = true;
-            }
-            else
-            {
-                throw new Exception(string.Format("Error - no intersection of bezier and point. Dist: {0}, {1}",Distance(nodePos2d,bezier2.Position(0f)), Distance(nodePos2d, bezier2.Position(1f))));
-            }*/
+            Vector2 nodePos2d = new Vector2(startNodeW.Position.x, startNodeW.Position.z);
+            
             startDirection2d = bezier2.Tangent(0f);
             endDirection2d = bezier2.Tangent(1f);
 
@@ -213,13 +218,7 @@ namespace RoundaboutBuilder.Tools
             if (VectorDistance(bezier2.a, bezier2.d) < MIN_BEZIER_LENGTH)
             {
                 //Debug.Log("Segment is too short. Launching repair mechainsm." + VectorDistance(bezier2.a, bezier2.d));
-                if(nextSegmentInfo(endNodeId, oldSegmentId, out ushort endNodeIdNew, out Vector3 endDirectionNew))
-                {
-                    endNodeId = endNodeIdNew;
-                    endDirection = endDirectionNew;
-                    //Debug.Log("The segment length should be " + VectorDistance(GetNode(startNodeId).m_position,GetNode(endNodeId).m_position));
-                    //EllipseTool.Instance.debugDrawPositions.Add(GetNode(endNodeIdNew).m_position);
-                }
+                nextSegmentInfo(oldSegmentW, ref endNodeW, ref endDirection);
             }
 
             // Debug
@@ -234,30 +233,41 @@ namespace RoundaboutBuilder.Tools
                 invert = !invert;
             }
 
-            try
+            WrappedSegment newSegment = new WrappedSegment();
+            newSegment.StartNode = startNodeW;
+            newSegment.EndNode = endNodeW;
+            newSegment.StartDirection = startDirection;
+            newSegment.EndDirection = endDirection;
+            newSegment.NetInfo = oldSegment.Info;
+            newSegment.Invert = invert;
+
+            ActionGroupRoads.Actions.Add(newSegment);
+            ActionGroupTMPE.Actions.Add(new EnteringBlockedJunctionAllowedAction(newSegment, true, true));
+            ActionGroupTMPE.Actions.Add(new YieldSignAction(newSegment, true));
+
+            /*try
             {
                 ushort newSegmentId = NetAccess.CreateSegment(startNodeId, endNodeId,
             startDirection, endDirection, oldSegment.Info, invert);
 
-                m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction(newSegmentId, true, true));
-                m_group.Actions.Add(new YieldSignAction(newSegmentId, true));
+                
             }
             catch(Exception e)
             {
                 UIWindow2.instance.ThrowErrorMsg("The game failed to create one of the road segments.");
                 Debug.LogError(e.ToString());
-            }            
+            }*/            
         }
 
         /* Sometimes it happens that we split the road too close to another segment. If that occur, the roads do glitch. In that case 
          * we remove one more segment up the road. This method is still glitchy, would need improvement. */
          /* intersection - node outside the ellipse */
-        private bool nextSegmentInfo(ushort intersection, ushort closeSegmentId, out ushort outerNodeId, out Vector3 directions)
+        private bool nextSegmentInfo(WrappedSegment closeSegmentW, ref WrappedNode outerNodeW, ref Vector3 endDirection)
         {
-            NetSegment closeSegment = NetAccess.Segment(closeSegmentId);
-            outerNodeId = 0;
-            directions = new Vector3(0,0,0);
-            NetNode node = NetAccess.Node(intersection);
+            NetSegment closeSegment = closeSegmentW.Get;
+            //outerNodeId = 0;
+            //directions = new Vector3(0,0,0);
+            NetNode node = outerNodeW.Get;
             int segmentcount = node.CountSegments();
             /* If there is an intersection right behind the ellipse, we can't go on as we can merge only segments which are in fact
              * only one road without an intersection. */
@@ -274,19 +284,19 @@ namespace RoundaboutBuilder.Tools
             Debug.Log(debugString);*/
             ushort nextSegmentId = node.GetSegment(0);
             /* We need the segment that goes away from the ellipse, not the one we already have. */
-            if(closeSegmentId == nextSegmentId)
+            if(closeSegmentW.Id == nextSegmentId)
             {
                 //Debug.Log("Taking the other of the two segments. " + node.GetSegment(1));
                 nextSegmentId = node.GetSegment(1);
                 if (nextSegmentId == 0)
                     return false;
             }
-            NetSegment nextSegment = NetAccess.Segment(nextSegmentId);
-            nextSegment = NetAccess.Segment(nextSegmentId);
-            outerNodeId = nextSegment.m_startNode;
-            directions = nextSegment.m_startDirection;
+            NetSegment nextSegment = NetUtil.Segment(nextSegmentId);
+
+            ushort outerNodeId = nextSegment.m_startNode;
+            Vector3 directions = nextSegment.m_startDirection;
             /* We need the node further away */
-            if (outerNodeId == intersection)
+            if (outerNodeId == outerNodeW.Id)
             {
                 //Debug.Log("Taking the other of the nodes.");
                 outerNodeId = nextSegment.m_endNode;
@@ -294,10 +304,19 @@ namespace RoundaboutBuilder.Tools
                 if (outerNodeId == 0)
                     return false;
             }
+
+            WrappedSegment nextSegmentW = networkDictionary.RegisterSegment(nextSegmentId);
+
+            // Release old
+            ToBeReleasedNodes.Add(outerNodeW);
+            ToBeReleasedSegments.Add(nextSegmentW);
+
+            // Return values
+            outerNodeW = networkDictionary.RegisterNode(outerNodeId);
+            endDirection = directions;
+
             /* After merging the roads, we release the segment and intersection inbetween. When I was debugging this method, I tried to release them after 
              * everything is done. It might not be necessary.*/
-            ToBeReleasedSegments.Add(nextSegmentId);
-            ToBeReleasedNodes.Add(intersection);
             return true;
         }
 
@@ -307,41 +326,47 @@ namespace RoundaboutBuilder.Tools
             List<Bezier2> beziers = new List<Bezier2>();
             for( int i = 0; i < netSegmentsIds.Count; i++)
             {
-                NetSegment netSegment = NetAccess.Segment(netSegmentsIds[i]);
-                bool smoothStart = (NetAccess.Node(netSegment.m_startNode).m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
-                bool smoothEnd = (NetAccess.Node(netSegment.m_endNode).m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
+                NetSegment netSegment = NetUtil.Segment(netSegmentsIds[i]);
+                bool smoothStart = (NetUtil.Node(netSegment.m_startNode).m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
+                bool smoothEnd = (NetUtil.Node(netSegment.m_endNode).m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
                 Bezier3 bezier = new Bezier3();
-                bezier.a = NetAccess.Node(netSegment.m_startNode).m_position;
-                bezier.d = NetAccess.Node(netSegment.m_endNode).m_position;
+                bezier.a = NetUtil.Node(netSegment.m_startNode).m_position;
+                bezier.d = NetUtil.Node(netSegment.m_endNode).m_position;
                 NetSegment.CalculateMiddlePoints(bezier.a, netSegment.m_startDirection, bezier.d, netSegment.m_endDirection, smoothStart, smoothEnd, out bezier.b, out bezier.c);
                 beziers.Add(Bezier2.XZ(bezier));
             }
             return beziers;
         }
 
-        public ActionGroup TmpeActionGroup() => m_group;
-
         private void ReleaseNodesAndSegments(GraphTraveller2 traveller)
         {
             foreach (ushort segment in traveller.InnerSegments)
             {
-                NetAccess.ReleaseSegment(segment);
+                AbstractNetWrapper wrapped = networkDictionary.RegisterSegment(segment);
+                wrapped.IsBuildAction = false;
+                ActionGroupRoads.Actions.Add(wrapped);
             }
             foreach (ushort segment in traveller.OuterSegments)
             {
-                NetAccess.ReleaseSegment(segment);
+                AbstractNetWrapper wrapped = networkDictionary.RegisterSegment(segment);
+                wrapped.IsBuildAction = false;
+                ActionGroupRoads.Actions.Add(wrapped);
             }
-            foreach (ushort segment in ToBeReleasedSegments)
+            foreach (WrappedSegment segment in ToBeReleasedSegments)
             {
-                NetAccess.ReleaseSegment(segment);
+                segment.IsBuildAction = false;
+                ActionGroupRoads.Actions.Add(segment);
             }
             foreach (ushort node in traveller.InnerNodes)
             {
-                NetAccess.ReleaseNode(node);
+                AbstractNetWrapper wrapped = networkDictionary.RegisterNode(node);
+                wrapped.IsBuildAction = false;
+                ActionGroupRoads.Actions.Add(wrapped);
             }
-            foreach (ushort node in ToBeReleasedNodes)
+            foreach (WrappedNode node in ToBeReleasedNodes)
             {
-                NetAccess.ReleaseNode(node);
+                node.IsBuildAction = false;
+                ActionGroupRoads.Actions.Add(node);
             }
         }
 

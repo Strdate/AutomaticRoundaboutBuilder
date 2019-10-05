@@ -3,21 +3,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Provisional.Actions;
 using RoundaboutBuilder;
 using RoundaboutBuilder.UI;
 
-namespace SharedEnvironment.Public.Actions
+namespace SharedEnvironment
 {
-    public class EnteringBlockedJunctionAllowedAction : Provisional.Actions.Action
+    public class EnteringBlockedJunctionAllowedAction : GameActionExtended
     {
-        private ushort m_segment;
+        private WrappedSegment m_segment;
         private bool m_startNode;
 
         // Is it the main roundabout road or road entering the roundabout
         private bool m_yieldingRoad;
 
-        public EnteringBlockedJunctionAllowedAction(ushort segment, bool startNode, bool yieldingRoad) : base("TMPE setup", false)
+        public EnteringBlockedJunctionAllowedAction(WrappedSegment segment, bool startNode, bool yieldingRoad) : base("TMPE setup", false)
         {
             m_segment = segment;
             m_startNode = startNode;
@@ -43,7 +42,7 @@ namespace SharedEnvironment.Public.Actions
 
         protected void Implementation()
         {
-            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetEnteringBlockedJunctionAllowed(m_segment, m_startNode, true);
+            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetEnteringBlockedJunctionAllowed(m_segment.Id, m_startNode, true);
         }
 
         protected bool IsPolicyAllowed()
@@ -54,12 +53,12 @@ namespace SharedEnvironment.Public.Actions
 
     }
 
-    public class NoCrossingsAction : Provisional.Actions.Action
+    public class NoCrossingsAction : GameActionExtended
     {
-        private ushort m_segment;
+        private WrappedSegment m_segment;
         private bool m_startNode;
 
-        public NoCrossingsAction(ushort segment, bool startNode) : base("TMPE setup", false)
+        public NoCrossingsAction(WrappedSegment segment, bool startNode) : base("TMPE setup", false)
         {
             m_segment = segment;
             m_startNode = startNode;
@@ -84,7 +83,7 @@ namespace SharedEnvironment.Public.Actions
 
         protected void Implementation()
         {
-            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetPedestrianCrossingAllowed(m_segment, m_startNode, false);
+            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetPedestrianCrossingAllowed(m_segment.Id, m_startNode, false);
         }
 
         protected bool IsPolicyAllowed()
@@ -94,11 +93,11 @@ namespace SharedEnvironment.Public.Actions
 
     }
 
-    public class NoParkingAction : Provisional.Actions.Action
+    public class NoParkingAction : GameActionExtended
     {
-        private ushort m_segment;
+        private WrappedSegment m_segment;
 
-        public NoParkingAction(ushort segment) : base("TMPE setup", false)
+        public NoParkingAction(WrappedSegment segment) : base("TMPE setup", false)
         {
             m_segment = segment;
         }
@@ -122,8 +121,8 @@ namespace SharedEnvironment.Public.Actions
 
         protected void Implementation()
         {
-            TrafficManager.Manager.Impl.ParkingRestrictionsManager.Instance.SetParkingAllowed(m_segment, NetInfo.Direction.Backward, false);
-            TrafficManager.Manager.Impl.ParkingRestrictionsManager.Instance.SetParkingAllowed(m_segment, NetInfo.Direction.Forward, false);
+            TrafficManager.Manager.Impl.ParkingRestrictionsManager.Instance.SetParkingAllowed(m_segment.Id, NetInfo.Direction.Backward, false);
+            TrafficManager.Manager.Impl.ParkingRestrictionsManager.Instance.SetParkingAllowed(m_segment.Id, NetInfo.Direction.Forward, false);
         }
 
         protected bool IsPolicyAllowed()
@@ -133,12 +132,12 @@ namespace SharedEnvironment.Public.Actions
 
     }
 
-    public class YieldSignAction : Provisional.Actions.Action
+    public class YieldSignAction : GameActionExtended
     {
-        private ushort m_segment;
+        private WrappedSegment m_segment;
         private bool m_startNode;
 
-        public YieldSignAction(ushort segment, bool startNode) : base("TMPE setup", false)
+        public YieldSignAction(WrappedSegment segment, bool startNode) : base("TMPE setup", false)
         {
             m_segment = segment;
             m_startNode = startNode;
@@ -163,7 +162,7 @@ namespace SharedEnvironment.Public.Actions
 
         protected void Implementation()
         {
-            ((TrafficManager.UI.SubTools.PrioritySignsTool)TrafficManager.UI.UIBase.GetTrafficManagerTool().GetSubTool(TrafficManager.UI.ToolMode.AddPrioritySigns)).SetPrioritySign(m_segment, m_startNode, TrafficManager.Traffic.Data.PrioritySegment.PriorityType.Yield);
+            ((TrafficManager.UI.SubTools.PrioritySignsTool)TrafficManager.UI.UIBase.GetTrafficManagerTool().GetSubTool(TrafficManager.UI.ToolMode.AddPrioritySigns)).SetPrioritySign(m_segment.Id, m_startNode, TrafficManager.Traffic.Data.PrioritySegment.PriorityType.Yield);
         }
 
         protected bool IsPolicyAllowed()

@@ -55,7 +55,7 @@ namespace RoundaboutBuilder
              * graph traveller are not too short. They will be at least as long as the padding. */
             if (RoundAboutBuilder.UseOldSnappingAlgorithm.value)
             {
-                ellipseWithPadding = new Ellipse(NetAccess.Node(centralNode).m_position, NetAccess.Node(axisNode).m_position - NetAccess.Node(centralNode).m_position, prevRadius1 + DISTANCE_PADDING, prevRadius2 + DISTANCE_PADDING);
+                ellipseWithPadding = new Ellipse(NetUtil.Node(centralNode).m_position, NetUtil.Node(axisNode).m_position - NetUtil.Node(centralNode).m_position, prevRadius1 + DISTANCE_PADDING, prevRadius2 + DISTANCE_PADDING);
             }
 
             UIWindow2.instance.LostFocus();
@@ -65,10 +65,14 @@ namespace RoundaboutBuilder
             {
                 GraphTraveller2 traveller = new GraphTraveller2(centralNode, ellipseWithPadding);
                 EdgeIntersections2 intersections = new EdgeIntersections2(traveller, centralNode, toBeBuiltEllipse);
-                FinalConnector finalConnector = new FinalConnector(NetAccess.Node(centralNode).Info, intersections, toBeBuiltEllipse, ControlVertices);
+                FinalConnector finalConnector = new FinalConnector(NetUtil.Node(centralNode).Info, intersections, toBeBuiltEllipse, ControlVertices);
 
                 // Easter egg
                 RoundAboutBuilder.EasterEggToggle();
+            }
+            catch (PlayerException e)
+            {
+                UIWindow2.instance.ThrowErrorMsg(e.Message);
             }
             catch (Exception e)
             {
@@ -212,34 +216,38 @@ namespace RoundaboutBuilder
             //debugDrawMethod(cameraInfo);
             try
             {
-                if (m_hoverNode != 0 && (stage == Stage.CentralPoint || stage == Stage.MainAxis))
+                if (!insideUI)
                 {
-                    NetNode hoveredNode = NetAccess.Node(m_hoverNode);
-                    RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, hoveredNode.m_position, 15f, hoveredNode.m_position.y - 1f, hoveredNode.m_position.y + 1f, true, true);
-                    UIWindow2.instance.m_hoveringLabel.isVisible = false;
-                }
-                else if(stage == Stage.CentralPoint)
-                {
-                    RenderMousePositionCircle(cameraInfo);
-                    RenderHoveringLabel("Select center of elliptic roundabout");
-                }
-                else if (stage == Stage.MainAxis)
-                {
-                    RenderMousePositionCircle(cameraInfo);
-                    RenderHoveringLabel("Select any intersection in direction of main axis");
-                } else
-                {
-                    UIWindow2.instance.m_hoveringLabel.isVisible = false;
+                    if (m_hoverNode != 0 && (stage == Stage.CentralPoint || stage == Stage.MainAxis))
+                    {
+                        NetNode hoveredNode = NetUtil.Node(m_hoverNode);
+                        RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, hoveredNode.m_position, 15f, hoveredNode.m_position.y - 1f, hoveredNode.m_position.y + 1f, true, true);
+                        UIWindow2.instance.m_hoveringLabel.isVisible = false;
+                    }
+                    else if (stage == Stage.CentralPoint)
+                    {
+                        RenderMousePositionCircle(cameraInfo);
+                        RenderHoveringLabel("Select center of elliptic roundabout");
+                    }
+                    else if (stage == Stage.MainAxis)
+                    {
+                        RenderMousePositionCircle(cameraInfo);
+                        RenderHoveringLabel("Select any intersection in direction of main axis");
+                    }
+                    else
+                    {
+                        UIWindow2.instance.m_hoveringLabel.isVisible = false;
+                    }
                 }
 
                 if (stage == Stage.MainAxis || stage == Stage.Final)
                 {
-                    NetNode centralNodeDraw = NetAccess.Node(centralNode);
+                    NetNode centralNodeDraw = NetUtil.Node(centralNode);
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.red, centralNodeDraw.m_position, 15f, centralNodeDraw.m_position.y - 1f, centralNodeDraw.m_position.y + 1f, true, true);
                 }
                 if (stage == Stage.Final)
                 {
-                    NetNode axisNodeDraw = NetAccess.Node(axisNode);
+                    NetNode axisNodeDraw = NetUtil.Node(axisNode);
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.green, axisNodeDraw.m_position, 15f, axisNodeDraw.m_position.y - 1f, axisNodeDraw.m_position.y + 1f, true, true);
 
                     if(Radius(out float radius1, out float radius2))
@@ -253,7 +261,7 @@ namespace RoundaboutBuilder
                         {
                             prevRadius1 = radius1;
                             prevRadius2 = radius2;
-                            ellipse = new Ellipse(NetAccess.Node(centralNode).m_position, NetAccess.Node(axisNode).m_position - NetAccess.Node(centralNode).m_position, radius1, radius2);
+                            ellipse = new Ellipse(NetUtil.Node(centralNode).m_position, NetUtil.Node(axisNode).m_position - NetUtil.Node(centralNode).m_position, radius1, radius2);
                             DrawEllipse(cameraInfo);
                         }
                     }

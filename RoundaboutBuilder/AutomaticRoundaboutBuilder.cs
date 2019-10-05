@@ -8,7 +8,7 @@ using UnityEngine;
 
 /* By Strad, 02/2019 */
 
-/* Version RELEASE 1.6.0 */
+/* Version RELEASE 1.7.0 */
 
 /* Warning: I am lazy thus the version labels across the files may not be updated */
 
@@ -16,7 +16,7 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.6.0";
+        public static readonly string VERSION = "RELEASE 1.7.0";
         public static PublishedFileId WORKSHOP_FILE_ID;
 
         public const string settingsFileName = "RoundaboutBuilder";
@@ -33,6 +33,8 @@ namespace RoundaboutBuilder
         public static readonly SavedBool UseExtraKeys = new SavedBool("useExtraPlusMinusKeys", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool UseOldSnappingAlgorithm = new SavedBool("useOldSnappingAlgorithm", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedBool DoNotFilterPrefabs = new SavedBool("doNotFilterPrefabs", RoundAboutBuilder.settingsFileName, false, true);
+        public static readonly SavedBool NeedMoney = new SavedBool("needMoney", RoundAboutBuilder.settingsFileName, true, true);
+        public static readonly SavedBool SeenUpdateMsg = new SavedBool("seenUpdateMsg170", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedInt savedWindowX = new SavedInt("windowX", settingsFileName, (int)defWindowPosition.x, true);
         public static readonly SavedInt savedWindowY = new SavedInt("windowY", settingsFileName, (int)defWindowPosition.y, true);
         public static readonly SavedInt TotalRoundaboutsBuilt = new SavedInt("totalRoundaboutsBuilt", settingsFileName, 0, true);
@@ -96,6 +98,12 @@ namespace RoundaboutBuilder
                     FollowRoadToolSelection.value = b;
                 });
                 checkBox.tooltip = "Your selected road for the roundabout will change as you browse through the roads menu";
+
+                checkBox = (UICheckBox)group.AddCheckbox("Require money", NeedMoney.value, (b) =>
+                {
+                    NeedMoney.value = b;
+                });
+                checkBox.tooltip = "Building a roundabout will cost you money";
 
                 checkBox = (UICheckBox)group.AddCheckbox("Use old snapping algorithm", UseOldSnappingAlgorithm.value, (b) =>
                 {

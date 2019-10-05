@@ -10,6 +10,8 @@ using UnityEngine;
 
 /* Credit to SamsamTS and T__S from whom I copied big chunks of code */
 
+/* Welcome to hell on earth */
+
 namespace RoundaboutBuilder.UI
 {
     public class UIWindow2 : UIPanel
@@ -37,6 +39,9 @@ namespace RoundaboutBuilder.UI
         private UIPanel m_bottomSection;
         private UIPanel m_setupTmpeSection;
         private UIButton backButton;
+        private UIButton closeButton;
+        public UIButton undoButton;
+
         public UINetInfoDropDown dropDown;
 
         public UIWindow2()
@@ -191,27 +196,16 @@ namespace RoundaboutBuilder.UI
             };
             cummulativeHeight += keepOpen.height + 8;
 
-
-            var closeButton = CreateButton(m_bottomSection);
-            closeButton.text = "Close";
-            closeButton.relativePosition = new Vector2(8, cummulativeHeight);
-            closeButton.eventClick += (c, p) =>
-            {
-                enabled = false;
-                if (toolOnUI != null)
-                {
-                    toolOnUI.enabled = false;
-                }   
-            };
-
+            // Back button
             backButton = CreateButton(m_bottomSection);
             backButton.text = "Back";
-            backButton.relativePosition = new Vector2(16 + closeButton.width, cummulativeHeight);
+            backButton.relativePosition = new Vector2(8, cummulativeHeight);
+            backButton.width = width - 16;
             backButton.eventClick += (c, p) =>
             {
                 if (backButton.isVisible)
                 {
-                    if(m_panelOnUI.IsSpecialWindow)
+                    if (m_panelOnUI.IsSpecialWindow)
                     {
                         SwitchWindow(m_lastStandardPanel);
                         toolOnUI.enabled = true;
@@ -220,8 +214,32 @@ namespace RoundaboutBuilder.UI
                     {
                         toolOnUI.GoToFirstStage();
                         SwitchTool(RoundaboutTool.Instance);
-                    }      
+                    }
                 }
+            };
+
+            cummulativeHeight += backButton.height + 8;
+
+            closeButton = CreateButton(m_bottomSection);
+            closeButton.text = "Close";
+            closeButton.relativePosition = new Vector2(8, cummulativeHeight);
+            closeButton.eventClick += (c, p) =>
+            {
+                enabled = false;
+                if (toolOnUI != null)
+                {
+                    toolOnUI.enabled = false;
+                }
+            };
+
+            undoButton = CreateButton(m_bottomSection);
+            undoButton.text = "Undo";
+            undoButton.tooltip = "Remove last built roundabout (CTRL+Z). Warning: Use only right after the roundabout has been built";
+            undoButton.relativePosition = new Vector2(16 + closeButton.width, cummulativeHeight);
+            undoButton.isEnabled = false;
+            undoButton.eventClick += (c, p) =>
+            {
+                ModThreading.UndoAction();
             };
             
             cummulativeHeight += closeButton.height + 8;
@@ -324,10 +342,31 @@ namespace RoundaboutBuilder.UI
                 m_setupTmpeSection.isVisible = false;
             }
 
+            // THIS IS HELL ON EARTH
+            // Adjust position of other buttons and height of the panel if the back button is visible
+            if(panel.ShowBackButton)
+            {
+                if(!backButton.enabled)
+                {
+                    m_bottomSection.height += backButton.height + 8;
+                    closeButton.relativePosition = new Vector2(closeButton.relativePosition.x, closeButton.relativePosition.y + backButton.height + 8);
+                    undoButton.relativePosition = new Vector2(undoButton.relativePosition.x, undoButton.relativePosition.y + backButton.height + 8);
+                }
+                backButton.enabled = true;
+            }
+            else
+            {
+                if (backButton.enabled)
+                {
+                    m_bottomSection.height -= backButton.height + 8;
+                    closeButton.relativePosition = new Vector2(closeButton.relativePosition.x, closeButton.relativePosition.y - backButton.height - 8);
+                    undoButton.relativePosition = new Vector2(undoButton.relativePosition.x, undoButton.relativePosition.y - backButton.height - 8);
+                }
+                backButton.enabled = false;
+            }
+
             m_bottomSection.relativePosition = new Vector2(0, cumulativeHeight);
             cumulativeHeight += m_bottomSection.height;
-
-            backButton.isVisible = panel.ShowBackButton;
 
             height = cumulativeHeight;
 
@@ -411,6 +450,7 @@ namespace RoundaboutBuilder.UI
             button.normalBgSprite = "ButtonMenu";
             button.hoveredBgSprite = "ButtonMenuHovered";
             button.pressedBgSprite = "ButtonMenuPressed";
+            button.disabledBgSprite = "ButtonMenuDisabled";
             button.canFocus = false;
             button.playAudioEvents = true;
 

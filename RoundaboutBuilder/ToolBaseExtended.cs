@@ -1,6 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
 using RoundaboutBuilder.UI;
+using System;
 using UnityEngine;
 
 /* By Strad, 01/2019 */
@@ -77,7 +78,7 @@ namespace RoundaboutBuilder
         public override void RenderOverlay(RenderManager.CameraInfo cameraInfo)
         {
             base.RenderOverlay(cameraInfo);
-            if (enabled == true && !insideUI)
+            if (enabled == true)
             {
                 RenderOverlayExtended(cameraInfo);
             } else
@@ -163,5 +164,10 @@ namespace RoundaboutBuilder
             
             return output.m_netNode;
         }*/
+    }
+
+    public class PlayerException : Exception
+    {
+        public PlayerException(string text) : base(text) { }
     }
 }

@@ -67,6 +67,10 @@ namespace RoundaboutBuilder
                 // Easter egg
                 RoundAboutBuilder.EasterEggToggle();
             }
+            catch (PlayerException e)
+            {
+                UIWindow2.instance.ThrowErrorMsg(e.Message);
+            }
             catch (Exception e)
             {
                 Debug.LogError(e);

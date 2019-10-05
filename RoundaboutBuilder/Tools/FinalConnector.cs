@@ -1,9 +1,9 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
-using Provisional.Actions;
-using SharedEnvironment.Public.Actions;
+using SharedEnvironment;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /* By Strad, 01/2019 */
@@ -20,12 +20,15 @@ namespace RoundaboutBuilder.Tools
     {
         private static readonly int DISTANCE_MIN = 20; // Min distance from other nodes when inserting controlling node
 
-        private List<VectorNodeStruct> intersections;
+        private List<RoundaboutNode> intersections;
         private bool leftHandTraffic;
         private Ellipse ellipse;
         private NetInfo centerNodeNetInfo;
-        private ActionGroup m_group;
         private double m_maxAngDistance;
+
+        private ActionGroup actionGroupTMPE;
+        private ActionGroup actionGroupRoads;
+        private WrappersDictionary wrappersDictionary;
 
         // Time to time something goes wrong. Let's make sure that we don't get stuck in infinite recursion.
         // Didn't happen to me since I degbugged it, but one never knows for sure.
@@ -33,8 +36,10 @@ namespace RoundaboutBuilder.Tools
 
         public FinalConnector(NetInfo centerNodeNetInfo, EdgeIntersections2 edgeIntersections, Ellipse ellipse, bool insertControllingVertices)
         {
-            intersections = edgeIntersections?.Intersections ?? new List<VectorNodeStruct>();
-            m_group = edgeIntersections?.TmpeActionGroup();
+            intersections = edgeIntersections?.Intersections ?? new List<RoundaboutNode>();
+            actionGroupTMPE = edgeIntersections?.ActionGroupTMPE ?? new ActionGroup("Set up TMPE");
+            actionGroupRoads = edgeIntersections?.ActionGroupRoads ?? new ActionGroup("Build roundabout");
+            wrappersDictionary = edgeIntersections?.networkDictionary ?? new WrappersDictionary();
 
             this.ellipse = ellipse;
             pleasenoinfiniterecursion = 0;
@@ -56,14 +61,20 @@ namespace RoundaboutBuilder.Tools
             if (isCircle && intersections.Count == 0)
             {
                 Vector3 defaultIntersection = new Vector3(ellipse.RadiusMain, 0, 0) + ellipse.Center;
-                ushort newNodeId = NetAccess.CreateNode(centerNodeNetInfo, defaultIntersection);
-                intersections.Add(new VectorNodeStruct(newNodeId));
+                //ushort newNodeId = NetAccess.CreateNode(centerNodeNetInfo, defaultIntersection);
+
+                WrappedNode newNodeW = new WrappedNode();
+                newNodeW.Position = defaultIntersection;
+                newNodeW.NetInfo = centerNodeNetInfo;
+                RoundaboutNode raNode = new RoundaboutNode(newNodeW);
+                raNode.Create(actionGroupRoads);
+                intersections.Add(raNode);
             }
 
             int count = intersections.Count;
-            foreach (VectorNodeStruct item in intersections)
+            foreach (RoundaboutNode item in intersections)
             {
-                item.angle = Ellipse.VectorsAngle(item.vector - ellipse.Center);
+                item.angle = Ellipse.VectorsAngle(item.wrappedNode.Position - ellipse.Center);
             }
 
             /* We sort the nodes according to their angles */
@@ -73,22 +84,24 @@ namespace RoundaboutBuilder.Tools
             
             for (int i = 0; i < count; i++)
             {
-                VectorNodeStruct prevNode = intersections[i];
+                RoundaboutNode prevNode = intersections[i];
                 if (isCircle)
                     prevNode = CheckAngularDistance(intersections[i], intersections[(i + 1) % count]);
                 ConnectNodes(intersections[(i + 1) % count], prevNode);
             }
 
-            if(m_group != null)
-            {
-                ModThreading.Timer(m_group);
-            }
+            int cost = actionGroupRoads.DoCost();
+            if (!CheckMoney.ChargePlayer(cost, centerNodeNetInfo.m_class))
+                throw new PlayerException("Not enough money!");
+
+            // Create
+            ModThreading.PushAction(actionGroupRoads, actionGroupTMPE);
         }
 
         /* For circles only. */
-        private VectorNodeStruct CheckAngularDistance(VectorNodeStruct p1, VectorNodeStruct p2)
+        private RoundaboutNode CheckAngularDistance(RoundaboutNode p1, RoundaboutNode p2)
         {
-            VectorNodeStruct prevNode = p1;
+            RoundaboutNode prevNode = p1;
             double angDif = NormalizeAngle(prevNode.angle - p2.angle);
             if (p1 == p2)
                 angDif = 2 * Math.PI;
@@ -101,8 +114,13 @@ namespace RoundaboutBuilder.Tools
                 double angle = NormalizeAngle(prevNode.angle - angDif / Math.Ceiling(angDif / m_maxAngDistance));
                 Vector3 vector = ellipse.VectorAtAbsoluteAngle(angle);
 
-                ushort newNodeId = NetAccess.CreateNode(centerNodeNetInfo, vector);
-                VectorNodeStruct newNode = new VectorNodeStruct(newNodeId);
+                //ushort newNodeId = NetAccess.CreateNode(centerNodeNetInfo, vector);
+                WrappedNode newNodeW = new WrappedNode();
+                newNodeW.Position = vector;
+                newNodeW.NetInfo = centerNodeNetInfo;
+                actionGroupRoads.Actions.Add(newNodeW);
+
+                RoundaboutNode newNode = new RoundaboutNode(newNodeW);
                 newNode.angle = angle;
 
                 ConnectNodes(newNode, prevNode);
@@ -118,7 +136,7 @@ namespace RoundaboutBuilder.Tools
          * approximate the ellipse (maybe I am wrong), every node on its circumference changes its actual shape. */
         private void InsertIntermediateNodes()
         {
-            List<VectorNodeStruct> newNodes = new List<VectorNodeStruct>();
+            List<RoundaboutNode> newNodes = new List<RoundaboutNode>();
             /* Originally I planned to pair every node on the ellipse to make it symmetric... Didn't work, I gave up on making it work. */
             /*foreach(VectorNodeStruct intersection in intersections.ToArray())
             {
@@ -127,20 +145,20 @@ namespace RoundaboutBuilder.Tools
                 intersections.Add( newNode );
                 EllipseTool.Instance.debugDrawPositions.Add(newNode.vector);
             }*/
-            newNodes.Add(new VectorNodeStruct(ellipse.VectorAtAngle(0)));
-            newNodes.Add(new VectorNodeStruct(ellipse.VectorAtAngle(Math.PI / 2)));
-            newNodes.Add(new VectorNodeStruct(ellipse.VectorAtAngle(Math.PI)));
-            newNodes.Add(new VectorNodeStruct(ellipse.VectorAtAngle(3 * Math.PI / 2)));
+            newNodes.Add(new RoundaboutNode(ellipse.VectorAtAngle(0)));
+            newNodes.Add(new RoundaboutNode(ellipse.VectorAtAngle(Math.PI / 2)));
+            newNodes.Add(new RoundaboutNode(ellipse.VectorAtAngle(Math.PI)));
+            newNodes.Add(new RoundaboutNode(ellipse.VectorAtAngle(3 * Math.PI / 2)));
             /*EllipseTool.Instance.debugDrawPositions.Add(new VectorNodeStruct(ellipse.VectorAtAngle(0)).vector);
             EllipseTool.Instance.debugDrawPositions.Add(new VectorNodeStruct(ellipse.VectorAtAngle(Math.PI / 2)).vector);
             EllipseTool.Instance.debugDrawPositions.Add(new VectorNodeStruct(ellipse.VectorAtAngle(Math.PI)).vector);
             EllipseTool.Instance.debugDrawPositions.Add(new VectorNodeStruct(ellipse.VectorAtAngle(3 * Math.PI / 2)).vector);*/
             /* Disgusting nested FOR cycle. We don't want to cluster the nodes too close to each other. */
-            foreach(VectorNodeStruct vectorNode in newNodes.ToArray())
+            foreach(RoundaboutNode vectorNode in newNodes.ToArray())
             {
-                foreach(VectorNodeStruct intersection in intersections)
+                foreach(RoundaboutNode intersection in intersections)
                 {
-                    if(VectorDistance(vectorNode.vector, intersection.vector) < DISTANCE_MIN)
+                    if(VectorDistance(vectorNode.wrappedNode.Position, intersection.wrappedNode.Position) < DISTANCE_MIN)
                     {
                         newNodes.Remove(vectorNode);
                         //Debug.Log("Node too close, removing from list");
@@ -157,18 +175,18 @@ namespace RoundaboutBuilder.Tools
         }
 
 
-        private void ConnectNodes(VectorNodeStruct vectorNode1, VectorNodeStruct vectorNode2)
+        private void ConnectNodes(RoundaboutNode vectorNode1, RoundaboutNode vectorNode2)
         {
             bool invert = leftHandTraffic;
 
-            vectorNode1.Create(centerNodeNetInfo);
-            vectorNode2.Create(centerNodeNetInfo);
+            vectorNode1.Create(actionGroupRoads,centerNodeNetInfo);
+            vectorNode2.Create(actionGroupRoads,centerNodeNetInfo);
 
             /* NetNode node1 = GetNode(vectorNode1.nodeId);
              NetNode node2 = GetNode(vectorNode2.nodeId);*/
 
-            double angle1 = getAbsoluteAngle(vectorNode1.vector);
-            double angle2 = getAbsoluteAngle(vectorNode2.vector);
+            double angle1 = getAbsoluteAngle(vectorNode1.wrappedNode.Position);
+            double angle2 = getAbsoluteAngle(vectorNode2.wrappedNode.Position);
 
             Vector3 vec1 = ellipse.TangentAtAbsoluteAngle(angle1);
             Vector3 vec2 = ellipse.TangentAtAbsoluteAngle(angle2);
@@ -182,13 +200,23 @@ namespace RoundaboutBuilder.Tools
 
             //NetInfo netPrefab = PrefabCollection<NetInfo>.FindLoaded("Oneway Road");
             NetInfo netPrefab = UI.UIWindow2.instance.dropDown.Value;
-            ushort newSegmentId = NetAccess.CreateSegment(vectorNode1.nodeId, vectorNode2.nodeId, vec1, vec2, netPrefab, invert, leftHandTraffic, true);
+            //ushort newSegmentId = NetAccess.CreateSegment(vectorNode1.nodeId, vectorNode2.nodeId, vec1, vec2, netPrefab, invert, leftHandTraffic, true);
+            WrappedSegment newSegment = new WrappedSegment();
+            newSegment.StartNode = vectorNode1.wrappedNode;
+            newSegment.EndNode = vectorNode2.wrappedNode;
+            newSegment.StartDirection = vec1;
+            newSegment.EndDirection = vec2;
+            newSegment.NetInfo = netPrefab;
+            newSegment.Invert = invert;
+            newSegment.SwitchStartAndEnd = leftHandTraffic;
+            newSegment.DeployPlacementEffects = true;
 
-            /* Sometime in the future ;) */
+            actionGroupRoads.Actions.Add(newSegment);
+
 
             try
             {
-                SetupTMPE(newSegmentId);
+                SetupTMPE(newSegment);
             }
             catch (Exception e)
             {
@@ -197,10 +225,8 @@ namespace RoundaboutBuilder.Tools
             //Debug.Log(string.Format("Building segment between nodes {0}, {1}, bezier scale {2}", node1, node2, scale));
         }
 
-        private void SetupTMPE(ushort segment)
+        private void SetupTMPE(WrappedSegment segment)
         {
-            if (m_group == null)
-                return;
             /* None of this below works: */
             /*bool resultPrev1 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.IsEnteringBlockedJunctionAllowed(segment,false);
             bool resultPrev2 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.IsEnteringBlockedJunctionAllowed(segment,true);
@@ -210,11 +236,11 @@ namespace RoundaboutBuilder.Tools
             bool resultPost2 = TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.IsEnteringBlockedJunctionAllowed(segment, true);*/
             /*Debug.Log($"Setting up tmpe segment {segment}. Result: {resultPrev1}, {resultPrev2}, {result1}, {result2}, {resultPost1}, {resultPost2}");
             ModThreading.Timer(segment);*/
-            m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, true, false) );
-            m_group.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, false, false) );
-            m_group.Actions.Add(new NoCrossingsAction(segment, true));
-            m_group.Actions.Add(new NoCrossingsAction(segment, false));
-            m_group.Actions.Add(new NoParkingAction(segment));
+            actionGroupTMPE.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, true, false) );
+            actionGroupTMPE.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, false, false) );
+            actionGroupTMPE.Actions.Add(new NoCrossingsAction(segment, true));
+            actionGroupTMPE.Actions.Add(new NoCrossingsAction(segment, false));
+            actionGroupTMPE.Actions.Add(new NoParkingAction(segment));
         }
 
         private void recursionGuard()
