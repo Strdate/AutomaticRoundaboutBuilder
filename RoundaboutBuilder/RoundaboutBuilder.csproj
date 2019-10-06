@@ -66,6 +66,7 @@
     <Compile Include="AutomaticRoundaboutBuilder.cs" />
     <Compile Include="EllipseTool.cs" />
     <Compile Include="FreeCursorTool.cs" />
+    <Compile Include="GameActions\ChargePlayerAction.cs" />
     <Compile Include="NetWrappers\AbstractNetWrapper.cs" />
     <Compile Include="NetWrappers\WrappedNode.cs" />
     <Compile Include="GameActions\AbstractAction.cs" />
@@ -74,7 +75,6 @@
     <Compile Include="NetWrappers\WrappersDictionary.cs" />
     <Compile Include="RoundaboutTool.cs" />
     <Compile Include="ToolBaseExtended.cs" />
-    <Compile Include="Tools\CheckMoney.cs" />
     <Compile Include="Tools\EdgeIntersections2.cs" />
     <Compile Include="Tools\Ellipse.cs" />
     <Compile Include="Tools\FinalConnector.cs" />

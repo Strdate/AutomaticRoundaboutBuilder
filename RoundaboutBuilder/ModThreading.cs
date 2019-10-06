@@ -66,7 +66,7 @@ namespace RoundaboutBuilder
             {
                 timeUp = false;
                 
-                try { actionTMPE.Do(); }
+                try { m_TMPEaction.Do(); }
                 catch(Exception e)
                 {
                     Debug.LogWarning(e);
@@ -122,35 +122,34 @@ namespace RoundaboutBuilder
 
         public static void PushAction(GameAction actionRoads, GameAction actionTMPE)
         {
-            ModThreading.actionRoads = actionRoads;
-            TimerTMPE(actionTMPE);
-            actionRoads.Do();
+            m_lastAction = actionRoads;            
             UIWindow2.instance.undoButton.isEnabled = true;
+            Singleton<SimulationManager>.instance.AddAction(() => {
+                actionRoads.Do();
+            });
+            TimerTMPE(actionTMPE);
         }
 
         public static void UndoAction()
-        {
-            /*try {
-                if (CheckMoney.ChargePlayer(actionRoads.UndoCost(), ((ActionGroup) actionRoads).Actions[0]); //...
-                return;
-            } catch { }*/
-            
-            if(actionRoads != null)
+        {            
+            if(m_lastAction != null)
             {
-                actionRoads.Undo();
-                actionRoads = null;
                 UIWindow2.instance.undoButton.isEnabled = false;
+                Singleton<SimulationManager>.instance.AddAction(() => {
+                    m_lastAction.Undo();
+                    m_lastAction = null;
+                });
             }
         }
 
-        private static GameAction actionTMPE;
-        private static GameAction actionRoads;
+        private static GameAction m_TMPEaction;
+        private static GameAction m_lastAction;
 
         private static Timer aTimer;
         private static bool timeUp = false;
         private static void TimerTMPE(GameAction action)
         {
-            actionTMPE = action;
+            m_TMPEaction = action;
             aTimer = new System.Timers.Timer();
             aTimer.Interval = 500;
 

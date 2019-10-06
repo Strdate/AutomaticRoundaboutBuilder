@@ -90,9 +90,12 @@ namespace RoundaboutBuilder.Tools
                 ConnectNodes(intersections[(i + 1) % count], prevNode);
             }
 
-            int cost = actionGroupRoads.DoCost();
-            if (!CheckMoney.ChargePlayer(cost, centerNodeNetInfo.m_class))
+            // Charge player
+            var chargePlayerAction = new ChargePlayerAction(actionGroupRoads.DoCost(), centerNodeNetInfo.m_class);
+            if (!chargePlayerAction.CheckMoney())
                 throw new PlayerException("Not enough money!");
+
+            actionGroupRoads.Actions.Add(chargePlayerAction);
 
             // Create
             ModThreading.PushAction(actionGroupRoads, actionGroupTMPE);

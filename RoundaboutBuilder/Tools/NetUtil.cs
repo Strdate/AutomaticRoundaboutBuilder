@@ -73,10 +73,12 @@ namespace RoundaboutBuilder.Tools
         {
             var randomizer = Singleton<SimulationManager>.instance.m_randomizer;
             bool result = NetManager.instance.CreateNode(out ushort nodeId, ref randomizer, info, position,
-                Singleton<SimulationManager>.instance.m_currentBuildIndex + 1);
+                Singleton<SimulationManager>.instance.m_currentBuildIndex);
 
             if (!result)
                 throw new Exception("Failed to create NetNode at " + position.ToString());
+
+            Singleton<SimulationManager>.instance.m_currentBuildIndex++;
 
             return nodeId;
         }
@@ -93,13 +95,15 @@ namespace RoundaboutBuilder.Tools
 
             var result = NetManager.instance.CreateSegment(out ushort newSegmentId, ref randomizer, netInfo, switchStartAndEnd ? endNodeId : startNodeId,
                  switchStartAndEnd ? startNodeId : endNodeId,
-                 (switchStartAndEnd ? endDirection : startDirection), (switchStartAndEnd ? startDirection : endDirection), Singleton<SimulationManager>.instance.m_currentBuildIndex + 1,
+                 (switchStartAndEnd ? endDirection : startDirection), (switchStartAndEnd ? startDirection : endDirection), Singleton<SimulationManager>.instance.m_currentBuildIndex,
                          Singleton<SimulationManager>.instance.m_currentBuildIndex, invert);
 
             if (!result)
                 throw new Exception("Failed to create NetSegment");
 
-            if(dispatchPlacementEffects)
+            Singleton<SimulationManager>.instance.m_currentBuildIndex++;
+
+            if (dispatchPlacementEffects)
             {
                 bool smoothStart = (startNode.m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
                 bool smoothEnd = (endNode.m_flags & NetNode.Flags.Middle) != NetNode.Flags.None;
