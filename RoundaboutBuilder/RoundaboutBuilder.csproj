@@ -75,6 +75,7 @@
     <Compile Include="NetWrappers\WrappersDictionary.cs" />
     <Compile Include="RoundaboutTool.cs" />
     <Compile Include="ToolBaseExtended.cs" />
+    <Compile Include="Tools\Ads.cs" />
     <Compile Include="Tools\EdgeIntersections2.cs" />
     <Compile Include="Tools\Ellipse.cs" />
     <Compile Include="Tools\FinalConnector.cs" />

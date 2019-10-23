@@ -55,8 +55,19 @@ namespace RoundaboutBuilder
                 _processed = false;
             }
 
+            // Mouse wheel
+
+            /*if (Input.GetAxis("Mouse ScrollWheel") > 0f) // forward
+            {
+                UIWindow2.instance.toolOnUI?.IncreaseButton();
+            }
+            else if (Input.GetAxis("Mouse ScrollWheel") < 0f) // backwards
+            {
+                UIWindow2.instance.toolOnUI?.DecreaseButton();
+            }*/
+
             /* Check for UI panel button */
-            if(UIWindow2.instance && !UIPanelButton.Instance && RoundAboutBuilder.ShowUIButton.value) // If UIPanel has been already initialized && button missing
+            if (UIWindow2.instance && !UIPanelButton.Instance && RoundAboutBuilder.ShowUIButton.value) // If UIPanel has been already initialized && button missing
             {
                 UIPanelButton.CreateButton();
             }

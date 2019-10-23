@@ -2,6 +2,7 @@
 using ColossalFramework.PlatformServices;
 using ColossalFramework.UI;
 using ICities;
+using RoundaboutBuilder.Tools;
 using RoundaboutBuilder.UI;
 using System;
 using UnityEngine;
@@ -19,7 +20,7 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.7.1";
+        public static readonly string VERSION = "RELEASE 1.7.2";
         public static PublishedFileId WORKSHOP_FILE_ID;
 
         public const string settingsFileName = "RoundaboutBuilder";
@@ -81,6 +82,7 @@ namespace RoundaboutBuilder
             {
                 Debug.Log("Error when assigning Workshop File ID");
             }
+            Ads.InitAd();
         }
 
         public void OnSettingsUI(UIHelperBase helper)

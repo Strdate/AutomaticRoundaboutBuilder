@@ -20,7 +20,7 @@ namespace SharedEnvironment
 
         public bool CheckMoney()
         {
-            if (!RoundAboutBuilder.NeedMoney)
+            if (!RoundAboutBuilder.NeedMoney || !ModLoadingExtension.appModeGame)
                 return true;
 
             if (Amount <= 0)
@@ -36,7 +36,7 @@ namespace SharedEnvironment
 
         public override void Do()
         {
-            if (!RoundAboutBuilder.NeedMoney)
+            if (!RoundAboutBuilder.NeedMoney || !ModLoadingExtension.appModeGame)
                 return;
 
             if (Amount <= 0)
@@ -57,7 +57,7 @@ namespace SharedEnvironment
 
         public override void Undo()
         {
-            if (!RoundAboutBuilder.NeedMoney)
+            if (!RoundAboutBuilder.NeedMoney || !ModLoadingExtension.appModeGame)
                 return;
 
             if (Amount <= 0)

@@ -1,6 +1,7 @@
 ﻿using ColossalFramework.Plugins;
 using ColossalFramework.UI;
 using ICities;
+using RoundaboutBuilder.Tools;
 using RoundaboutBuilder.UI;
 using System;
 using System.Linq;
@@ -17,6 +18,7 @@ namespace RoundaboutBuilder
 {
     public class ModLoadingExtension : ILoadingExtension
     {
+        public static bool appModeGame = false;
         public static bool LevelLoaded = false;
         public static bool tmpeDetected = false;
         public static bool fineRoadToolDetected = false;
@@ -27,6 +29,7 @@ namespace RoundaboutBuilder
         // called when level loading begins
         public void OnCreated(ILoading loading)
         {
+            appModeGame = loading.currentMode == AppMode.Game;
             tmpeDetected = false;
             fineRoadToolDetected = false;
             foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
@@ -41,6 +44,8 @@ namespace RoundaboutBuilder
                     fineRoadToolDetected = true;
                 }
             }
+
+            //Ads.Destroy();
             //Debug.Log(_string);
         }
 
