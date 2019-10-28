@@ -47,7 +47,7 @@ namespace RoundaboutBuilder.UI
             RadiusField.tooltip = "Press +/- to adjust";
             cumulativeHeight += RadiusField.height + 8;
 
-            UIButton button = UIWindow2.CreateButton(this);
+            UIButton button = UIUtil.CreateButton(this);
             button.text = "Free Cursor...";
             button.tooltip = "Create roundabouts anywhere (Warning! Roads won't be removed or connected)";
             button.relativePosition = new Vector2(8, cumulativeHeight);
@@ -58,7 +58,7 @@ namespace RoundaboutBuilder.UI
             };
             cumulativeHeight += button.height + 8;
 
-            button = UIWindow2.CreateButton(this);
+            button = UIUtil.CreateButton(this);
             button.text = "Elliptic Roundabout...";
             button.relativePosition = new Vector2(8, cumulativeHeight);
             button.width = width - 16;
@@ -138,7 +138,7 @@ namespace RoundaboutBuilder.UI
             label.SendToBack();
             cumulativeHeight += label.height;
 
-            var absoluteElevation = UIWindow2.CreateCheckBox(this);
+            var absoluteElevation = UIUtil.CreateCheckBox(this);
             absoluteElevation.name = "RAB_absoluteElevation";
             absoluteElevation.label.text = "Absolute elevation";
             absoluteElevation.tooltip = "Elevation will be measured from zero level instead of terrain level";
@@ -242,7 +242,7 @@ namespace RoundaboutBuilder.UI
             Radius2tf.text = RADIUS2_DEF.ToString();
             cumulativeHeight += Radius2tf.height + 8;
 
-            var buildButton = UIWindow2.CreateButton(this);
+            var buildButton = UIUtil.CreateButton(this);
             buildButton.text = "Build";
             buildButton.relativePosition = new Vector2(8, cumulativeHeight);
             buildButton.playAudioEvents = false;
@@ -252,7 +252,7 @@ namespace RoundaboutBuilder.UI
             };
             cumulativeHeight += buildButton.height + 8;
 
-            var controlVertices = UIWindow2.CreateCheckBox(this);
+            var controlVertices = UIUtil.CreateCheckBox(this);
             controlVertices.name = "RAB_controlVertices";
             controlVertices.label.text = "Insert control points";
             controlVertices.tooltip = "Control points are inserted on main axes to keep the ellipse in shape. See workshop page";
@@ -293,7 +293,7 @@ namespace RoundaboutBuilder.UI
             label.SendToBack();
             cumulativeHeight += label.height + 8;
 
-            var checkBox = UIWindow2.CreateCheckBox(this);
+            var checkBox = UIUtil.CreateCheckBox(this);
             checkBox.name = "RAB_enterBlockedJunctionMainRoad";
             checkBox.label.text = "Enter junct. main r.";
             checkBox.tooltip = "Allow vehicles on the roundabout to enter blocked junctions (TMPE policy)";
@@ -305,7 +305,7 @@ namespace RoundaboutBuilder.UI
             };
             cumulativeHeight += checkBox.height + 8;
 
-            checkBox = UIWindow2.CreateCheckBox(this);
+            checkBox = UIUtil.CreateCheckBox(this);
             checkBox.name = "RAB_enterBlockedJunctionYieldingRoad";
             checkBox.label.text = "Enter junct. yield. r.";
             checkBox.tooltip = "Allow vehicles entering the roundabout to enter blocked junction (TMPE policy)";
@@ -317,7 +317,7 @@ namespace RoundaboutBuilder.UI
             };
             cumulativeHeight += checkBox.height + 8;
 
-            checkBox = UIWindow2.CreateCheckBox(this);
+            checkBox = UIUtil.CreateCheckBox(this);
             checkBox.name = "RAB_noParking";
             checkBox.label.text = "No parking";
             checkBox.tooltip = "Restrict parking on the roundabout (TMPE policy)";
@@ -329,7 +329,7 @@ namespace RoundaboutBuilder.UI
             };
             cumulativeHeight += checkBox.height + 8;
 
-            checkBox = UIWindow2.CreateCheckBox(this);
+            checkBox = UIUtil.CreateCheckBox(this);
             checkBox.name = "RAB_prioritySigns";
             checkBox.label.text = "Priority signs";
             checkBox.tooltip = "Vehicles on the roundabout will have right-of-way";
@@ -341,7 +341,7 @@ namespace RoundaboutBuilder.UI
             };
             cumulativeHeight += checkBox.height + 8;
 
-            checkBox = UIWindow2.CreateCheckBox(this);
+            checkBox = UIUtil.CreateCheckBox(this);
             checkBox.name = "RAB_noCrossings";
             checkBox.label.text = "Disable crosswalks";
             checkBox.tooltip = "Disallow pedestrians to cross to inner ring of the roundabout (Does not change visual appearance)";

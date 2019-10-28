@@ -22,9 +22,11 @@ namespace RoundaboutBuilder
         public static bool LevelLoaded = false;
         public static bool tmpeDetected = false;
         public static bool fineRoadToolDetected = false;
+        public static bool undoItDetected = false;
 
         public static readonly UInt64[] TMPE_IDs = { 583429740, 1637663252, 1806963141 };
         public static readonly UInt64[] FINE_ROAD_ANARCHY_IDs = { 651322972, 1844442251 };
+        public static readonly UInt64[] UNO_IT_IDs = { 1890830956 };
 
         // called when level loading begins
         public void OnCreated(ILoading loading)
@@ -42,6 +44,9 @@ namespace RoundaboutBuilder
                 } else if (!fineRoadToolDetected && current.isEnabled &&(current.name.Contains("FineRoadTool") || FINE_ROAD_ANARCHY_IDs.Contains( current.publishedFileID.AsUInt64 )))
                 {
                     fineRoadToolDetected = true;
+                } else if (!undoItDetected && current.isEnabled && (current.name.Contains("UndoMod") || UNO_IT_IDs.Contains(current.publishedFileID.AsUInt64)))
+                {
+                    undoItDetected = true;
                 }
             }
 
@@ -67,13 +72,18 @@ namespace RoundaboutBuilder
             }
 
             //instatiate UI
-            if (UIWindow2.instance == null) // !!
+            if (UIWindow2.instance == null)
             {
                 UIView.GetAView().AddUIComponent(typeof(UIWindow2));
             }
 
+            if (UndoItAdvertising.Instance == null && ShowUndoItAd()) // !!
+            {
+                UIView.GetAView().AddUIComponent(typeof(UndoItAdvertising));
+            }
+
             //update msg
-            if(!RoundAboutBuilder.SeenUpdateMsg)
+            if (!RoundAboutBuilder.SeenUpdateMsg)
             {
                 UIWindow2.instance.ThrowErrorMsg("Roundabout Builder now supports undo! Yaay! Moreover, building costs are now taken from your account.\n" +
                     "Please report any bugs on the Steam Workshop page.");
@@ -82,6 +92,13 @@ namespace RoundaboutBuilder
 
             
             LevelLoaded = true;
+        }
+
+        private bool ShowUndoItAd()
+        {
+            //Debug.LogWarning("Undoit: " + RoundAboutBuilder.ShowUndoItAd.value + " " + undoItDetected);
+            //return true;
+            return RoundAboutBuilder.ShowUndoItAd.value && !undoItDetected;
         }
 
         /*private void debug()

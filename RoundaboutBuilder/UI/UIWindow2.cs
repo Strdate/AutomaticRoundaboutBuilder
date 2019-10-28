@@ -108,7 +108,7 @@ namespace RoundaboutBuilder.UI
             openDescription.normalFgSprite = "ToolbarIconHelp";
             openDescription.name = "RAB_workshopButton";
             openDescription.tooltip = "Roundabout Builder [" + RoundAboutBuilder.VERSION + "] by Strad\nOpen in Steam Workshop";
-            SetupButtonStateSprites(ref openDescription, "OptionBase", true);
+            UIUtil.SetupButtonStateSprites(ref openDescription, "OptionBase", true);
             if (!PlatformService.IsOverlayEnabled())
             {
                 openDescription.isVisible = false;
@@ -153,7 +153,7 @@ namespace RoundaboutBuilder.UI
             m_setupTmpeSection = AddUIComponent<UIPanel>();
             m_setupTmpeSection.width = 204f;
             m_setupTmpeSection.clipChildren = true;
-            var setupTmpe = CreateCheckBox(m_setupTmpeSection);
+            var setupTmpe = UIUtil.CreateCheckBox(m_setupTmpeSection);
             setupTmpe.name = "RAB_setupTmpe";
             setupTmpe.label.text = "Set up TMPE";
             setupTmpe.tooltip = "Apply TMPE policies to the roundabout";
@@ -163,7 +163,7 @@ namespace RoundaboutBuilder.UI
             {
                 SavedSetupTmpe.value = state;
             };
-            var tmpeButton = CreateButton(m_setupTmpeSection);
+            var tmpeButton = UIUtil.CreateButton(m_setupTmpeSection);
             tmpeButton.text = "...";
             tmpeButton.tooltip = "TMPE settings";
             tmpeButton.height = setupTmpe.height;
@@ -183,7 +183,7 @@ namespace RoundaboutBuilder.UI
             cummulativeHeight = 0;
             m_bottomSection = AddUIComponent<UIPanel>();
 
-            var keepOpen = CreateCheckBox(m_bottomSection);
+            var keepOpen = UIUtil.CreateCheckBox(m_bottomSection);
             keepOpen.name = "RAB_keepOpen";
             keepOpen.label.text = "Keep open";
             keepOpen.tooltip = "Window won't close automatically when the tool is unselected";
@@ -197,7 +197,7 @@ namespace RoundaboutBuilder.UI
             cummulativeHeight += keepOpen.height + 8;
 
             // Back button
-            backButton = CreateButton(m_bottomSection);
+            backButton = UIUtil.CreateButton(m_bottomSection);
             backButton.text = "Back";
             backButton.relativePosition = new Vector2(8, cummulativeHeight);
             backButton.width = width - 16;
@@ -220,7 +220,7 @@ namespace RoundaboutBuilder.UI
 
             cummulativeHeight += backButton.height + 8;
 
-            closeButton = CreateButton(m_bottomSection);
+            closeButton = UIUtil.CreateButton(m_bottomSection);
             closeButton.text = "Close";
             closeButton.relativePosition = new Vector2(8, cummulativeHeight);
             closeButton.eventClick += (c, p) =>
@@ -232,7 +232,7 @@ namespace RoundaboutBuilder.UI
                 }
             };
 
-            undoButton = CreateButton(m_bottomSection);
+            undoButton = UIUtil.CreateButton(m_bottomSection);
             undoButton.text = "Undo";
             undoButton.tooltip = "Remove last built roundabout (CTRL+Z). Warning: Use only right after the roundabout has been built";
             undoButton.relativePosition = new Vector2(16 + closeButton.width, cummulativeHeight);
@@ -406,65 +406,6 @@ namespace RoundaboutBuilder.UI
         {
             ExceptionPanel panel = UIView.library.ShowModal<ExceptionPanel>("ExceptionPanel");
             panel.SetMessage("Roundabout builder", content, error);
-        }
-
-        /* The code below was copied from Fine Road Tool and More Shortcuts mod by SamsamTS. Thanks! */
-
-        public static UICheckBox CreateCheckBox(UIComponent parent)
-        {
-            UICheckBox checkBox = (UICheckBox)parent.AddUIComponent<UICheckBox>();
-
-            checkBox.width = 300f;
-            checkBox.height = 20f;
-            checkBox.clipChildren = true;
-
-            UISprite sprite = checkBox.AddUIComponent<UISprite>();
-            sprite.atlas = ResourceLoader.GetAtlas("Ingame");
-            sprite.spriteName = "ToggleBase";
-            sprite.size = new Vector2(16f, 16f);
-            sprite.relativePosition = Vector3.zero;
-
-            checkBox.checkedBoxObject = sprite.AddUIComponent<UISprite>();
-            ((UISprite)checkBox.checkedBoxObject).atlas = ResourceLoader.GetAtlas("Ingame");
-            ((UISprite)checkBox.checkedBoxObject).spriteName = "ToggleBaseFocused";
-            checkBox.checkedBoxObject.size = new Vector2(16f, 16f);
-            checkBox.checkedBoxObject.relativePosition = Vector3.zero;
-
-            checkBox.label = checkBox.AddUIComponent<UILabel>();
-            checkBox.label.text = " ";
-            checkBox.label.textScale = 0.9f;
-            checkBox.label.relativePosition = new Vector3(22f, 2f);
-
-            checkBox.playAudioEvents = true;
-
-            return checkBox;
-        }
-
-        public static UIButton CreateButton(UIComponent parent)
-        {
-            UIButton button = (UIButton)parent.AddUIComponent<UIButton>();
-
-            button.atlas = ResourceLoader.GetAtlas("Ingame");
-            button.size = new Vector2(90f, 30f);
-            button.textScale = 0.9f;
-            button.normalBgSprite = "ButtonMenu";
-            button.hoveredBgSprite = "ButtonMenuHovered";
-            button.pressedBgSprite = "ButtonMenuPressed";
-            button.disabledBgSprite = "ButtonMenuDisabled";
-            button.canFocus = false;
-            button.playAudioEvents = true;
-
-            return button;
-        }
-
-        // Ripped from Elektrix
-        public static void SetupButtonStateSprites(ref UIButton button, string spriteName, bool noNormal = false)
-        {
-            button.normalBgSprite = spriteName + (noNormal ? "" : "Normal");
-            button.hoveredBgSprite = spriteName + "Hovered";
-            button.focusedBgSprite = spriteName + "Focused";
-            button.pressedBgSprite = spriteName + "Pressed";
-            button.disabledBgSprite = spriteName + "Disabled";
         }
     }
 }

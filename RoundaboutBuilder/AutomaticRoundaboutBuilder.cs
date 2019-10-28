@@ -20,7 +20,7 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.7.2";
+        public static readonly string VERSION = "RELEASE 1.7.4";
         public static PublishedFileId WORKSHOP_FILE_ID;
 
         public const string settingsFileName = "RoundaboutBuilder";
@@ -42,6 +42,8 @@ namespace RoundaboutBuilder
         public static readonly SavedInt savedWindowX = new SavedInt("windowX", settingsFileName, (int)defWindowPosition.x, true);
         public static readonly SavedInt savedWindowY = new SavedInt("windowY", settingsFileName, (int)defWindowPosition.y, true);
         public static readonly SavedInt TotalRoundaboutsBuilt = new SavedInt("totalRoundaboutsBuilt", settingsFileName, 0, true);
+
+        public static readonly SavedBool ShowUndoItAd = new SavedBool("showUndoItAd", RoundAboutBuilder.settingsFileName, true, true);
 
         public RoundAboutBuilder()
         {
@@ -82,7 +84,6 @@ namespace RoundaboutBuilder
             {
                 Debug.Log("Error when assigning Workshop File ID");
             }
-            Ads.InitAd();
         }
 
         public void OnSettingsUI(UIHelperBase helper)

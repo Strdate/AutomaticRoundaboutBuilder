@@ -75,7 +75,6 @@
     <Compile Include="NetWrappers\WrappersDictionary.cs" />
     <Compile Include="RoundaboutTool.cs" />
     <Compile Include="ToolBaseExtended.cs" />
-    <Compile Include="Tools\Ads.cs" />
     <Compile Include="Tools\EdgeIntersections2.cs" />
     <Compile Include="Tools\Ellipse.cs" />
     <Compile Include="Tools\FinalConnector.cs" />
@@ -92,11 +91,14 @@
     <Compile Include="UI\ResourceLoader.cs" />
     <Compile Include="UI\UINetInfoDropDown.cs" />
     <Compile Include="UI\UIPanelButton.cs" />
+    <Compile Include="UI\UIUtil.cs" />
     <Compile Include="UI\UIWindow2.cs" />
+    <Compile Include="UI\UndoItAdvertising.cs" />
     <Compile Include="UI\Windows.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="README.txt" />
+    <EmbeddedResource Include="Resources\undoit.png" />
     <EmbeddedResource Include="Resources\sprites.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
