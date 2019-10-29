@@ -83,16 +83,20 @@ namespace RoundaboutBuilder
             }
 
             //update msg
-            if (!RoundAboutBuilder.SeenUpdateMsg)
+            /*if (ShowUpdateMsg())
             {
                 UIWindow2.instance.ThrowErrorMsg("Roundabout Builder now supports undo! Yaay! Moreover, building costs are now taken from your account.\n" +
                     "Please report any bugs on the Steam Workshop page.");
-                RoundAboutBuilder.SeenUpdateMsg.value = true;
             }
+            RoundAboutBuilder.SeenUpdateMsg.value = true;*/
 
-            
             LevelLoaded = true;
         }
+
+        /*private bool ShowUpdateMsg()
+        {
+            return !RoundAboutBuilder.SeenUpdateMsg && 
+        }*/
 
         private bool ShowUndoItAd()
         {

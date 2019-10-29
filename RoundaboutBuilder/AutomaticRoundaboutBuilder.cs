@@ -20,7 +20,7 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.7.4";
+        public static readonly string VERSION = "RELEASE 1.7.5";
         public static PublishedFileId WORKSHOP_FILE_ID;
 
         public const string settingsFileName = "RoundaboutBuilder";
@@ -38,7 +38,7 @@ namespace RoundaboutBuilder
         public static readonly SavedBool UseOldSnappingAlgorithm = new SavedBool("useOldSnappingAlgorithm", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedBool DoNotFilterPrefabs = new SavedBool("doNotFilterPrefabs", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedBool NeedMoney = new SavedBool("needMoney", RoundAboutBuilder.settingsFileName, true, true);
-        public static readonly SavedBool SeenUpdateMsg = new SavedBool("seenUpdateMsg170", RoundAboutBuilder.settingsFileName, false, true);
+        //public static readonly SavedBool SeenUpdateMsg = new SavedBool("seenUpdateMsg170", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedInt savedWindowX = new SavedInt("windowX", settingsFileName, (int)defWindowPosition.x, true);
         public static readonly SavedInt savedWindowY = new SavedInt("windowY", settingsFileName, (int)defWindowPosition.y, true);
         public static readonly SavedInt TotalRoundaboutsBuilt = new SavedInt("totalRoundaboutsBuilt", settingsFileName, 0, true);

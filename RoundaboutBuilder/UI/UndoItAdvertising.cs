@@ -104,6 +104,7 @@ namespace RoundaboutBuilder.UI
             closeButton.eventClick += (c, p) =>
             {
                 RoundAboutBuilder.ShowUndoItAd.value = !dontShow.isChecked;
+                isVisible = false;
                 enabled = false;
             };
             buffer += closeButton.height + 8;
