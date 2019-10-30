@@ -114,8 +114,11 @@ namespace RoundaboutBuilder.UI
             isVisible = true;
 
             // hide on small screens
-            if (Screen.height < 1000)
+            if (Screen.height < 900)
+            {
+                isVisible = false;
                 enabled = false;
+            }    
         }
     }
 }
