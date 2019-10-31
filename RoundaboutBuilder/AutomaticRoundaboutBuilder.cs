@@ -20,7 +20,7 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.7.6";
+        public static readonly string VERSION = "RELEASE 1.7.7";
         public static PublishedFileId WORKSHOP_FILE_ID;
 
         public const string settingsFileName = "RoundaboutBuilder";
@@ -45,6 +45,8 @@ namespace RoundaboutBuilder
 
         public static readonly SavedBool ShowUndoItAd = new SavedBool("showUndoItAd", RoundAboutBuilder.settingsFileName, true, true);
 
+        public static bool _settingsFailed = false;
+
         public RoundAboutBuilder()
         {
             try
@@ -57,6 +59,7 @@ namespace RoundaboutBuilder
             }
             catch (Exception e)
             {
+                _settingsFailed = true;
                 Debug.Log("Couldn't load/create the setting file.");
                 Debug.LogException(e);
             }

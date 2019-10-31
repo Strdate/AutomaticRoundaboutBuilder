@@ -79,6 +79,7 @@ namespace RoundaboutBuilder
 
             if (UndoItAdvertising.Instance == null && ShowUndoItAd()) // !!
             {
+                RoundAboutBuilder.ShowUndoItAd.value = false;
                 UIView.GetAView().AddUIComponent(typeof(UndoItAdvertising));
             }
 
@@ -102,7 +103,7 @@ namespace RoundaboutBuilder
         {
             //Debug.LogWarning("Undoit: " + RoundAboutBuilder.ShowUndoItAd.value + " " + undoItDetected);
             //return true;
-            return RoundAboutBuilder.ShowUndoItAd.value && !undoItDetected;
+            return RoundAboutBuilder.ShowUndoItAd.value && !undoItDetected && !RoundAboutBuilder._settingsFailed;
         }
 
         /*private void debug()

@@ -78,10 +78,6 @@ namespace RoundaboutBuilder.UI
             dontShow.isChecked = true;
             dontShow.relativePosition = new Vector3(8, buffer);
             dontShow.width = width - 16; // width - padding
-            /*dontShow.eventCheckChanged += (c, state) =>
-            {
-               
-            };*/
             buffer += dontShow.height + 8;
 
             var workshopButton = UIUtil.CreateButton(this);
@@ -118,7 +114,9 @@ namespace RoundaboutBuilder.UI
             {
                 isVisible = false;
                 enabled = false;
-            }    
+            }
+
+            RoundAboutBuilder.ShowUndoItAd.value = false;
         }
     }
 }
