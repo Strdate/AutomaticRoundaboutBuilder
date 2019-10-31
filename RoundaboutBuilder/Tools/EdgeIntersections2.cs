@@ -282,12 +282,12 @@ namespace RoundaboutBuilder.Tools
                 debugString += node.GetSegment(i) + ", ";
             }
             Debug.Log(debugString);*/
-            ushort nextSegmentId = node.GetSegment(0);
+            ushort nextSegmentId = NetUtil.GetNonzeroSegment(node, 0);
             /* We need the segment that goes away from the ellipse, not the one we already have. */
             if(closeSegmentW.Id == nextSegmentId)
             {
                 //Debug.Log("Taking the other of the two segments. " + node.GetSegment(1));
-                nextSegmentId = node.GetSegment(1);
+                nextSegmentId = NetUtil.GetNonzeroSegment(node, 1);
                 if (nextSegmentId == 0)
                     return false;
             }

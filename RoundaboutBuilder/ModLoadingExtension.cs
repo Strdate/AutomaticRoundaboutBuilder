@@ -103,7 +103,7 @@ namespace RoundaboutBuilder
         {
             //Debug.LogWarning("Undoit: " + RoundAboutBuilder.ShowUndoItAd.value + " " + undoItDetected);
             //return true;
-            return RoundAboutBuilder.ShowUndoItAd.value && !undoItDetected && !RoundAboutBuilder._settingsFailed;
+            return RoundAboutBuilder.ShowUndoItAd.value && !undoItDetected && !RoundAboutBuilder._settingsFailed && appModeGame;
         }
 
         /*private void debug()

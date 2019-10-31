@@ -185,17 +185,23 @@ namespace RoundaboutBuilder.Tools
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        public static ushort GetFirstSegment(ushort nodeId)
+        public static ushort GetNonzeroSegment(ushort nodeId, int index)
         {
-            return GetFirstSegment(Node(nodeId));
+            return GetNonzeroSegment(Node(nodeId), index);
         }
 
-        public static ushort GetFirstSegment(NetNode node)
+        public static ushort GetNonzeroSegment(NetNode node, int index)
         {
             for (int i = 0; i < 8; i++)
             {
                 if (node.GetSegment(i) != 0)
-                    return node.GetSegment(i);
+                {
+                    if(index == 0)
+                    {
+                        return node.GetSegment(i);
+                    }
+                    index--;
+                }
             }
             return 0;
         }
