@@ -18,7 +18,7 @@ namespace RoundaboutBuilder.Tools
     public class EdgeIntersections2
     {
         public static readonly int ITERATIONS = 8;
-        public static readonly int MIN_BEZIER_LENGTH = 10;
+        public static readonly int MIN_BEZIER_LENGTH = 16;
 
         ushort CenterNodeId;
         NetNode CenterNode;

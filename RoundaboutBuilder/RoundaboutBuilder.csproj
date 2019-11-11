@@ -93,7 +93,6 @@
     <Compile Include="UI\UIPanelButton.cs" />
     <Compile Include="UI\UIUtil.cs" />
     <Compile Include="UI\UIWindow2.cs" />
-    <Compile Include="UI\UndoItAdvertising.cs" />
     <Compile Include="UI\Windows.cs" />
   </ItemGroup>
   <ItemGroup>

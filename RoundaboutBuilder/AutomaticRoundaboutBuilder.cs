@@ -43,7 +43,7 @@ namespace RoundaboutBuilder
         public static readonly SavedInt savedWindowY = new SavedInt("windowY", settingsFileName, (int)defWindowPosition.y, true);
         public static readonly SavedInt TotalRoundaboutsBuilt = new SavedInt("totalRoundaboutsBuilt", settingsFileName, 0, true);
 
-        public static readonly SavedBool ShowUndoItAd = new SavedBool("showUndoItAd", RoundAboutBuilder.settingsFileName, true, true);
+        //public static readonly SavedBool ShowUndoItAd = new SavedBool("showUndoItAd", RoundAboutBuilder.settingsFileName, true, true);
 
         public static bool _settingsFailed = false;
 

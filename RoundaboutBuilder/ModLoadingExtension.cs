@@ -77,12 +77,6 @@ namespace RoundaboutBuilder
                 UIView.GetAView().AddUIComponent(typeof(UIWindow2));
             }
 
-            if (UndoItAdvertising.Instance == null && ShowUndoItAd()) // !!
-            {
-                RoundAboutBuilder.ShowUndoItAd.value = false;
-                UIView.GetAView().AddUIComponent(typeof(UndoItAdvertising));
-            }
-
             //update msg
             /*if (ShowUpdateMsg())
             {
@@ -98,13 +92,6 @@ namespace RoundaboutBuilder
         {
             return !RoundAboutBuilder.SeenUpdateMsg && 
         }*/
-
-        private bool ShowUndoItAd()
-        {
-            //Debug.LogWarning("Undoit: " + RoundAboutBuilder.ShowUndoItAd.value + " " + undoItDetected);
-            //return true;
-            return RoundAboutBuilder.ShowUndoItAd.value && !undoItDetected && !RoundAboutBuilder._settingsFailed && appModeGame;
-        }
 
         /*private void debug()
         {
