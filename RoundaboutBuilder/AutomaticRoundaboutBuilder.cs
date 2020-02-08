@@ -9,7 +9,7 @@ using UnityEngine;
 
 /* By Strad, 02/2019 */
 
-/* Version RELEASE 1.7.1 */
+/* Version RELEASE 1.8.0 */
 
 /* Warning: I am lazy thus the version labels across the files may not be updated */
 
@@ -20,7 +20,7 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.7.9";
+        public static readonly string VERSION = "RELEASE 1.8.0";
         public static PublishedFileId WORKSHOP_FILE_ID;
 
         public const string settingsFileName = "RoundaboutBuilder";

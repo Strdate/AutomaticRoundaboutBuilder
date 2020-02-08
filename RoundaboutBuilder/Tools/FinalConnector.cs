@@ -241,6 +241,8 @@ namespace RoundaboutBuilder.Tools
             ModThreading.Timer(segment);*/
             actionGroupTMPE.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, true, false) );
             actionGroupTMPE.Actions.Add(new EnteringBlockedJunctionAllowedAction( segment, false, false) );
+            actionGroupTMPE.Actions.Add(new LaneChangingAction(segment, true));
+            actionGroupTMPE.Actions.Add(new LaneChangingAction(segment, false));
             actionGroupTMPE.Actions.Add(new NoCrossingsAction(segment, true));
             actionGroupTMPE.Actions.Add(new NoCrossingsAction(segment, false));
             actionGroupTMPE.Actions.Add(new NoParkingAction(segment));

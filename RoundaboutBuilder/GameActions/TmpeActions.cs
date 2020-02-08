@@ -1,10 +1,15 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿/*extern alias TrafficManagerV11API;
+extern alias TrafficManagerV11;
+extern alias TrafficManagerV10;*/
+
 using RoundaboutBuilder;
 using RoundaboutBuilder.UI;
+using System;
+using System.Reflection;
+using UnityEngine;
+/*using TMPEv11API = TrafficManagerV11API::TrafficManager;
+using TMPEv11 = TrafficManagerV11::TrafficManager;
+using TMPEv10 = TrafficManagerV10::TrafficManager;*/
 
 namespace SharedEnvironment
 {
@@ -137,6 +142,8 @@ namespace SharedEnvironment
         private WrappedSegment m_segment;
         private bool m_startNode;
 
+        private static bool redirectHack = false;
+
         public YieldSignAction(WrappedSegment segment, bool startNode) : base("TMPE setup", false)
         {
             m_segment = segment;
@@ -162,12 +169,55 @@ namespace SharedEnvironment
 
         protected void Implementation()
         {
-            ((TrafficManager.UI.SubTools.PrioritySignsTool)TrafficManager.UI.UIBase.GetTrafficManagerTool().GetSubTool(TrafficManager.UI.ToolMode.AddPrioritySigns)).SetPrioritySign(m_segment.Id, m_startNode, TrafficManager.Traffic.Data.PrioritySegment.PriorityType.Yield);
+            var prioritySignsTool = (TrafficManager.UI.SubTools.PrioritySignsTool)TrafficManager.UI.UIBase.GetTrafficManagerTool().GetSubTool(TrafficManager.UI.ToolMode.AddPrioritySigns);
+            var setPrioritySign = prioritySignsTool.GetType().GetMethod("SetPrioritySign",BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+            setPrioritySign.Invoke(prioritySignsTool, new object[] { m_segment.Id, m_startNode, 3 });
         }
 
         protected bool IsPolicyAllowed()
         {
             return ModLoadingExtension.tmpeDetected && UIWindow2.SavedSetupTmpe && TmpeSetupPanel.SavedPrioritySigns;
+        }
+
+    }
+
+    public class LaneChangingAction : GameActionExtended
+    {
+        private WrappedSegment m_segment;
+        private bool m_startNode;
+
+        public LaneChangingAction(WrappedSegment segment, bool startNode) : base("TMPE setup", false)
+        {
+            m_segment = segment;
+            m_startNode = startNode;
+        }
+
+        protected override void DoImplementation()
+        {
+            if (IsPolicyAllowed())
+                Implementation();
+        }
+
+        protected override void RedoImplementation()
+        {
+            if (IsPolicyAllowed())
+                Implementation();
+        }
+
+        protected override void UndoImplementation()
+        {
+            // ignore
+        }
+
+        protected void Implementation()
+        {
+            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetLaneChangingAllowedWhenGoingStraight(m_segment.Id, m_startNode, true);
+        }
+
+        protected bool IsPolicyAllowed()
+        {
+            return ModLoadingExtension.tmpeDetected && UIWindow2.SavedSetupTmpe && TmpeSetupPanel.SavedAllowLaneChanging;
         }
 
     }

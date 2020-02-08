@@ -280,6 +280,7 @@ namespace RoundaboutBuilder.UI
         public static readonly SavedBool SavedNoParking = new SavedBool("tmpeNoParking", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool SavedPrioritySigns = new SavedBool("tmpePrioritySigns", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedBool SavedNoCrossings = new SavedBool("tmpeNoCrossings", RoundAboutBuilder.settingsFileName, false, true);
+        public static readonly SavedBool SavedAllowLaneChanging = new SavedBool("tmpeLaneChanging", RoundAboutBuilder.settingsFileName, false, true);
 
         public override void Start()
         {
@@ -350,6 +351,18 @@ namespace RoundaboutBuilder.UI
             checkBox.eventCheckChanged += (c, state) =>
             {
                 SavedNoCrossings.value = state;
+            };
+            cumulativeHeight += checkBox.height + 8;
+
+            checkBox = UIUtil.CreateCheckBox(this);
+            checkBox.name = "RAB_laneChanging";
+            checkBox.label.text = "Allow lane changing";
+            checkBox.tooltip = "Allow vehicles to change lanes at the junction (both on the main and entering roads)";
+            checkBox.isChecked = SavedAllowLaneChanging;
+            checkBox.relativePosition = new Vector3(8, cumulativeHeight);
+            checkBox.eventCheckChanged += (c, state) =>
+            {
+                SavedAllowLaneChanging.value = state;
             };
             cumulativeHeight += checkBox.height + 8;
 
