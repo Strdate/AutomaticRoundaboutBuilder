@@ -1,15 +1,8 @@
-﻿/*extern alias TrafficManagerV11API;
-extern alias TrafficManagerV11;
-extern alias TrafficManagerV10;*/
-
-using RoundaboutBuilder;
+﻿using RoundaboutBuilder;
 using RoundaboutBuilder.UI;
 using System;
 using System.Reflection;
 using UnityEngine;
-/*using TMPEv11API = TrafficManagerV11API::TrafficManager;
-using TMPEv11 = TrafficManagerV11::TrafficManager;
-using TMPEv10 = TrafficManagerV10::TrafficManager;*/
 
 namespace SharedEnvironment
 {
@@ -141,8 +134,6 @@ namespace SharedEnvironment
     {
         private WrappedSegment m_segment;
         private bool m_startNode;
-
-        private static bool redirectHack = false;
 
         public YieldSignAction(WrappedSegment segment, bool startNode) : base("TMPE setup", false)
         {
