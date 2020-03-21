@@ -102,14 +102,12 @@ namespace SharedEnvironment
             return true; // ?? true or false
         }
 
-        // not sure about this.. See BulldozeTool.GetSegmentRefundAmount(...)
         public int ComputeConstructionCost()
         {
-            float height1 = Singleton<TerrainManager>.instance.SampleRawHeightSmooth(StartNode.Position);
-            float elevation1 = (byte)Mathf.Clamp(Mathf.RoundToInt(StartNode.Position.y - height1), 1, 255);
-            float height2 = Singleton<TerrainManager>.instance.SampleRawHeightSmooth(EndNode.Position);
-            float elevation2 = (byte)Mathf.Clamp(Mathf.RoundToInt(EndNode.Position.y - height2), 1, 255);
-            return NetInfo.m_netAI.GetConstructionCost(StartNode.Position, EndNode.Position, height1, height2);
+            // See public static ToolBase.ToolErrors NetTool.CreateNode(NetInfo info, NetTool.ControlPoint startPoint, NetTool.ControlPoint middlePoint, NetTool.ControlPoint endPoint, FastList<NetTool.NodePosition> nodeBuffer, int maxSegments, bool test, bool testEnds, bool visualize, bool autoFix, bool needMoney, bool invert, bool switchDir, ushort relocateBuildingID, out ushort firstNode, out ushort lastNode, out ushort segment, out int cost, out int productionRate)
+            float elevation1 = NetUtil.GetElevation(StartNode.Position);
+            float elevation2 = NetUtil.GetElevation(EndNode.Position);
+            return NetInfo.m_netAI.GetConstructionCost(StartNode.Position, EndNode.Position, elevation1, elevation2);
         }
 
         public override int DoCost()
