@@ -20,7 +20,7 @@ namespace RoundaboutBuilder
 {
     public class RoundAboutBuilder : IUserMod
     {
-        public static readonly string VERSION = "RELEASE 1.8.1";
+        public static readonly string VERSION = "RELEASE 1.8.2";
         public static PublishedFileId WORKSHOP_FILE_ID;
 
         public const string settingsFileName = "RoundaboutBuilder";

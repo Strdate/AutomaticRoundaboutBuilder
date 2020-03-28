@@ -2,6 +2,7 @@
 using RoundaboutBuilder.UI;
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace SharedEnvironment
@@ -158,11 +159,36 @@ namespace SharedEnvironment
             // ignore
         }
 
-        protected void Implementation()
+        protected void Implementation() {
+            Exception ex = new Exception();
+            bool invoked = false;
+            try
+            {
+                var tmpeTool = Type.GetType("TrafficManager.UI.ModUI, TrafficManager").GetMethod("GetTrafficManagerTool", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
+                .Invoke(null, new object[] { true });
+                var prioritySignsTool = Type.GetType("TrafficManager.UI.TrafficManagerTool, TrafficManager").GetMethod("GetSubTool", BindingFlags.Public | BindingFlags.Instance).Invoke(tmpeTool, new object[] { 2 });
+                var setPrioritySign = prioritySignsTool.GetType().GetMethod("SetPrioritySign", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+                setPrioritySign.Invoke(prioritySignsTool, new object[] { m_segment.Id, m_startNode, 3 });
+                invoked = true;
+            } catch(Exception e) { ex = e; }
+            
+            if(!invoked)
+                try
+                {
+                    Implementation_preV11();
+                    invoked = true;
+                } catch { }
+
+            if (!invoked)
+                throw ex;
+            
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Implementation_preV11()
         {
             var prioritySignsTool = (TrafficManager.UI.SubTools.PrioritySignsTool)TrafficManager.UI.UIBase.GetTrafficManagerTool().GetSubTool(TrafficManager.UI.ToolMode.AddPrioritySigns);
-            var setPrioritySign = prioritySignsTool.GetType().GetMethod("SetPrioritySign",BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-
+            var setPrioritySign = prioritySignsTool.GetType().GetMethod("SetPrioritySign", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
             setPrioritySign.Invoke(prioritySignsTool, new object[] { m_segment.Id, m_startNode, 3 });
         }
 

@@ -85,7 +85,7 @@ namespace RoundaboutBuilder.Tools
             if (!result)
                 throw new Exception("Failed to create NetNode at " + position.ToString());
 
-            NetManager.instance.m_nodes.m_buffer[nodeId].m_elevation = GetElevation(position);
+            //NetManager.instance.m_nodes.m_buffer[nodeId].m_elevation = GetElevation(position);
 
             Singleton<SimulationManager>.instance.m_currentBuildIndex++;
 
