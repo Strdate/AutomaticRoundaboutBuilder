@@ -180,7 +180,7 @@ namespace RoundaboutBuilder.UI
 
             var count = PrefabCollection<NetInfo>.PrefabCount();
             m_dictionary = new SortedDictionary<StringWithLaneCount, NetInfo>();
-            bool freeCursor = UIWindow2.instance?.toolOnUI is FreeCursorTool;
+            bool freeCursor = UIWindow.instance?.toolOnUI is FreeCursorTool;
             for (uint i = 0; i < count; i++)
             {
                 var prefab = PrefabCollection<NetInfo>.GetPrefab(i);
@@ -276,7 +276,7 @@ namespace RoundaboutBuilder.UI
          * In that case we add it temporatily to the list */
         private void UpdateListWithPrefab(NetInfo extraInfo)
         {
-            bool freeCursor = UIWindow2.instance?.toolOnUI is FreeCursorTool;
+            bool freeCursor = UIWindow.instance?.toolOnUI is FreeCursorTool;
             if (m_lastToolInfo != null && !IsEligible(m_lastToolInfo, freeCursor))
             {
                 m_dictionary.Remove(new StringWithLaneCount(m_lastToolInfo," [S]"));
@@ -320,8 +320,8 @@ namespace RoundaboutBuilder.UI
         public override void Update()
         {
             base.Update();
-            bool freeCursor = UIWindow2.instance?.toolOnUI is FreeCursorTool;
-            if (RoundAboutBuilder.FollowRoadToolSelection.value && UIWindow2.instance.enabled)
+            bool freeCursor = UIWindow.instance?.toolOnUI is FreeCursorTool;
+            if (RoundAboutBuilder.FollowRoadToolSelection.value && UIWindow.instance.enabled)
             {
                 ToolBase currentTool = ToolsModifierControl.toolController.CurrentTool;
                 NetTool netTool = currentTool as NetTool;

@@ -26,15 +26,20 @@ namespace RoundaboutBuilder.Tools
         private NetInfo centerNodeNetInfo;
         private double m_maxAngDistance;
 
+        public bool m_followTerrain { get; private set; }
+        public bool m_reverseDirection { get; private set; }
+
         private ActionGroup actionGroupTMPE;
         private ActionGroup actionGroupRoads;
         private WrappersDictionary wrappersDictionary;
+
+        public int Cost => actionGroupRoads != null ? actionGroupRoads.DoCost() : 0;
 
         // Time to time something goes wrong. Let's make sure that we don't get stuck in infinite recursion.
         // Didn't happen to me since I degbugged it, but one never knows for sure.
         private int pleasenoinfiniterecursion;
 
-        public FinalConnector(NetInfo centerNodeNetInfo, EdgeIntersections2 edgeIntersections, Ellipse ellipse, bool insertControllingVertices)
+        public FinalConnector(NetInfo centerNodeNetInfo, EdgeIntersections2 edgeIntersections, Ellipse ellipse, bool insertControllingVertices, bool followTerrain, bool reverseDirection)
         {
             intersections = edgeIntersections?.Intersections ?? new List<RoundaboutNode>();
             actionGroupTMPE = edgeIntersections?.ActionGroupTMPE ?? new ActionGroup("Set up TMPE");
@@ -46,6 +51,8 @@ namespace RoundaboutBuilder.Tools
             this.centerNodeNetInfo = centerNodeNetInfo;
             leftHandTraffic = Singleton<SimulationManager>.instance.m_metaData.m_invertTraffic ==
                                     SimulationMetaData.MetaBool.True;
+            m_followTerrain = followTerrain;
+            m_reverseDirection = reverseDirection;
 
             // We ensure that the segments are not too long. For circles only (with ellipses it would be more difficult)
             m_maxAngDistance = Math.Min(Math.PI * 25 / ellipse.RadiusMain , Math.PI/2 + 0.1d);
@@ -61,6 +68,7 @@ namespace RoundaboutBuilder.Tools
             if (isCircle && intersections.Count == 0)
             {
                 Vector3 defaultIntersection = new Vector3(ellipse.RadiusMain, 0, 0) + ellipse.Center;
+                defaultIntersection = new Vector3(defaultIntersection.x, m_followTerrain ? NetUtil.TerrainHeight(defaultIntersection) : defaultIntersection.y, defaultIntersection.z);
                 //ushort newNodeId = NetAccess.CreateNode(centerNodeNetInfo, defaultIntersection);
 
                 WrappedNode newNodeW = new WrappedNode();
@@ -91,13 +99,11 @@ namespace RoundaboutBuilder.Tools
             }
 
             // Charge player
-            var chargePlayerAction = new ChargePlayerAction(actionGroupRoads.DoCost(), centerNodeNetInfo.m_class);
-            if (!chargePlayerAction.CheckMoney())
-                throw new PlayerException("Not enough money!");
+            actionGroupRoads.ItemClass = centerNodeNetInfo.m_class;
+        }
 
-            actionGroupRoads.Actions.Add(chargePlayerAction);
-
-            // Create
+        public void Build()
+        {
             ModThreading.PushAction(actionGroupRoads, actionGroupTMPE);
         }
 
@@ -119,7 +125,7 @@ namespace RoundaboutBuilder.Tools
 
                 //ushort newNodeId = NetAccess.CreateNode(centerNodeNetInfo, vector);
                 WrappedNode newNodeW = new WrappedNode();
-                newNodeW.Position = vector;
+                newNodeW.Position = new Vector3(vector.x, m_followTerrain ? NetUtil.TerrainHeight(vector) : vector.y, vector.z); ;
                 newNodeW.NetInfo = centerNodeNetInfo;
                 actionGroupRoads.Actions.Add(newNodeW);
 
@@ -148,10 +154,14 @@ namespace RoundaboutBuilder.Tools
                 intersections.Add( newNode );
                 EllipseTool.Instance.debugDrawPositions.Add(newNode.vector);
             }*/
-            newNodes.Add(new RoundaboutNode(ellipse.VectorAtAngle(0)));
-            newNodes.Add(new RoundaboutNode(ellipse.VectorAtAngle(Math.PI / 2)));
-            newNodes.Add(new RoundaboutNode(ellipse.VectorAtAngle(Math.PI)));
-            newNodes.Add(new RoundaboutNode(ellipse.VectorAtAngle(3 * Math.PI / 2)));
+            var vec = ellipse.VectorAtAngle(0);
+            newNodes.Add(new RoundaboutNode(new Vector3(vec.x, m_followTerrain ? NetUtil.TerrainHeight(vec) : vec.y,vec.z)));
+            vec = ellipse.VectorAtAngle(Math.PI / 2);
+            newNodes.Add(new RoundaboutNode(new Vector3(vec.x, m_followTerrain ? NetUtil.TerrainHeight(vec) : vec.y, vec.z)));
+            vec = ellipse.VectorAtAngle(Math.PI);
+            newNodes.Add(new RoundaboutNode(new Vector3(vec.x, m_followTerrain ? NetUtil.TerrainHeight(vec) : vec.y, vec.z)));
+            vec = ellipse.VectorAtAngle(3 * Math.PI / 2);
+            newNodes.Add(new RoundaboutNode(new Vector3(vec.x, m_followTerrain ? NetUtil.TerrainHeight(vec) : vec.y, vec.z)));
             /*EllipseTool.Instance.debugDrawPositions.Add(new VectorNodeStruct(ellipse.VectorAtAngle(0)).vector);
             EllipseTool.Instance.debugDrawPositions.Add(new VectorNodeStruct(ellipse.VectorAtAngle(Math.PI / 2)).vector);
             EllipseTool.Instance.debugDrawPositions.Add(new VectorNodeStruct(ellipse.VectorAtAngle(Math.PI)).vector);
@@ -180,7 +190,7 @@ namespace RoundaboutBuilder.Tools
 
         private void ConnectNodes(RoundaboutNode vectorNode1, RoundaboutNode vectorNode2)
         {
-            bool invert = leftHandTraffic;
+            bool invert = leftHandTraffic ^ m_reverseDirection;
 
             vectorNode1.Create(actionGroupRoads,centerNodeNetInfo);
             vectorNode2.Create(actionGroupRoads,centerNodeNetInfo);
@@ -202,7 +212,7 @@ namespace RoundaboutBuilder.Tools
             EllipseTool.Instance.debugDrawVector(10*vec2, vectorNode2.vector);*/
 
             //NetInfo netPrefab = PrefabCollection<NetInfo>.FindLoaded("Oneway Road");
-            NetInfo netPrefab = UI.UIWindow2.instance.dropDown.Value;
+            NetInfo netPrefab = UI.UIWindow.instance.dropDown.Value;
             //ushort newSegmentId = NetAccess.CreateSegment(vectorNode1.nodeId, vectorNode2.nodeId, vec1, vec2, netPrefab, invert, leftHandTraffic, true);
             WrappedSegment newSegment = new WrappedSegment();
             newSegment.StartNode = vectorNode1.wrappedNode;

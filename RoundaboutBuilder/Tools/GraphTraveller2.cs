@@ -52,7 +52,7 @@ namespace RoundaboutBuilder.Tools
             noInfiniteRecursion++;
             if(noInfiniteRecursion > RECURSION_TRESHOLD)
             {
-                UI.UIWindow2.instance.ThrowErrorMsg("Error: DFS method exeeded max recursion limit");
+                UI.UIWindow.instance.ThrowErrorMsg("Error: DFS method exeeded max recursion limit");
                 OuterNodes = OuterSegments = InnerNodes = InnerSegments = new List<ushort>();
                 return;
             }

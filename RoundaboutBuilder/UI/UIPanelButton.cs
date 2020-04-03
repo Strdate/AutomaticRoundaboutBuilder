@@ -63,9 +63,9 @@ namespace RoundaboutBuilder.UI
         {
             base.OnClick(p);
             //Debug.Log("Clicked!!");
-            if (UIWindow2.instance == null)
+            if (UIWindow.instance == null)
                 return;
-            UIWindow2.instance.enabled = !UIWindow2.instance.enabled;
+            UIWindow.instance.enabled = !UIWindow.instance.enabled;
         }
 
         /*public void FocusSprites()

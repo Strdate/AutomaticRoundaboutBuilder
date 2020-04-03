@@ -2,6 +2,7 @@
 using ColossalFramework.UI;
 using RoundaboutBuilder.Tools;
 using RoundaboutBuilder.UI;
+using SharedEnvironment;
 using System;
 using UnityEngine;
 
@@ -47,7 +48,7 @@ namespace RoundaboutBuilder
         public void BuildEllipse()
         {
             if (ellipse == null)
-                UIWindow2.instance.ThrowErrorMsg("Invalid radii!");
+                UIWindow.instance.ThrowErrorMsg("Invalid radii!");
 
             Ellipse toBeBuiltEllipse = ellipse;
             Ellipse ellipseWithPadding = ellipse;
@@ -58,26 +59,28 @@ namespace RoundaboutBuilder
                 ellipseWithPadding = new Ellipse(NetUtil.Node(centralNode).m_position, NetUtil.Node(axisNode).m_position - NetUtil.Node(centralNode).m_position, prevRadius1 + DISTANCE_PADDING, prevRadius2 + DISTANCE_PADDING);
             }
 
-            UIWindow2.instance.LostFocus();
-            UIWindow2.instance.GoBack();
+            UIWindow.instance.LostFocus();
+            UIWindow.instance.GoBack();
 
             try
             {
+                bool reverseDirection = (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && RoundAboutBuilder.CtrlToReverseDirection.value;
                 GraphTraveller2 traveller = new GraphTraveller2(centralNode, ellipseWithPadding);
-                EdgeIntersections2 intersections = new EdgeIntersections2(traveller, centralNode, toBeBuiltEllipse);
-                FinalConnector finalConnector = new FinalConnector(NetUtil.Node(centralNode).Info, intersections, toBeBuiltEllipse, ControlVertices);
+                EdgeIntersections2 intersections = new EdgeIntersections2(traveller, centralNode, toBeBuiltEllipse, GetFollowTerrain());
+                FinalConnector finalConnector = new FinalConnector(NetUtil.Node(centralNode).Info, intersections, toBeBuiltEllipse, ControlVertices, GetFollowTerrain(),reverseDirection);
+                finalConnector.Build();
 
                 // Easter egg
                 RoundAboutBuilder.EasterEggToggle();
             }
-            catch (PlayerException e)
+            catch (ActionException e)
             {
-                UIWindow2.instance.ThrowErrorMsg(e.Message);
+                UIWindow.instance.ThrowErrorMsg(e.Message);
             }
             catch (Exception e)
             {
                 Debug.LogError(e);
-                UIWindow2.instance.ThrowErrorMsg(e.ToString(), true);
+                UIWindow.instance.ThrowErrorMsg(e.ToString(), true);
             }
 
         }
@@ -92,18 +95,18 @@ namespace RoundaboutBuilder
                     case Stage.CentralPoint:
                         centralNode = m_hoverNode;
                         stage = Stage.MainAxis;
-                        UIWindow2.instance.SwitchWindow(UIWindow2.instance.P_EllipsePanel_2);
+                        UIWindow.instance.SwitchWindow(UIWindow.instance.P_EllipsePanel_2);
                         break;
                     case Stage.MainAxis:
                         if (m_hoverNode == centralNode)
                         {
-                            UIWindow2.instance.ThrowErrorMsg("You selected the same node!");
+                            UIWindow.instance.ThrowErrorMsg("You selected the same node!");
                         }
                         else
                         {
                             axisNode = m_hoverNode;
                             stage = Stage.Final;
-                            UIWindow2.instance.SwitchWindow(UIWindow2.instance.P_EllipsePanel_3);
+                            UIWindow.instance.SwitchWindow(UIWindow.instance.P_EllipsePanel_3);
                         }
                         break;
                 }
@@ -114,8 +117,8 @@ namespace RoundaboutBuilder
         private bool Radius(out float radius1, out float radius2)
         {
             radius1 = radius2 = -1;
-            float? radius1Q = UIWindow2.instance.P_EllipsePanel_3.Radius1tf.Value;
-            float? radius2Q = UIWindow2.instance.P_EllipsePanel_3.Radius2tf.Value;
+            float? radius1Q = UIWindow.instance.P_EllipsePanel_3.Radius1tf.Value;
+            float? radius2Q = UIWindow.instance.P_EllipsePanel_3.Radius2tf.Value;
             if (radius1Q == null || radius2Q == null)
             {
                 return false;
@@ -134,9 +137,9 @@ namespace RoundaboutBuilder
         public override void IncreaseButton()
         {
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) {
-                UIWindow2.instance.P_EllipsePanel_3.Radius1tf.Increase();
+                UIWindow.instance.P_EllipsePanel_3.Radius1tf.Increase();
             } else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) {
-                UIWindow2.instance.P_EllipsePanel_3.Radius2tf.Increase();
+                UIWindow.instance.P_EllipsePanel_3.Radius2tf.Increase();
             } else
             {
 
@@ -144,8 +147,8 @@ namespace RoundaboutBuilder
                 int newRadius2 = 0;
                 if (!Radius(out float radius1, out float radius2))
                 {
-                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS1_DEF.ToString();
-                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS2_DEF.ToString();
+                    UIWindow.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS1_DEF.ToString();
+                    UIWindow.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS2_DEF.ToString();
                     return;
                 }
                 else
@@ -154,10 +157,10 @@ namespace RoundaboutBuilder
                     newRadius1 = Convert.ToInt32(Math.Ceiling(new decimal(radius1 + 1) / new decimal(5))) * 5;
                     newRadius2 = Convert.ToInt32(ratio * newRadius1);
                 }
-                if (UIWindow2.instance.P_EllipsePanel_3.Radius1tf.IsValid(newRadius1) && UIWindow2.instance.P_EllipsePanel_3.Radius2tf.IsValid(newRadius2) && newRadius1 >= newRadius2)
+                if (UIWindow.instance.P_EllipsePanel_3.Radius1tf.IsValid(newRadius1) && UIWindow.instance.P_EllipsePanel_3.Radius2tf.IsValid(newRadius2) && newRadius1 >= newRadius2)
                 {
-                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = newRadius1.ToString();
-                    UIWindow2.instance.P_EllipsePanel_3.Radius2tf.text = newRadius2.ToString();
+                    UIWindow.instance.P_EllipsePanel_3.Radius1tf.text = newRadius1.ToString();
+                    UIWindow.instance.P_EllipsePanel_3.Radius2tf.text = newRadius2.ToString();
                 }
 
             }
@@ -167,11 +170,11 @@ namespace RoundaboutBuilder
         {
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
             {
-                UIWindow2.instance.P_EllipsePanel_3.Radius1tf.Decrease();
+                UIWindow.instance.P_EllipsePanel_3.Radius1tf.Decrease();
             }
             else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
             {
-                UIWindow2.instance.P_EllipsePanel_3.Radius2tf.Decrease();
+                UIWindow.instance.P_EllipsePanel_3.Radius2tf.Decrease();
             }
             else
             {
@@ -180,8 +183,8 @@ namespace RoundaboutBuilder
                 int newRadius2 = 0;
                 if (!Radius(out float radius1, out float radius2))
                 {
-                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS1_DEF.ToString();
-                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS2_DEF.ToString();
+                    UIWindow.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS1_DEF.ToString();
+                    UIWindow.instance.P_EllipsePanel_3.Radius1tf.text = RADIUS2_DEF.ToString();
                     return;
                 }
                 else
@@ -190,10 +193,10 @@ namespace RoundaboutBuilder
                     newRadius1 = Convert.ToInt32(Math.Floor(new decimal(radius1 - 1) / new decimal(5))) * 5;
                     newRadius2 = Convert.ToInt32(ratio * newRadius1);
                 }
-                if (UIWindow2.instance.P_EllipsePanel_3.Radius1tf.IsValid(newRadius1) && UIWindow2.instance.P_EllipsePanel_3.Radius2tf.IsValid(newRadius2) && newRadius1 >= newRadius2)
+                if (UIWindow.instance.P_EllipsePanel_3.Radius1tf.IsValid(newRadius1) && UIWindow.instance.P_EllipsePanel_3.Radius2tf.IsValid(newRadius2) && newRadius1 >= newRadius2)
                 {
-                    UIWindow2.instance.P_EllipsePanel_3.Radius1tf.text = newRadius1.ToString();
-                    UIWindow2.instance.P_EllipsePanel_3.Radius2tf.text = newRadius2.ToString();
+                    UIWindow.instance.P_EllipsePanel_3.Radius1tf.text = newRadius1.ToString();
+                    UIWindow.instance.P_EllipsePanel_3.Radius2tf.text = newRadius2.ToString();
                 }
 
             }
@@ -222,7 +225,7 @@ namespace RoundaboutBuilder
                     {
                         NetNode hoveredNode = NetUtil.Node(m_hoverNode);
                         RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, hoveredNode.m_position, 15f, hoveredNode.m_position.y - 1f, hoveredNode.m_position.y + 1f, true, true);
-                        UIWindow2.instance.m_hoveringLabel.isVisible = false;
+                        UIWindow.instance.m_hoveringLabel.isVisible = false;
                     }
                     else if (stage == Stage.CentralPoint)
                     {
@@ -236,7 +239,7 @@ namespace RoundaboutBuilder
                     }
                     else
                     {
-                        UIWindow2.instance.m_hoveringLabel.isVisible = false;
+                        UIWindow.instance.m_hoveringLabel.isVisible = false;
                     }
                 }
 

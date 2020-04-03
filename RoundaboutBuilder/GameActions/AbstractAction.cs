@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ColossalFramework;
+using RoundaboutBuilder;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,6 +10,7 @@ namespace SharedEnvironment
     public class ActionGroup : GameActionExtended
     {
         public List<GameAction> Actions = new List<GameAction>();
+        public ItemClass ItemClass { get; set; }
 
         public ActionGroup(string name, bool redoable=false) : base(name)
         {
@@ -15,6 +18,8 @@ namespace SharedEnvironment
 
         protected override void DoImplementation()
         {
+            ChargePlayer();
+
             foreach(GameAction action in Actions)
             {
                 try
@@ -29,6 +34,8 @@ namespace SharedEnvironment
 
         protected override void RedoImplementation()
         {
+            ChargePlayer();
+
             foreach (GameAction action in Actions)
             {
                 try
@@ -44,6 +51,8 @@ namespace SharedEnvironment
 
         protected override void UndoImplementation()
         {
+            ReturnMoney();
+
             for (int i = Actions.Count - 1; i >= 0; i--)
             {
                 try
@@ -65,6 +74,35 @@ namespace SharedEnvironment
         public override int UndoCost()
         {
             return Actions.Aggregate(0, (acc, x) => acc += x.UndoCost());
+        }
+
+        public void ChargePlayer()
+        {
+            int Amount = DoCost();
+            if (!RoundAboutBuilder.NeedMoney || !ModLoadingExtension.appModeGame)
+                return;
+
+            if (Amount <= 0)
+                return;
+
+            if (Singleton<EconomyManager>.instance.PeekResource(EconomyManager.Resource.Construction, Amount) != Amount)
+            {
+                throw new ActionException("Failed to charge player: not enough money",this);
+            }
+
+            Singleton<EconomyManager>.instance.FetchResource(EconomyManager.Resource.Construction, Amount, ItemClass);
+        }
+
+        public void ReturnMoney()
+        {
+            int Amount = UndoCost();
+            if (!RoundAboutBuilder.NeedMoney || !ModLoadingExtension.appModeGame)
+                return;
+
+            if (Amount <= 0)
+                return;
+
+            Singleton<EconomyManager>.instance.AddResource(EconomyManager.Resource.RefundAmount, Amount, ItemClass);
         }
     }
 
@@ -88,11 +126,11 @@ namespace SharedEnvironment
             if (IsDone)
                 throw new ActionException("Is already done",this);
 
+            DoImplementation();
+
             EverDone = true;
             IsDone = true;
             TimesDone++;
-
-            DoImplementation();
         }
 
         public override void Undo()
@@ -100,9 +138,8 @@ namespace SharedEnvironment
             if (!IsDone)
                 throw new ActionException("Is not done", this);
 
-            IsDone = false;
-
             UndoImplementation();
+            IsDone = false;
         }
 
         public override void Redo()
@@ -116,10 +153,10 @@ namespace SharedEnvironment
             if (!IsRedoable)
                 throw new ActionException("Is not redoable", this);
 
+            RedoImplementation();
+
             IsDone = true;
             TimesDone++;
-
-            RedoImplementation();
         }
 
         public override string ToString()

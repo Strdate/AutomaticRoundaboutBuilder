@@ -1,6 +1,7 @@
 ﻿using ColossalFramework.UI;
 using RoundaboutBuilder.Tools;
 using RoundaboutBuilder.UI;
+using SharedEnvironment;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,24 +21,24 @@ namespace RoundaboutBuilder
 
         public void CreateRoundabout()
         {
-            float? radiusQ = UIWindow2.instance.P_FreeToolPanel.RadiusField.Value;
+            float? radiusQ = UIWindow.instance.P_FreeToolPanel.RadiusField.Value;
             if (radiusQ == null)
             {
-                UIWindow2.instance.ThrowErrorMsg("Radius out of bounds!");
+                UIWindow.instance.ThrowErrorMsg("Radius out of bounds!");
                 return;
             }
-            float? elevationFieldQ = UIWindow2.instance.P_FreeToolPanel.ElevationField.Value;
+            float? elevationFieldQ = UIWindow.instance.P_FreeToolPanel.ElevationField.Value;
             if (elevationFieldQ == null)
             {
-                UIWindow2.instance.ThrowErrorMsg("Elevation out of bounds!");
+                UIWindow.instance.ThrowErrorMsg("Elevation out of bounds!");
                 return;
             }
 
             float radius = (float)radiusQ;
             float elevation = (float)elevationFieldQ;
 
-            if (!UIWindow2.instance.keepOpen)
-                UIWindow2.instance.LostFocus();
+            if (!UIWindow.instance.keepOpen)
+                UIWindow.instance.LostFocus();
 
             Vector3 vector = m_hoverPos;
             if (AbsoluteElevation)
@@ -51,7 +52,7 @@ namespace RoundaboutBuilder
 
             if(vector.y < 0 || vector.y > 1000)
             {
-                UIWindow2.instance.ThrowErrorMsg("Elevation out of bounds!");
+                UIWindow.instance.ThrowErrorMsg("Elevation out of bounds!");
                 return;
             }
 
@@ -59,22 +60,22 @@ namespace RoundaboutBuilder
             /* When the old snapping algorithm is enabled, we create secondary (bigger) ellipse, so the newly connected roads obtained by the 
              * graph traveller are not too short. They will be at least as long as the padding. */
             Ellipse ellipse = new Ellipse(vector, new Vector3(0f, 0f, 0f), radius, radius);
-
+            bool reverseDirection = (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && RoundAboutBuilder.CtrlToReverseDirection.value;
             try
             {
-                FinalConnector finalConnector = new FinalConnector(UI.UIWindow2.instance.dropDown.Value, null, ellipse, false);
-
+                FinalConnector finalConnector = new FinalConnector(UI.UIWindow.instance.dropDown.Value, null, ellipse, false, elevation == 0 ? GetFollowTerrain() : false,reverseDirection);
+                finalConnector.Build();
                 // Easter egg
                 RoundAboutBuilder.EasterEggToggle();
             }
-            catch (PlayerException e)
+            catch (ActionException e)
             {
-                UIWindow2.instance.ThrowErrorMsg(e.Message);
+                UIWindow.instance.ThrowErrorMsg(e.Message);
             }
             catch (Exception e)
             {
                 Debug.LogError(e);
-                UIWindow2.instance.ThrowErrorMsg(e.ToString(), true);
+                UIWindow.instance.ThrowErrorMsg(e.ToString(), true);
             }
         }
 
@@ -90,8 +91,8 @@ namespace RoundaboutBuilder
 
             try
             {
-                float? radiusQ = UIWindow2.instance.P_FreeToolPanel.RadiusField.Value;
-                float? elevationFieldQ = UIWindow2.instance.P_FreeToolPanel.ElevationField.Value;
+                float? radiusQ = UIWindow.instance.P_FreeToolPanel.RadiusField.Value;
+                float? elevationFieldQ = UIWindow.instance.P_FreeToolPanel.ElevationField.Value;
                 if (radiusQ == null || elevationFieldQ == null)
                 {
                     return;
@@ -110,7 +111,7 @@ namespace RoundaboutBuilder
                     vector2.y = vector2.y + elevation;
                 }
 
-                float roadWidth = UIWindow2.instance.dropDown.Value.m_halfWidth; // There is a slight chance that this will throw an exception
+                float roadWidth = UIWindow.instance.dropDown.Value.m_halfWidth; // There is a slight chance that this will throw an exception
                 float innerCirleRadius = radius - roadWidth > 0 ? 2 * ((float)radius - roadWidth) : 2 * (float)radius;
 
                 RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.red, vector2, innerCirleRadius, vector2.y - 2f, vector2.y + 2f, true, true);
@@ -138,24 +139,24 @@ namespace RoundaboutBuilder
 
         public override void IncreaseButton()
         {
-            UIWindow2.instance.P_FreeToolPanel.RadiusField.Increase();
+            UIWindow.instance.P_FreeToolPanel.RadiusField.Increase();
         }
 
         public override void DecreaseButton()
         {
-            UIWindow2.instance.P_FreeToolPanel.RadiusField.Decrease();
+            UIWindow.instance.P_FreeToolPanel.RadiusField.Decrease();
         }
 
         public override void PgUpButton()
         {
             if(enabled)
-                UIWindow2.instance.P_FreeToolPanel.ElevationField.Increase();
+                UIWindow.instance.P_FreeToolPanel.ElevationField.Increase();
         }
 
         public override void PgDnButton()
         {
             if(enabled)
-                UIWindow2.instance.P_FreeToolPanel.ElevationField.Decrease();
+                UIWindow.instance.P_FreeToolPanel.ElevationField.Decrease();
         }
     }
 }

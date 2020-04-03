@@ -1,6 +1,5 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
-using RoundaboutBuilder.UI;
 using SharedEnvironment;
 using System;
 using System.Collections.Generic;
@@ -20,10 +19,11 @@ namespace RoundaboutBuilder.Tools
         public static readonly int ITERATIONS = 8;
         public static readonly int MIN_BEZIER_LENGTH = 16;
 
-        ushort CenterNodeId;
-        NetNode CenterNode;
-        GraphTraveller2 traveller;
-        Ellipse ellipse;
+        private ushort CenterNodeId;
+        private NetNode CenterNode;
+        private GraphTraveller2 traveller;
+        private Ellipse ellipse;
+        private bool m_followTerrain;
 
         public ActionGroup ActionGroupTMPE { get; private set; } = new ActionGroup("TMPE action group");
         public ActionGroup ActionGroupRoads { get; private set; } = new ActionGroup("Build roundabout");
@@ -35,12 +35,13 @@ namespace RoundaboutBuilder.Tools
 
         public WrappersDictionary networkDictionary = new WrappersDictionary();
 
-        public EdgeIntersections2(GraphTraveller2 traveller, ushort centerNodeId, Ellipse ellipse)
+        public EdgeIntersections2(GraphTraveller2 traveller, ushort centerNodeId, Ellipse ellipse, bool followTerrain)
         {
             CenterNodeId = centerNodeId;
             CenterNode = NetUtil.Node(centerNodeId);
             this.traveller = traveller;
             this.ellipse = ellipse;
+            m_followTerrain = followTerrain;
 
             if(RoundAboutBuilder.UseOldSnappingAlgorithm.value)
             {
@@ -104,7 +105,7 @@ namespace RoundaboutBuilder.Tools
 
                         /* We create a node at the intersection. */
                         WrappedNode newNode = new WrappedNode();
-                        newNode.Position = intersection;
+                        newNode.Position = new Vector3(intersection.x, m_followTerrain ? NetUtil.TerrainHeight(intersection) : intersection.y, intersection.z);
                         newNode.NetInfo = CenterNode.Info;
                         RoundaboutNode raNode = new RoundaboutNode(newNode);
                         raNode.Create(ActionGroupRoads);
@@ -154,6 +155,7 @@ namespace RoundaboutBuilder.Tools
                 newNode = new WrappedNode();
                 newNode.NetInfo = CenterNode.Info;
                 newNode.Position = circleIntersection;
+                newNode.Position = new Vector3(circleIntersection.x, m_followTerrain ? NetUtil.TerrainHeight(circleIntersection) : circleIntersection.y, circleIntersection.z);
                 RoundaboutNode raNode = new RoundaboutNode(newNode);
                 raNode.Create(ActionGroupRoads);
                 Intersections.Add(raNode);

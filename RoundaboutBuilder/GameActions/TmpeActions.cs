@@ -46,7 +46,7 @@ namespace SharedEnvironment
 
         protected bool IsPolicyAllowed()
         {
-            return ModLoadingExtension.tmpeDetected && UIWindow2.SavedSetupTmpe && (
+            return ModLoadingExtension.tmpeDetected && UIWindow.SavedSetupTmpe && (
                 (!m_yieldingRoad && TmpeSetupPanel.SavedEnterBlockedMainRoad.value) || (m_yieldingRoad && TmpeSetupPanel.SavedEnterBlockedYieldingRoad.value));
         }
 
@@ -87,7 +87,7 @@ namespace SharedEnvironment
 
         protected bool IsPolicyAllowed()
         {
-            return ModLoadingExtension.tmpeDetected && UIWindow2.SavedSetupTmpe && TmpeSetupPanel.SavedNoCrossings;
+            return ModLoadingExtension.tmpeDetected && UIWindow.SavedSetupTmpe && TmpeSetupPanel.SavedNoCrossings;
         }
 
     }
@@ -126,7 +126,7 @@ namespace SharedEnvironment
 
         protected bool IsPolicyAllowed()
         {
-            return ModLoadingExtension.tmpeDetected && UIWindow2.SavedSetupTmpe && TmpeSetupPanel.SavedNoParking;
+            return ModLoadingExtension.tmpeDetected && UIWindow.SavedSetupTmpe && TmpeSetupPanel.SavedNoParking;
         }
 
     }
@@ -194,7 +194,7 @@ namespace SharedEnvironment
 
         protected bool IsPolicyAllowed()
         {
-            return ModLoadingExtension.tmpeDetected && UIWindow2.SavedSetupTmpe && TmpeSetupPanel.SavedPrioritySigns;
+            return ModLoadingExtension.tmpeDetected && UIWindow.SavedSetupTmpe && TmpeSetupPanel.SavedPrioritySigns;
         }
 
     }
@@ -234,7 +234,7 @@ namespace SharedEnvironment
 
         protected bool IsPolicyAllowed()
         {
-            return ModLoadingExtension.tmpeDetected && UIWindow2.SavedSetupTmpe && TmpeSetupPanel.SavedAllowLaneChanging;
+            return ModLoadingExtension.tmpeDetected && UIWindow.SavedSetupTmpe && TmpeSetupPanel.SavedAllowLaneChanging;
         }
 
     }

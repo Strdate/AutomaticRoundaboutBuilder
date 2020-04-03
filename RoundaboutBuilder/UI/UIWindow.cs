@@ -14,13 +14,14 @@ using UnityEngine;
 
 namespace RoundaboutBuilder.UI
 {
-    public class UIWindow2 : UIPanel
+    public class UIWindow : UIPanel
     {
-        public static UIWindow2 instance;
+        public static UIWindow instance;
 
         public bool keepOpen = true;
 
         public static readonly SavedBool SavedSetupTmpe = new SavedBool("savedSetupTMPE", RoundAboutBuilder.settingsFileName, true, true);
+        public static readonly SavedBool SavedFollowTerrain = new SavedBool("savedFollowTerrain", RoundAboutBuilder.settingsFileName, false, true);
 
         public ToolBaseExtended toolOnUI;
         private AbstractPanel m_panelOnUI;
@@ -38,13 +39,14 @@ namespace RoundaboutBuilder.UI
         private UIPanel m_topSection;
         private UIPanel m_bottomSection;
         private UIPanel m_setupTmpeSection;
+        private UIPanel m_followTerrainSection;
         private UIButton backButton;
         private UIButton closeButton;
         public UIButton undoButton;
 
         public UINetInfoDropDown dropDown;
 
-        public UIWindow2()
+        public UIWindow()
         {
             instance = this;
         }
@@ -93,13 +95,8 @@ namespace RoundaboutBuilder.UI
             dragHandle.relativePosition = Vector3.zero;
             dragHandle.target = parent;
 
-            P_RoundAboutPanel = AddUIComponent<RoundAboutPanel>();
-            P_EllipsePanel_1 = AddUIComponent<EllipsePanel_1>();
-            P_EllipsePanel_2 = AddUIComponent<EllipsePanel_2>();
-            P_EllipsePanel_3 = AddUIComponent<EllipsePanel_3>();
             P_TmpeSetupPanel = AddUIComponent<TmpeSetupPanel>();
-            P_FreeToolPanel = AddUIComponent<FreeToolPanel>();
-            //P_RoundAboutPanel.height = 104f; // cheat
+            InitPanels();
 
             // From Elektrix's Road Tools
             UIButton openDescription = AddUIComponent<UIButton>();
@@ -149,6 +146,22 @@ namespace RoundaboutBuilder.UI
 
 
             /* Bottom section */
+
+            m_followTerrainSection = AddUIComponent<UIPanel>();
+            m_followTerrainSection.width = 204f;
+            m_followTerrainSection.clipChildren = true;
+            var chbFollowTerrain = UIUtil.CreateCheckBox(m_followTerrainSection);
+            chbFollowTerrain.name = "RAB_followTerrain";
+            chbFollowTerrain.label.text = "Level terrain";
+            chbFollowTerrain.tooltip = "Make the roundabout the same height everywhere";
+            chbFollowTerrain.isChecked = !SavedFollowTerrain;
+            chbFollowTerrain.relativePosition = new Vector3(8, 0);
+            chbFollowTerrain.eventCheckChanged += (c, state) =>
+            {
+                // Let's make it confusing - the variable and the chackbox will have opposite values
+                SavedFollowTerrain.value = !state;
+            };
+            m_followTerrainSection.height = chbFollowTerrain.height + 8;
 
             m_setupTmpeSection = AddUIComponent<UIPanel>();
             m_setupTmpeSection.width = 204f;
@@ -303,6 +316,32 @@ namespace RoundaboutBuilder.UI
             this.keepOpen = holder;
         }
 
+        public void InitPanels()
+        {
+            //bool enabledS = this.enabled;
+            //enabled = false;
+            if(P_RoundAboutPanel != null)
+            {
+                RemoveUIComponent(P_RoundAboutPanel);
+                RemoveUIComponent(P_FreeToolPanel);
+            }
+            if(P_EllipsePanel_1 != null)
+            {
+                RemoveUIComponent(P_EllipsePanel_1);
+                RemoveUIComponent(P_EllipsePanel_2);
+                RemoveUIComponent(P_EllipsePanel_3);
+            }
+            P_RoundAboutPanel = AddUIComponent<RoundAboutPanel>();
+            P_FreeToolPanel = AddUIComponent<FreeToolPanel>();
+            if(RoundAboutBuilder.LegacyEllipticRoundabouts.value)
+            {
+                P_EllipsePanel_1 = AddUIComponent<EllipsePanel_1>();
+                P_EllipsePanel_2 = AddUIComponent<EllipsePanel_2>();
+                P_EllipsePanel_3 = AddUIComponent<EllipsePanel_3>();
+            }
+           // this.enabled = enabledS;
+        }
+
         public void SwitchWindow(AbstractPanel panel)
         {
             if (m_panelOnUI != null)
@@ -330,6 +369,17 @@ namespace RoundaboutBuilder.UI
 
             panel.relativePosition = new Vector2(0, cumulativeHeight);
             cumulativeHeight += panel.height;
+
+            if (panel.ShowFollowTerrain)
+            {
+                m_followTerrainSection.relativePosition = new Vector2(0, cumulativeHeight);
+                cumulativeHeight += m_followTerrainSection.height;
+                m_followTerrainSection.isVisible = true;
+            }
+            else
+            {
+                m_followTerrainSection.isVisible = false;
+            }
 
             if (ModLoadingExtension.tmpeDetected && panel.ShowTmpeSetup)
             {
@@ -369,7 +419,6 @@ namespace RoundaboutBuilder.UI
             cumulativeHeight += m_bottomSection.height;
 
             height = cumulativeHeight;
-
         }
 
         public void LostFocus()

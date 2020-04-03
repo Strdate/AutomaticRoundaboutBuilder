@@ -39,15 +39,15 @@ namespace RoundaboutBuilder
 
                 _processed = true;
 
-                if (UIWindow2.instance == null) return;
+                if (UIWindow.instance == null) return;
 
                 //Activating/deactivating tool & UI
                 //UIWindow.Instance.enabled = !UIWindow.Instance.enabled;
-                UIWindow2.instance.enabled = !UIWindow2.instance.enabled;
+                UIWindow.instance.enabled = !UIWindow.instance.enabled;
                 //NodeSelection.instance.enabled = UIWindow.Instance.enabled;
 
             }
-            else if(UIWindow2.instance.enabled)
+            else if(UIWindow.instance.enabled)
             {
                 _processed = KeysPressed();
             } else
@@ -67,7 +67,7 @@ namespace RoundaboutBuilder
             }*/
 
             /* Check for UI panel button */
-            if (UIWindow2.instance && !UIPanelButton.Instance && RoundAboutBuilder.ShowUIButton.value) // If UIPanel has been already initialized && button missing
+            if (UIWindow.instance && !UIPanelButton.Instance && RoundAboutBuilder.ShowUIButton.value) // If UIPanel has been already initialized && button missing
             {
                 UIPanelButton.CreateButton();
             }
@@ -92,7 +92,7 @@ namespace RoundaboutBuilder
             {
                 if (_processed)
                     return true;
-                UIWindow2.instance.toolOnUI?.IncreaseButton();
+                UIWindow.instance.toolOnUI?.IncreaseButton();
                 return true;
             }
 
@@ -100,12 +100,12 @@ namespace RoundaboutBuilder
             {
                 if (_processed)
                     return true;
-                UIWindow2.instance.toolOnUI?.DecreaseButton();
+                UIWindow.instance.toolOnUI?.DecreaseButton();
                 return true;
             }
 
             // Undo last action
-            if (UIWindow2.instance.toolOnUI != null && UIWindow2.instance.toolOnUI.enabled && 
+            if (UIWindow.instance.toolOnUI != null && UIWindow.instance.toolOnUI.enabled && 
                 (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKey(KeyCode.Z))
             {
                 if (_processed)
@@ -118,14 +118,14 @@ namespace RoundaboutBuilder
             {
                 if (_processed)
                     return true;
-                UIWindow2.instance.toolOnUI?.PgUpButton();
+                UIWindow.instance.toolOnUI?.PgUpButton();
                 return true;
             }
             if (Input.GetKey(KeyCode.PageDown))
             {
                 if (_processed)
                     return true;
-                UIWindow2.instance.toolOnUI?.PgDnButton();
+                UIWindow.instance.toolOnUI?.PgDnButton();
                 return true;
             }
             return false;
@@ -134,7 +134,7 @@ namespace RoundaboutBuilder
         public static void PushAction(GameAction actionRoads, GameAction actionTMPE)
         {
             m_lastAction = actionRoads;            
-            UIWindow2.instance.undoButton.isEnabled = true;
+            UIWindow.instance.undoButton.isEnabled = true;
             Singleton<SimulationManager>.instance.AddAction(() => {
                 actionRoads.Do();
             });
@@ -145,7 +145,7 @@ namespace RoundaboutBuilder
         {            
             if(m_lastAction != null)
             {
-                UIWindow2.instance.undoButton.isEnabled = false;
+                UIWindow.instance.undoButton.isEnabled = false;
                 Singleton<SimulationManager>.instance.AddAction(() => {
                     m_lastAction.Undo();
                     m_lastAction = null;
