@@ -120,6 +120,11 @@ namespace RoundaboutBuilder
 
         }
 
+        public virtual void HomeButton()
+        {
+
+        }
+
         public virtual void GoToFirstStage()
         {
 

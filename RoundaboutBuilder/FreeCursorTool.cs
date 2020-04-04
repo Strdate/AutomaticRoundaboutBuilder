@@ -157,5 +157,11 @@ namespace RoundaboutBuilder
             if(enabled)
                 UIWindow2.instance.P_FreeToolPanel.ElevationField.Decrease();
         }
+
+        public override void HomeButton()
+        {
+            if (enabled)
+                UIWindow2.instance.P_FreeToolPanel.ElevationField.Reset();
+        }
     }
 }

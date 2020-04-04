@@ -108,5 +108,10 @@ namespace RoundaboutBuilder.UI
             if (IsValid(newValue)) text = newValue.ToString();
         }
 
+        public void Reset()
+        {
+            text = DefaultVal.ToString();
+        }
+
     }
 }
