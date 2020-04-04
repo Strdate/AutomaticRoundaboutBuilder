@@ -106,7 +106,7 @@ namespace SharedEnvironment
         {
             // See public static ToolBase.ToolErrors NetTool.CreateNode(NetInfo info, NetTool.ControlPoint startPoint, NetTool.ControlPoint middlePoint, NetTool.ControlPoint endPoint, FastList<NetTool.NodePosition> nodeBuffer, int maxSegments, bool test, bool testEnds, bool visualize, bool autoFix, bool needMoney, bool invert, bool switchDir, ushort relocateBuildingID, out ushort firstNode, out ushort lastNode, out ushort segment, out int cost, out int productionRate)
             float elevation1, elevation2;
-            if (StartNode.Id != 0 && EndNode.Id != 0)
+            if (StartNode.IsCreated() && EndNode.IsCreated())
             {
                 // destruction
                 elevation1 = StartNode.Get.m_elevation;
