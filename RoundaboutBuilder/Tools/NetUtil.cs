@@ -69,9 +69,25 @@ namespace RoundaboutBuilder.Tools
             }
         }
 
-        public static byte GetElevation(Vector3 position)
+        public static byte GetElevation(Vector3 position, NetAI net_ai)
         {
-            return (byte)Mathf.Clamp(Mathf.RoundToInt(position.y - TerrainHeight(position)), 1, 255);
+            if (!net_ai.IsUnderground() && !net_ai.IsOverground())
+                return 0;
+            
+            net_ai.GetElevationLimits(out int min, out int max);
+            if (min == max)
+                return 0;
+
+            float elevation = position.y - TerrainHeight(position);
+
+#if DEBUG
+            if(!(min * 12 - 1 <= elevation && elevation <= max * 12 + 1))
+                Debug.LogWarning($"ELevation out of range expected {min * 12 - 1} <= {elevation} <={max * 12 + 1}");
+#endif
+            
+            elevation = Mathf.Clamp(elevation, min * 12, max * 12);
+            elevation = Mathf.Abs(elevation);
+            return (byte)Mathf.Clamp(elevation, 1, 255);
         }
 
         public static float TerrainHeight(Vector3 position)
@@ -88,10 +104,7 @@ namespace RoundaboutBuilder.Tools
             if (!result)
                 throw new Exception("Failed to create NetNode at " + position.ToString());
 
-            if(info.m_netAI.IsOverground())
-            {
-                NetManager.instance.m_nodes.m_buffer[nodeId].m_elevation = GetElevation(position);
-            }
+            NetManager.instance.m_nodes.m_buffer[nodeId].m_elevation = GetElevation(position, info.m_netAI);
 
             Singleton<SimulationManager>.instance.m_currentBuildIndex++;
 
