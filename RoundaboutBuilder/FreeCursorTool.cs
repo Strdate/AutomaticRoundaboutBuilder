@@ -156,8 +156,6 @@ namespace RoundaboutBuilder
                 UIWindow.instance.P_FreeToolPanel.ElevationField.Increment = GetElevationStep();
                 UIWindow.instance.P_FreeToolPanel.ElevationField.Increase();
             }
-            if(enabled)
-                UIWindow.instance.P_FreeToolPanel.ElevationField.Increase();
         }
 
         public override void PgDnButton()
@@ -175,9 +173,10 @@ namespace RoundaboutBuilder
                 UIWindow.instance.P_FreeToolPanel.ElevationField.Reset();
         }
 
+        const int DEFAULT_ELEVATTION = 3;
+
         private int GetElevationStep()
         {
-            const int default_elevation = 3;
             int ret = 0;
             if (ModLoadingExtension.fineRoadToolDetected)
             {
@@ -193,21 +192,30 @@ namespace RoundaboutBuilder
                     case 4: return 3;
                     default:
                         Debug.LogWarning($"RoundaboutBuilder: Unreachable code. NetToool.m_elvationDivider={Singleton<NetTool>.instance.m_elevationDivider}");
-                        return default_elevation;
+                        return DEFAULT_ELEVATTION;
                 }
             }
 
             return ret;
         }
 
-        // Note: Must not be inlined.
-        // Throws exception if FineRoadTool dll was not found.
+        /// <summary>
+        /// Precondition: FRT must be enabled 
+        /// Note: Must not be inlined.
+        /// Throws exception if FineRoadTool dll was not found.
+        /// </summary>
+        /// <returns>value of FRT elevation slide or DEFAULT_ELEVATTION if slider is uninitialized
+        /// </returns>
         [MethodImpl(MethodImplOptions.NoInlining)] 
         private int GetFRTElevation()
         {
             // The method including the follwoing line throws exceptipn if FineRoadTool dll is not present.
             // this line must not be inlined.
-            return FineRoadTool.FineRoadTool.instance?.elevationStep ?? 0;
+            var ret = FineRoadTool.FineRoadTool.instance?.elevationStep ?? 0;
+
+            // if user has never clicked on Road Tool, FRT slider is uninitialized.
+            return ret != 0 ? ret : DEFAULT_ELEVATTION; 
+
         }
 
 
