@@ -23,7 +23,7 @@ namespace RoundaboutBuilder.UI
             }
         }
 
-        public float MaxVal = 3000f;
+        public float MaxVal = 2000f;
         public float MinVal = 4f;
         public int Increment = 8;
         public float DefaultVal = 40f;

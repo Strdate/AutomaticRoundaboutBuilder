@@ -72,9 +72,9 @@ namespace RoundaboutBuilder
             }
 
             //instatiate UI
-            if (UIWindow2.instance == null)
+            if (UIWindow.instance == null)
             {
-                UIView.GetAView().AddUIComponent(typeof(UIWindow2));
+                UIView.GetAView().AddUIComponent(typeof(UIWindow));
             }
 
             //update msg
@@ -108,9 +108,9 @@ namespace RoundaboutBuilder
         // called when unloading begins
         public void OnLevelUnloading()
         {
-            if(UIWindow2.instance != null)
+            if(UIWindow.instance != null)
             {
-                UIWindow2.instance.enabled = false;
+                UIWindow.instance.enabled = false;
             }
             LevelLoaded = false;
         }

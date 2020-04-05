@@ -8,7 +8,11 @@ namespace RoundaboutBuilder.UI
 {
     public abstract class AbstractPanel : UIPanel
     {
+        public const float RADIUS_MAX_VAL = 2000f;
+        public const float RADIUS_MAX_VAL_UNLIMITED = 20000f;
+
         public abstract bool ShowDropDown { get; }
+        public abstract bool ShowFollowTerrain { get; }
         public abstract bool ShowTmpeSetup { get; }
         public abstract bool ShowBackButton { get; }
         public abstract bool IsSpecialWindow { get; }
@@ -25,6 +29,7 @@ namespace RoundaboutBuilder.UI
     public class RoundAboutPanel : AbstractPanel
     {
         public override bool ShowDropDown => true;
+        public override bool ShowFollowTerrain => true;
         public override bool ShowTmpeSetup => true;
         public override bool ShowBackButton => false;
         public override bool IsSpecialWindow => false;
@@ -45,28 +50,32 @@ namespace RoundaboutBuilder.UI
             RadiusField = AddUIComponent<NumericTextField>();
             RadiusField.relativePosition = new Vector2(width - RadiusField.width - 8, cumulativeHeight);
             RadiusField.tooltip = "Press +/- to adjust";
+            RadiusField.MaxVal = RoundAboutBuilder.UnlimitedRadius.value ? RADIUS_MAX_VAL_UNLIMITED : RADIUS_MAX_VAL;
             cumulativeHeight += RadiusField.height + 8;
 
             UIButton button = UIUtil.CreateButton(this);
-            button.text = "Free Cursor...";
+            button.text = "Free Cursor Mode...";
             button.tooltip = "Create roundabouts anywhere (Warning! Roads won't be removed or connected)";
             button.relativePosition = new Vector2(8, cumulativeHeight);
             button.width = width - 16;
             button.eventClick += (c, p) =>
             {
-                UIWindow2.instance.SwitchTool(FreeCursorTool.Instance);
+                UIWindow.instance.SwitchTool(FreeCursorTool.Instance);
             };
             cumulativeHeight += button.height + 8;
 
-            button = UIUtil.CreateButton(this);
-            button.text = "Elliptic Roundabout...";
-            button.relativePosition = new Vector2(8, cumulativeHeight);
-            button.width = width - 16;
-            button.eventClick += (c, p) =>
+            if(RoundAboutBuilder.LegacyEllipticRoundabouts.value)
             {
-                UIWindow2.instance.SwitchTool(EllipseTool.Instance);
-            };
-            cumulativeHeight += button.height + 8;
+                button = UIUtil.CreateButton(this);
+                button.text = "Elliptic Roundabout...";
+                button.relativePosition = new Vector2(8, cumulativeHeight);
+                button.width = width - 16;
+                button.eventClick += (c, p) =>
+                {
+                    UIWindow.instance.SwitchTool(EllipseTool.Instance);
+                };
+                cumulativeHeight += button.height + 8;
+            }            
 
             label = AddUIComponent<UILabel>();
             label.text = "Tip: Use Fine Road Tool for elevated roads";
@@ -81,13 +90,14 @@ namespace RoundaboutBuilder.UI
 
             height = cumulativeHeight;
 
-            UIWindow2.instance.SwitchWindow(this);
+            UIWindow.instance.SwitchWindow(this);
         }
     }
 
     public class FreeToolPanel : AbstractPanel
     {
         public override bool ShowDropDown => true;
+        public override bool ShowFollowTerrain => true;
         public override bool ShowTmpeSetup => false;
         public override bool ShowBackButton => true;
         public override bool IsSpecialWindow => false;
@@ -108,6 +118,7 @@ namespace RoundaboutBuilder.UI
             RadiusField = AddUIComponent<NumericTextField>();
             RadiusField.relativePosition = new Vector2(width - RadiusField.width - 8, cumulativeHeight);
             RadiusField.tooltip = "Press +/- to adjust";
+            RadiusField.MaxVal = RoundAboutBuilder.UnlimitedRadius.value ? RADIUS_MAX_VAL_UNLIMITED : RADIUS_MAX_VAL;
             cumulativeHeight += RadiusField.height + 8;
 
             UILabel labelElevation = AddUIComponent<UILabel>();
@@ -158,6 +169,7 @@ namespace RoundaboutBuilder.UI
     public class EllipsePanel_1 : AbstractPanel
     {
         public override bool ShowDropDown => true;
+        public override bool ShowFollowTerrain => false;
         public override bool ShowTmpeSetup => false;
         public override bool ShowBackButton => true;
         public override bool IsSpecialWindow => false;
@@ -179,6 +191,7 @@ namespace RoundaboutBuilder.UI
     public class EllipsePanel_2 : AbstractPanel
     {
         public override bool ShowDropDown => true;
+        public override bool ShowFollowTerrain => false;
         public override bool ShowTmpeSetup => false;
         public override bool ShowBackButton => true;
         public override bool IsSpecialWindow => false;
@@ -200,6 +213,7 @@ namespace RoundaboutBuilder.UI
     public class EllipsePanel_3 : AbstractPanel
     {
         public override bool ShowDropDown => true;
+        public override bool ShowFollowTerrain => true;
         public override bool ShowTmpeSetup => true;
         public override bool ShowBackButton => true;
         public override bool IsSpecialWindow => false;
@@ -225,6 +239,7 @@ namespace RoundaboutBuilder.UI
             Radius1tf.relativePosition = new Vector2(width - Radius1tf.width - 8, cumulativeHeight);
             Radius1tf.tooltip = "Press SHIFT +/- to adjust";
             Radius1tf.DefaultVal = RADIUS1_DEF;
+            Radius1tf.MaxVal = RoundAboutBuilder.UnlimitedRadius.value ? RADIUS_MAX_VAL_UNLIMITED : RADIUS_MAX_VAL;
             Radius1tf.text = RADIUS1_DEF.ToString();
             cumulativeHeight += Radius1tf.height + 8;
 
@@ -239,6 +254,7 @@ namespace RoundaboutBuilder.UI
             Radius2tf.relativePosition = new Vector2(204 - Radius1tf.width - 8, cumulativeHeight);
             Radius2tf.tooltip = "Press CTRL +/- to adjust";
             Radius2tf.DefaultVal = RADIUS2_DEF;
+            Radius2tf.MaxVal = RoundAboutBuilder.UnlimitedRadius.value ? RADIUS_MAX_VAL_UNLIMITED : RADIUS_MAX_VAL;
             Radius2tf.text = RADIUS2_DEF.ToString();
             cumulativeHeight += Radius2tf.height + 8;
 
@@ -271,6 +287,7 @@ namespace RoundaboutBuilder.UI
     public class TmpeSetupPanel : AbstractPanel
     {
         public override bool ShowDropDown => false;
+        public override bool ShowFollowTerrain => false;
         public override bool ShowTmpeSetup => false;
         public override bool ShowBackButton => true;
         public override bool IsSpecialWindow => true;

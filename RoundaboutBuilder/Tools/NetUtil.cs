@@ -71,9 +71,12 @@ namespace RoundaboutBuilder.Tools
 
         public static byte GetElevation(Vector3 position)
         {
-            float height = Singleton<TerrainManager>.instance.SampleDetailHeightSmooth(position);
-            byte elevation = (byte)Mathf.Clamp(Mathf.RoundToInt(position.y - height), 1, 255);
-            return elevation;
+            return (byte)Mathf.Clamp(Mathf.RoundToInt(position.y - TerrainHeight(position)), 1, 255);
+        }
+
+        public static float TerrainHeight(Vector3 position)
+        {
+            return Singleton<TerrainManager>.instance.SampleDetailHeightSmooth(position);
         }
 
         public static ushort CreateNode(NetInfo info, Vector3 position)
@@ -85,7 +88,10 @@ namespace RoundaboutBuilder.Tools
             if (!result)
                 throw new Exception("Failed to create NetNode at " + position.ToString());
 
-            NetManager.instance.m_nodes.m_buffer[nodeId].m_elevation = GetElevation(position);
+            if(info.m_netAI.IsOverground())
+            {
+                NetManager.instance.m_nodes.m_buffer[nodeId].m_elevation = GetElevation(position);
+            }
 
             Singleton<SimulationManager>.instance.m_currentBuildIndex++;
 

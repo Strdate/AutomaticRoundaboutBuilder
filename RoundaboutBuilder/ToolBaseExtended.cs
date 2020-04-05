@@ -1,5 +1,6 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
+using RoundaboutBuilder.Tools;
 using RoundaboutBuilder.UI;
 using System;
 using UnityEngine;
@@ -66,11 +67,11 @@ namespace RoundaboutBuilder
         protected override void OnDisable()
         {
             base.OnDisable();
-            if(UIWindow2.instance != null)
+            if(UIWindow.instance != null)
             {
-                UIWindow2.instance.LostFocus();
-                if (UIWindow2.instance.m_hoveringLabel != null)
-                    UIWindow2.instance.m_hoveringLabel.isVisible = false;
+                UIWindow.instance.LostFocus();
+                if (UIWindow.instance.m_hoveringLabel != null)
+                    UIWindow.instance.m_hoveringLabel.isVisible = false;
             }
             ToolsModifierControl.SetTool<DefaultTool>(); // Thanks to Elektrix for pointing this out
         }
@@ -85,7 +86,7 @@ namespace RoundaboutBuilder
             {
                 try
                 {
-                    UIWindow2.instance.m_hoveringLabel.isVisible = false;
+                    UIWindow.instance.m_hoveringLabel.isVisible = false;
                 } catch { }
             }
         }
@@ -130,11 +131,16 @@ namespace RoundaboutBuilder
 
         }
 
+        protected static bool GetFollowTerrain()
+        {
+            return UIWindow.SavedFollowTerrain.value;
+        }
+
         protected static void RenderHoveringLabel(string text)
         {
-            UIWindow2.instance.m_hoveringLabel.absolutePosition = UIView.GetAView().ScreenPointToGUI(Input.mousePosition) + new Vector2(50, 30);
-            UIWindow2.instance.m_hoveringLabel.SetValue(text);
-            UIWindow2.instance.m_hoveringLabel.isVisible = true;
+            UIWindow.instance.m_hoveringLabel.absolutePosition = UIView.GetAView().ScreenPointToGUI(Input.mousePosition) + new Vector2(50, 30);
+            UIWindow.instance.m_hoveringLabel.SetValue(text);
+            UIWindow.instance.m_hoveringLabel.isVisible = true;
         }
 
         protected void RenderMousePositionCircle(RenderManager.CameraInfo cameraInfo)
@@ -169,10 +175,5 @@ namespace RoundaboutBuilder
             
             return output.m_netNode;
         }*/
-    }
-
-    public class PlayerException : Exception
-    {
-        public PlayerException(string text) : base(text) { }
     }
 }
