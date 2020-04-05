@@ -1,9 +1,11 @@
-﻿using ColossalFramework.UI;
+﻿using ColossalFramework;
+using ColossalFramework.UI;
 using RoundaboutBuilder.Tools;
 using RoundaboutBuilder.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -148,20 +150,53 @@ namespace RoundaboutBuilder
 
         public override void PgUpButton()
         {
-            if(enabled)
+            if (enabled)
+            {
+                UIWindow2.instance.P_FreeToolPanel.ElevationField.Increment = GetElevationStep();
                 UIWindow2.instance.P_FreeToolPanel.ElevationField.Increase();
+            }
         }
 
         public override void PgDnButton()
         {
-            if(enabled)
+            if (enabled)
+            {
+                UIWindow2.instance.P_FreeToolPanel.ElevationField.Increment = GetElevationStep();
                 UIWindow2.instance.P_FreeToolPanel.ElevationField.Decrease();
+            }
         }
-
+        
         public override void HomeButton()
         {
             if (enabled)
                 UIWindow2.instance.P_FreeToolPanel.ElevationField.Reset();
         }
+
+        private int GetElevationStep()
+        {
+            if (ModLoadingExtension.fineRoadToolDetected)
+            {
+                return GetFRTElevation();
+            }
+            else
+            {
+                return Singleton<NetTool>.instance.m_elevationDivider*3;
+            }
+        }
+
+
+        /// <summary>
+        /// precondition: fineRoadToolDetected == true
+        /// Note Must not be inlined.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)] 
+        private int GetFRTElevation()
+        {
+            // The method including the follwoing line throws exceptipn if FineRoadTool dll is not present.
+            // this line must not be inlined.
+            return FineRoadTool.FineRoadTool.instance.elevationStep;
+        }
+
+
     }
 }
