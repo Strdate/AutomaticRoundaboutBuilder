@@ -174,27 +174,37 @@ namespace RoundaboutBuilder
 
         private int GetElevationStep()
         {
+            const int default_elevation = 3;
+            int ret = 0;
             if (ModLoadingExtension.fineRoadToolDetected)
             {
-                return GetFRTElevation();
+                ret = GetFRTElevation();
             }
-            else
+
+            if (ret == 0)
             {
-                return Singleton<NetTool>.instance.m_elevationDivider*3;
+                switch (Singleton<NetTool>.instance.m_elevationDivider)
+                {
+                    case 1: return 12;
+                    case 2: return 6;
+                    case 4: return 3;
+                    default:
+                        Debug.LogWarning($"RoundaboutBuilder: Unreachable code. NetToool.m_elvationDivider={Singleton<NetTool>.instance.m_elevationDivider}");
+                        return default_elevation;
+                }
             }
+
+            return ret;
         }
 
-
-        /// <summary>
-        /// precondition: fineRoadToolDetected == true
-        /// Note Must not be inlined.
-        /// </summary>
+        // Note: Must not be inlined.
+        // Throws exception if FineRoadTool dll was not found.
         [MethodImpl(MethodImplOptions.NoInlining)] 
         private int GetFRTElevation()
         {
             // The method including the follwoing line throws exceptipn if FineRoadTool dll is not present.
             // this line must not be inlined.
-            return FineRoadTool.FineRoadTool.instance.elevationStep;
+            return FineRoadTool.FineRoadTool.instance?.elevationStep ?? 0;
         }
 
 
