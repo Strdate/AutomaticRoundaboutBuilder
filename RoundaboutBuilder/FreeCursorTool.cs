@@ -42,7 +42,7 @@ namespace RoundaboutBuilder
             if (!UIWindow.instance.keepOpen)
                 UIWindow.instance.LostFocus();
 
-            Vector3 vector = m_hoverPos;
+            Vector3 vector = HoverPosition;
             if (AbsoluteElevation)
             {
                 vector.y = elevation;
@@ -103,7 +103,7 @@ namespace RoundaboutBuilder
                 float radius = (float)radiusQ;
                 float elevation = (float)elevationFieldQ;
 
-                Vector3 vector2 = m_hoverPos;
+                Vector3 vector2 = HoverPosition;
                 if (AbsoluteElevation)
                 {
                     vector2.y = elevation;
@@ -121,12 +121,12 @@ namespace RoundaboutBuilder
                 RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, vector2, 15f, vector2.y - 1f, vector2.y + 1f, true, true);
                 //RenderDirectionVectors(cameraInfo);
 
-                float terrainHeight = m_hoverPos.y;
+                float terrainHeight = HoverPosition.y;
 
                 // If the preview is not on the ground, we create a shadow
                 if ((AbsoluteElevation && Mathf.Abs(terrainHeight - elevation) > 0.01f) || (!AbsoluteElevation && Mathf.Abs(elevation) > 0.01f))
                 {
-                    Vector3 vector = m_hoverPos;
+                    Vector3 vector = HoverPosition;
                     vector.y = terrainHeight;
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, vector, 15f, vector.y - 2f, vector.y + 2f, true, true);
 
@@ -153,7 +153,7 @@ namespace RoundaboutBuilder
         {
             if (enabled)
             {
-                UIWindow.instance.P_FreeToolPanel.ElevationField.Increment = GetElevationStep();
+                UIWindow.instance.P_FreeToolPanel.ElevationField.Increment = NetUtil.GetElevationStep();
                 UIWindow.instance.P_FreeToolPanel.ElevationField.Increase();
             }
         }
@@ -162,7 +162,7 @@ namespace RoundaboutBuilder
         {
             if (enabled)
             {
-                UIWindow.instance.P_FreeToolPanel.ElevationField.Increment = GetElevationStep();
+                UIWindow.instance.P_FreeToolPanel.ElevationField.Increment = NetUtil.GetElevationStep();
                 UIWindow.instance.P_FreeToolPanel.ElevationField.Decrease();
             }
         }
@@ -170,53 +170,21 @@ namespace RoundaboutBuilder
         public override void HomeButton()
         {
             if (enabled)
-                UIWindow.instance.P_FreeToolPanel.ElevationField.Reset();
-        }
-
-        const int DEFAULT_ELEVATTION = 3;
-
-        private int GetElevationStep()
-        {
-            int ret = 0;
-            if (ModLoadingExtension.fineRoadToolDetected)
             {
-                ret = GetFRTElevation();
-            }
-
-            if (ret == 0)
-            {
-                switch (Singleton<NetTool>.instance.m_elevationDivider)
+                UIWindow.instance.P_FreeToolPanel.RefreshElevation();
+                if (AbsoluteElevation)
                 {
-                    case 1: return 12;
-                    case 2: return 6;
-                    case 4: return 3;
-                    default:
-                        Debug.LogWarning($"RoundaboutBuilder: Unreachable code. NetToool.m_elvationDivider={Singleton<NetTool>.instance.m_elevationDivider}");
-                        return DEFAULT_ELEVATTION;
+                    float h = HoverPosition.y;
+                    UIWindow.instance.P_FreeToolPanel.ElevationField.Value =
+                        (int)h;
+                }
+                else
+                {
+                    UIWindow.instance.P_FreeToolPanel.ElevationField.Reset();
                 }
             }
-
-            return ret;
         }
 
-        /// <summary>
-        /// Precondition: FRT must be enabled 
-        /// Note: Must not be inlined.
-        /// Throws exception if FineRoadTool dll was not found.
-        /// </summary>
-        /// <returns>value of FRT elevation slide or DEFAULT_ELEVATTION if slider is uninitialized
-        /// </returns>
-        [MethodImpl(MethodImplOptions.NoInlining)] 
-        private int GetFRTElevation()
-        {
-            // The method including the follwoing line throws exceptipn if FineRoadTool dll is not present.
-            // this line must not be inlined.
-            var ret = FineRoadTool.FineRoadTool.instance?.elevationStep ?? 0;
-
-            // if user has never clicked on Road Tool, FRT slider is uninitialized.
-            return ret != 0 ? ret : DEFAULT_ELEVATTION; 
-
-        }
 
 
     }

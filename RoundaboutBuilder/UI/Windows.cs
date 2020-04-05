@@ -1,5 +1,6 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
+using RoundaboutBuilder.Tools;
 using UnityEngine;
 
 /* Version RELEASE 1.4.0+ */
@@ -8,8 +9,8 @@ namespace RoundaboutBuilder.UI
 {
     public abstract class AbstractPanel : UIPanel
     {
-        public const float RADIUS_MAX_VAL = 2000f;
-        public const float RADIUS_MAX_VAL_UNLIMITED = 20000f;
+        public const int RADIUS_MAX_VAL = 2000;
+        public const int RADIUS_MAX_VAL_UNLIMITED = 20000;
 
         public abstract bool ShowDropDown { get; }
         public abstract bool ShowFollowTerrain { get; }
@@ -105,6 +106,8 @@ namespace RoundaboutBuilder.UI
         public NumericTextField RadiusField { get; private set; }
         public NumericTextField ElevationField { get; private set; }
 
+        private int previousElevation_;
+
         public override void Start()
         {
             float cumulativeHeight = 0;
@@ -131,11 +134,19 @@ namespace RoundaboutBuilder.UI
             ElevationField = AddUIComponent<NumericTextField>();
             ElevationField.relativePosition = new Vector2(width - ElevationField.width - 8, cumulativeHeight);
             ElevationField.tooltip = "Press PgUp/PgDn/Home to adjust - set elevation in Road Tool";
-            ElevationField.MinVal = -500f;
-            ElevationField.MaxVal = 1000f;
-            ElevationField.Increment = 3;
+            ElevationField.MinVal = -500;
+            ElevationField.MaxVal = 1000;
+            ElevationField.Increment = NetUtil.DEFAULT_ELEVATTION_STEP;
             ElevationField.DefaultVal = 0;
             ElevationField.text = "0";
+            ElevationField.eventVisibilityChanged += (c, state) =>
+            {
+                if (state)
+                {
+                    RefreshElevation();
+                }
+            };
+
             cumulativeHeight += ElevationField.height + 8;
 
             UILabel label = AddUIComponent<UILabel>();
@@ -153,16 +164,41 @@ namespace RoundaboutBuilder.UI
             absoluteElevation.name = "RAB_absoluteElevation";
             absoluteElevation.label.text = "Absolute elevation";
             absoluteElevation.tooltip = "Elevation will be measured from zero level instead of terrain level";
-            absoluteElevation.isChecked = EllipseTool.Instance.ControlVertices;
+            // absoluteElevation.isChecked = EllipseTool.Instance.ControlVertices; // TODO is this necessary
             absoluteElevation.relativePosition = new Vector3(8, cumulativeHeight);
             absoluteElevation.isChecked = false;
             absoluteElevation.eventCheckChanged += (c, state) =>
             {
+                if (state)
+                {
+                    previousElevation_ = ElevationField.Value ?? 0;
+                    var center = new Vector3(Screen.width / 2, Screen.height / 2, 0);
+                    center = Camera.main.ScreenToWorldPoint(center);
+                    ElevationField.Value = previousElevation_ + (int)NetUtil.TerrainHeight(center);
+                }
+                else
+                {
+                    ElevationField.Value = previousElevation_;
+                }
                 FreeCursorTool.Instance.AbsoluteElevation = state;
             };
             cumulativeHeight += absoluteElevation.height + 8;
 
             height = cumulativeHeight;
+        }
+
+        public void RefreshElevation()
+        {
+            int elevation = NetUtil.GetElevation();
+            if (FreeCursorTool.Instance.AbsoluteElevation)
+            {
+                int terrainY = (int)FreeCursorTool.Instance.HoverPosition.y;
+                UIWindow.instance.P_FreeToolPanel.ElevationField.Value = terrainY + elevation;
+            }
+            else
+            {
+                UIWindow.instance.P_FreeToolPanel.ElevationField.Value = elevation;
+            }
         }
     }
 
