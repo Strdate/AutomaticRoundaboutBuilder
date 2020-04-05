@@ -33,7 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\dependencies\0Harmony.dll</HintPath>
+      <HintPath>C:\Users\stard\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp.dll</HintPath>
@@ -41,13 +41,10 @@
     <Reference Include="ColossalManaged">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ColossalManaged.dll</HintPath>
     </Reference>
-    <Reference Include="CSUtil.Commons, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\dependencies\CSUtil.Commons.dll</HintPath>
-    </Reference>
+    <Reference Include="CSUtil.Commons, Version=1.0.6877.41442, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="FineRoadTool, Version=1.0.6723.1560, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Steam\steamapps\workshop\content\255710\651322972\FineRoadTool.dll</HintPath>
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\workshop\content\255710\1844442251\FineRoadTool.dll</HintPath>
     </Reference>
     <Reference Include="ICities">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ICities.dll</HintPath>
@@ -59,7 +56,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="TrafficManager">
-      <HintPath>..\dependencies\TrafficManager.dll</HintPath>
+      <HintPath>..\..\..\TrafficManager.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.dll</HintPath>
@@ -72,7 +69,6 @@
     <Compile Include="AutomaticRoundaboutBuilder.cs" />
     <Compile Include="EllipseTool.cs" />
     <Compile Include="FreeCursorTool.cs" />
-    <Compile Include="GameActions\ChargePlayerAction.cs" />
     <Compile Include="NetWrappers\AbstractNetWrapper.cs" />
     <Compile Include="NetWrappers\WrappedNode.cs" />
     <Compile Include="GameActions\AbstractAction.cs" />
@@ -81,6 +77,7 @@
     <Compile Include="NetWrappers\WrappersDictionary.cs" />
     <Compile Include="RoundaboutTool.cs" />
     <Compile Include="ToolBaseExtended.cs" />
+    <Compile Include="Tools\SettingsBool.cs" />
     <Compile Include="Tools\EdgeIntersections2.cs" />
     <Compile Include="Tools\Ellipse.cs" />
     <Compile Include="Tools\FinalConnector.cs" />
@@ -98,7 +95,7 @@
     <Compile Include="UI\UINetInfoDropDown.cs" />
     <Compile Include="UI\UIPanelButton.cs" />
     <Compile Include="UI\UIUtil.cs" />
-    <Compile Include="UI\UIWindow2.cs" />
+    <Compile Include="UI\UIWindow.cs" />
     <Compile Include="UI\Windows.cs" />
   </ItemGroup>
   <ItemGroup>

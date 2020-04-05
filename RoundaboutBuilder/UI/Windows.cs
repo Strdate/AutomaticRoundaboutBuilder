@@ -119,7 +119,7 @@ namespace RoundaboutBuilder.UI
 
             ElevationField = AddUIComponent<NumericTextField>();
             ElevationField.relativePosition = new Vector2(width - ElevationField.width - 8, cumulativeHeight);
-            ElevationField.tooltip = "Press PgUp/PgDn to adjust";
+            ElevationField.tooltip = "Press PgUp/PgDn/Home to adjust - set elevation in Road Tool";
             ElevationField.MinVal = -500f;
             ElevationField.MaxVal = 1000f;
             ElevationField.Increment = 3;
