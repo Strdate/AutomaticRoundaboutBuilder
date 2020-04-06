@@ -164,7 +164,6 @@ namespace RoundaboutBuilder.UI
             absoluteElevation.name = "RAB_absoluteElevation";
             absoluteElevation.label.text = "Absolute elevation";
             absoluteElevation.tooltip = "Elevation will be measured from zero level instead of terrain level";
-            // absoluteElevation.isChecked = EllipseTool.Instance.ControlVertices; // TODO is this necessary
             absoluteElevation.relativePosition = new Vector3(8, cumulativeHeight);
             absoluteElevation.isChecked = false;
             absoluteElevation.eventCheckChanged += (c, state) =>
