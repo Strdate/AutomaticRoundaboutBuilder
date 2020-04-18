@@ -105,8 +105,19 @@ namespace SharedEnvironment
         public int ComputeConstructionCost()
         {
             // See public static ToolBase.ToolErrors NetTool.CreateNode(NetInfo info, NetTool.ControlPoint startPoint, NetTool.ControlPoint middlePoint, NetTool.ControlPoint endPoint, FastList<NetTool.NodePosition> nodeBuffer, int maxSegments, bool test, bool testEnds, bool visualize, bool autoFix, bool needMoney, bool invert, bool switchDir, ushort relocateBuildingID, out ushort firstNode, out ushort lastNode, out ushort segment, out int cost, out int productionRate)
-            float elevation1 = NetUtil.GetElevation(StartNode.Position);
-            float elevation2 = NetUtil.GetElevation(EndNode.Position);
+            float elevation1, elevation2;
+            if (StartNode.IsCreated() && EndNode.IsCreated())
+            {
+                // destruction
+                elevation1 = StartNode.Get.m_elevation;
+                elevation2 = EndNode.Get.m_elevation;
+            }
+            else
+            {
+                // construction
+                elevation1 = NetUtil.GetElevation(StartNode.Position, StartNode.NetInfo.m_netAI);
+                elevation2 = NetUtil.GetElevation(EndNode.Position, EndNode.NetInfo.m_netAI);
+            }
             return NetInfo.m_netAI.GetConstructionCost(StartNode.Position, EndNode.Position, elevation1, elevation2);
         }
 
