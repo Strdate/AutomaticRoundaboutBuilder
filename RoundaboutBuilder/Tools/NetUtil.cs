@@ -3,14 +3,19 @@ using ColossalFramework.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
+using RoundaboutBuilder.UI;
 
 namespace RoundaboutBuilder.Tools
 {
     /* By Strad, 2019 */
 
     /* This is a little library which makes net stuff (working with segments/nodes) easier. Feel free to reuse it */
+
+    public const int DEFAULT_ELEVATTION_STEP = 3;
 
     public static class NetUtil
     {
@@ -69,6 +74,76 @@ namespace RoundaboutBuilder.Tools
             }
         }
 
+        public static int GetElevationStep()
+        {
+            if (ModLoadingExtension.fineRoadToolDetected)
+            {
+                return GetFRTElevationStep();
+            }
+            else 
+            {
+                switch (Singleton<NetTool>.instance.m_elevationDivider)
+                {
+                    case 1: return 12;
+                    case 2: return 6;
+                    case 4: return 3;
+                    default:
+                        Debug.LogWarning($"RoundaboutBuilder: Unreachable code. NetToool.m_elvationDivider={Singleton<NetTool>.instance.m_elevationDivider}");
+                        return DEFAULT_ELEVATTION_STEP;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Precondition: FRT must be enabled 
+        /// Note: Must not be inlined.
+        /// Throws exception if FineRoadTool dll was not found.
+        /// </summary>
+        /// <returns>value of FRT elevation slider or DEFAULT_ELEVATTION if slider is uninitialized
+        /// </returns>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static int GetFRTElevationStep()
+        {
+            // The method including the follwoing line throws exceptipn if FineRoadTool dll is not present.
+            // this line must not be inlined.
+            var ret = FineRoadTool.FineRoadTool.instance?.elevationStep ?? 0;
+
+            // if user has never clicked on Road Tool, FRT slider is uninitialized.
+            return ret != 0 ? ret : DEFAULT_ELEVATTION_STEP;
+        }
+
+        public static int GetElevation()
+        {
+            var prefab = UIWindow.instance.dropDown.Value;
+            var ret = GetElevation(prefab);
+            Debug.Log("GetElevation() returns " + (int)ret);
+            return (int)ret;
+        }
+
+        private static float GetElevation(NetInfo info)
+        {
+            if (ModLoadingExtension.fineRoadToolDetected)
+            {
+                return GetFRTElevation();
+            }
+            return (float)typeof(NetTool).
+                GetMethod("GetElevation", BindingFlags.NonPublic | BindingFlags.Instance).
+                Invoke(Singleton<NetTool>.instance, new object[] { info });
+        }
+
+        /// <summary>
+        /// Precondition: FRT must be enabled 
+        /// Note: Must not be inlined.
+        /// Throws exception if FineRoadTool dll was not found.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static int GetFRTElevation()
+        {
+            // The method including the follwoing line throws exceptipn if FineRoadTool dll is not present.
+            // this line must not be inlined.
+            return FineRoadTool.FineRoadTool.instance?.elevation ?? 0;
+        }
+      
         public static byte GetElevation(Vector3 position, NetAI net_ai)
         {
             if (!net_ai.IsUnderground() && !net_ai.IsOverground())

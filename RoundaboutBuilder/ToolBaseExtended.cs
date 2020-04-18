@@ -18,8 +18,8 @@ namespace RoundaboutBuilder
     {
         protected bool insideUI;
 
-        protected Vector3 m_hoverPos;
         protected ushort m_hoverNode;
+        public Vector3 HoverPosition { get; protected set; }
 
         protected override void OnToolUpdate()
         {
@@ -56,7 +56,7 @@ namespace RoundaboutBuilder
 
             RayCast(input, out RaycastOutput output);
             m_hoverNode = output.m_netNode;
-            m_hoverPos = output.m_hitPos;
+            HoverPosition = output.m_hitPos;
 
             if (Input.GetMouseButtonUp(0))
             {
@@ -121,6 +121,11 @@ namespace RoundaboutBuilder
 
         }
 
+        public virtual void HomeButton()
+        {
+
+        }
+
         public virtual void GoToFirstStage()
         {
 
@@ -140,7 +145,7 @@ namespace RoundaboutBuilder
 
         protected void RenderMousePositionCircle(RenderManager.CameraInfo cameraInfo)
         {
-            RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, m_hoverPos, 15f, m_hoverPos.y - 1f, m_hoverPos.y + 1f, true, true);
+            RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, HoverPosition, 15f, HoverPosition.y - 1f, HoverPosition.y + 1f, true, true);
         }
 
         /* I need this code on multiple places, so I implement it as a static method... Return the node over which the mouse is hovering. */

@@ -1,10 +1,12 @@
-﻿using ColossalFramework.UI;
+﻿using ColossalFramework;
+using ColossalFramework.UI;
 using RoundaboutBuilder.Tools;
 using RoundaboutBuilder.UI;
 using SharedEnvironment;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -40,7 +42,7 @@ namespace RoundaboutBuilder
             if (!UIWindow.instance.keepOpen)
                 UIWindow.instance.LostFocus();
 
-            Vector3 vector = m_hoverPos;
+            Vector3 vector = HoverPosition;
             if (AbsoluteElevation)
             {
                 vector.y = elevation;
@@ -101,7 +103,7 @@ namespace RoundaboutBuilder
                 float radius = (float)radiusQ;
                 float elevation = (float)elevationFieldQ;
 
-                Vector3 vector2 = m_hoverPos;
+                Vector3 vector2 = HoverPosition;
                 if (AbsoluteElevation)
                 {
                     vector2.y = elevation;
@@ -119,12 +121,12 @@ namespace RoundaboutBuilder
                 RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, vector2, 15f, vector2.y - 1f, vector2.y + 1f, true, true);
                 //RenderDirectionVectors(cameraInfo);
 
-                float terrainHeight = m_hoverPos.y;
+                float terrainHeight = HoverPosition.y;
 
                 // If the preview is not on the ground, we create a shadow
                 if ((AbsoluteElevation && Mathf.Abs(terrainHeight - elevation) > 0.01f) || (!AbsoluteElevation && Mathf.Abs(elevation) > 0.01f))
                 {
-                    Vector3 vector = m_hoverPos;
+                    Vector3 vector = HoverPosition;
                     vector.y = terrainHeight;
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, vector, 15f, vector.y - 2f, vector.y + 2f, true, true);
 
@@ -149,14 +151,41 @@ namespace RoundaboutBuilder
 
         public override void PgUpButton()
         {
-            if(enabled)
+            if (enabled)
+            {
+                UIWindow.instance.P_FreeToolPanel.ElevationField.Increment = NetUtil.GetElevationStep();
                 UIWindow.instance.P_FreeToolPanel.ElevationField.Increase();
+            }
         }
 
         public override void PgDnButton()
         {
-            if(enabled)
+            if (enabled)
+            {
+                UIWindow.instance.P_FreeToolPanel.ElevationField.Increment = NetUtil.GetElevationStep();
                 UIWindow.instance.P_FreeToolPanel.ElevationField.Decrease();
+            }
         }
+        
+        public override void HomeButton()
+        {
+            if (enabled)
+            {
+                UIWindow.instance.P_FreeToolPanel.RefreshElevation();
+                if (AbsoluteElevation)
+                {
+                    float h = HoverPosition.y;
+                    UIWindow.instance.P_FreeToolPanel.ElevationField.Value =
+                        (int)h;
+                }
+                else
+                {
+                    UIWindow.instance.P_FreeToolPanel.ElevationField.Reset();
+                }
+            }
+        }
+
+
+
     }
 }

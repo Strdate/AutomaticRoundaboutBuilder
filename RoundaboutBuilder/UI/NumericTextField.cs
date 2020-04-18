@@ -14,19 +14,26 @@ namespace RoundaboutBuilder.UI
     {
         private string prevText = "";
 
-        public float? Value
+        public int? Value
         {
             get
             {
-                if (float.TryParse(text, out float result) && IsValid(result)) return result;
+                if (int.TryParse(text, out int result) && IsValid(result)) return result;
                 else return null;
+            }
+            set
+            {
+                if (value == null)
+                    text = DefaultVal.ToString();
+                else
+                    text = value.ToString();
             }
         }
 
-        public float MaxVal = 2000f;
-        public float MinVal = 4f;
+        public int MaxVal = 2000;
+        public int MinVal = 4;
         public int Increment = 8;
-        public float DefaultVal = 40f;
+        public int DefaultVal = 40;
 
         public NumericTextField()
         {
@@ -51,9 +58,9 @@ namespace RoundaboutBuilder.UI
 
         private bool IsValid(string text)
         {
-            return float.TryParse(text, out float result) && IsValid(result);
+            return int.TryParse(text, out int result) && IsValid(result);
         }
-        public bool IsValid(float value)
+        public bool IsValid(int value)
         {
             return value >= MinVal && value <= MaxVal;
         }
@@ -108,5 +115,9 @@ namespace RoundaboutBuilder.UI
             if (IsValid(newValue)) text = newValue.ToString();
         }
 
+        public void Reset()
+        {
+            Value = DefaultVal;
+        }
     }
 }

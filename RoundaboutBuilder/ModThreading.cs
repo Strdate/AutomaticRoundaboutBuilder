@@ -128,6 +128,13 @@ namespace RoundaboutBuilder
                 UIWindow.instance.toolOnUI?.PgDnButton();
                 return true;
             }
+            if (Input.GetKey(KeyCode.Home))
+            {
+                if (_processed)
+                    return true;
+                UIWindow.instance.toolOnUI?.HomeButton();
+                return true;
+            }
             return false;
         }
 
