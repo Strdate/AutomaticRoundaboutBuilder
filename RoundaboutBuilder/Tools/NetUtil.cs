@@ -15,10 +15,10 @@ namespace RoundaboutBuilder.Tools
 
     /* This is a little library which makes net stuff (working with segments/nodes) easier. Feel free to reuse it */
 
-    public const int DEFAULT_ELEVATTION_STEP = 3;
-
     public static class NetUtil
     {
+        public const int DEFAULT_ELEVATTION_STEP = 3;
+
         public static bool ReleaseSegment(ushort id, bool tryReleaseNodes = false, bool suppressWarnings = false)
         {
             if (id > 0 && (NetManager.instance.m_segments.m_buffer[id].m_flags & NetSegment.Flags.Created) != NetSegment.Flags.None)
@@ -78,19 +78,20 @@ namespace RoundaboutBuilder.Tools
         {
             if (ModLoadingExtension.fineRoadToolDetected)
             {
-                return GetFRTElevationStep();
-            }
-            else 
-            {
-                switch (Singleton<NetTool>.instance.m_elevationDivider)
+                try
                 {
-                    case 1: return 12;
-                    case 2: return 6;
-                    case 4: return 3;
-                    default:
-                        Debug.LogWarning($"RoundaboutBuilder: Unreachable code. NetToool.m_elvationDivider={Singleton<NetTool>.instance.m_elevationDivider}");
-                        return DEFAULT_ELEVATTION_STEP;
-                }
+                    return GetFRTElevationStep();
+                } catch { }
+            }
+            
+            switch (Singleton<NetTool>.instance.m_elevationDivider)
+            {
+                case 1: return 12;
+                case 2: return 6;
+                case 4: return 3;
+                default:
+                    Debug.LogWarning($"RoundaboutBuilder: Unreachable code. NetToool.m_elvationDivider={Singleton<NetTool>.instance.m_elevationDivider}");
+                    return DEFAULT_ELEVATTION_STEP;
             }
         }
 
@@ -124,7 +125,10 @@ namespace RoundaboutBuilder.Tools
         {
             if (ModLoadingExtension.fineRoadToolDetected)
             {
-                return GetFRTElevation();
+                try
+                {
+                    return GetFRTElevation();
+                } catch { }
             }
             return (float)typeof(NetTool).
                 GetMethod("GetElevation", BindingFlags.NonPublic | BindingFlags.Instance).
