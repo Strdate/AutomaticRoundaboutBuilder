@@ -105,7 +105,10 @@ namespace RoundaboutBuilder
         protected override void OnDisable()
         {
             base.OnDisable();
-            if(UIWindow.instance != null) UIWindow.instance.P_RoundAboutPanel.label.text = "Click inside the window to reactivate the tool";
+            if(UIWindow.instance != null && UIWindow.instance.P_RoundAboutPanel != null && UIWindow.instance.P_RoundAboutPanel.label != null)
+            {
+                UIWindow.instance.P_RoundAboutPanel.label.text = "Click inside the window to reactivate the tool";
+            }
         }
 
         protected override void OnEnable()
@@ -121,7 +124,11 @@ namespace RoundaboutBuilder
                 case 5: text =          "Tip: Check out Adjust Pathfinding mod!"; break;
                 default: text =         "Tip: Use Fine Road Tool for elevated roads"; break;
             }
-            if(UIWindow.instance != null) UIWindow.instance.P_RoundAboutPanel.label.text = text;
+
+            if(UIWindow.instance != null && UIWindow.instance.P_RoundAboutPanel != null && UIWindow.instance.P_RoundAboutPanel.label != null)
+            {
+                UIWindow.instance.P_RoundAboutPanel.label.text = text;
+            }
         }
 
         /* UI methods */
