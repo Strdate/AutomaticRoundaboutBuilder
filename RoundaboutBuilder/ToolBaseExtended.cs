@@ -42,7 +42,7 @@ namespace RoundaboutBuilder
             RaycastInput input = new RaycastInput(ray, Camera.main.farClipPlane);
 
             input.m_ignoreNodeFlags = NetNode.Flags.None;
-            input.m_ignoreSegmentFlags = NetSegment.Flags.All;
+            input.m_ignoreSegmentFlags = NetSegment.Flags.None;
             input.m_ignoreParkFlags = DistrictPark.Flags.All;
             input.m_ignorePropFlags = PropInstance.Flags.All;
             input.m_ignoreTreeFlags = TreeInstance.Flags.All;
@@ -56,6 +56,23 @@ namespace RoundaboutBuilder
 
             RayCast(input, out RaycastOutput output);
             m_hoverNode = output.m_netNode;
+            /*if(output.m_netNode == 0 && output.m_netSegment != 0)
+            {
+                ushort startNode = NetUtil.Segment(output.m_netSegment).m_startNode;
+                ushort endNode = NetUtil.Segment(output.m_netSegment).m_endNode;
+                if (VectorDistance(NetUtil.Node(startNode).m_position,output.m_hitPos) > VectorDistance(NetUtil.Node(endNode).m_position, output.m_hitPos))
+                {
+                    if((NetUtil.Node(endNode).m_flags & NetNode.Flags.Middle) == NetNode.Flags.None)
+                    {
+                        m_hoverNode = endNode;
+                    }
+                } else {
+                    if ((NetUtil.Node(startNode).m_flags & NetNode.Flags.Middle) == NetNode.Flags.None)
+                    {
+                        m_hoverNode = startNode;
+                    }
+                }
+            }*/
             HoverPosition = output.m_hitPos;
 
             if (Input.GetMouseButtonUp(0))
@@ -69,7 +86,6 @@ namespace RoundaboutBuilder
             base.OnDisable();
             if(UIWindow.instance != null)
             {
-                UIWindow.instance.LostFocus();
                 if (UIWindow.instance.m_hoveringLabel != null)
                     UIWindow.instance.m_hoveringLabel.isVisible = false;
             }
@@ -148,32 +164,9 @@ namespace RoundaboutBuilder
             RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, HoverPosition, 15f, HoverPosition.y - 1f, HoverPosition.y + 1f, true, true);
         }
 
-        /* I need this code on multiple places, so I implement it as a static method... Return the node over which the mouse is hovering. */
-        /* Copied from Elektrix's Segment Slope Smoother. Credit goes to him. */
-        /*protected static ushort SelcetNode()
+        /*private static float VectorDistance(Vector3 v1, Vector3 v2) // Without Y coordinate
         {
-            if (UIWindow2.instance.containsMouse || (UIView.IsInsideUI() || !Cursor.visible))
-                return 0;
-
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastInput input = new RaycastInput(ray, Camera.main.farClipPlane);
-            input.m_ignoreNodeFlags = NetNode.Flags.None;
-            
-            input.m_ignoreSegmentFlags = NetSegment.Flags.All;
-            input.m_ignoreParkFlags = DistrictPark.Flags.All;
-            input.m_ignorePropFlags = PropInstance.Flags.All;
-            input.m_ignoreTreeFlags = TreeInstance.Flags.All;
-            input.m_ignoreCitizenFlags = CitizenInstance.Flags.All;
-            input.m_ignoreVehicleFlags = Vehicle.Flags.Created;
-            input.m_ignoreBuildingFlags = Building.Flags.All;
-            input.m_ignoreDisasterFlags = DisasterData.Flags.All;
-            input.m_ignoreTransportFlags = TransportLine.Flags.All;
-            input.m_ignoreParkedVehicleFlags = VehicleParked.Flags.All;
-            input.m_ignoreTerrain = true;
-
-            RayCast(input, out RaycastOutput output);
-            
-            return output.m_netNode;
+            return (float)(Math.Sqrt(Math.Pow(v1.x - v2.x, 2) + Math.Pow(v1.z - v2.z, 2)));
         }*/
     }
 }

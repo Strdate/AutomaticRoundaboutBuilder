@@ -39,8 +39,8 @@ namespace RoundaboutBuilder
             float radius = (float)radiusQ;
             float elevation = (float)elevationFieldQ;
 
-            if (!UIWindow.instance.keepOpen)
-                UIWindow.instance.LostFocus();
+            m_hoverNode = 0;
+            UIWindow.instance.LostFocus();
 
             Vector3 vector = HoverPosition;
             if (AbsoluteElevation)

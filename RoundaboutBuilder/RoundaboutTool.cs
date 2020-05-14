@@ -30,14 +30,15 @@ namespace RoundaboutBuilder
         {
             //Debug.Log(string.Format("Clicked on node ID {0}!", nodeID));
 
-            if (!UIWindow.instance.keepOpen)
-                UIWindow.instance.LostFocus();
+            UIWindow.instance.LostFocus();
 
             try
             {
                 if (m_roundabout != null && nodeID == m_nodeID)
                 {
                     m_roundabout.Build();
+                    m_hoverNode = 0;
+                    m_roundabout = null;
                     // Easter egg
                     RoundAboutBuilder.EasterEggToggle();
                 }
@@ -160,7 +161,7 @@ namespace RoundaboutBuilder
                     // ..and then Strad stole it from all of you!!
                     RenderManager.instance.OverlayEffect.DrawCircle(cameraInfo, Color.black, hoveredNode.m_position, 15f, hoveredNode.m_position.y - 1f, hoveredNode.m_position.y + 1f, true, true);
                     float? radius = UIWindow.instance.P_RoundAboutPanel.RadiusField.Value;
-                    if (radius != null)
+                    if (radius != null && NetUtil.ExistsNode(m_hoverNode))
                     {
                         PreviewRoundabout((float)radius);
                         float roadWidth = UIWindow.instance.dropDown.Value.m_halfWidth; // There is a slight chance that this will throw an exception

@@ -26,7 +26,7 @@ namespace RoundaboutBuilder.Tools
         List<ushort> visitedNodes = new List<ushort>(); // Well, not the most efficient way how to store visited nodes, but whatever...
 
         private int noInfiniteRecursion;
-        private static readonly int RECURSION_TRESHOLD = 150;
+        private static readonly int RECURSION_TRESHOLD = 300;
 
         private ushort m_startNodeId;
         private NetNode m_startNode;

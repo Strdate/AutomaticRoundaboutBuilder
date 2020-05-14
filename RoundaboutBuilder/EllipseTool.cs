@@ -60,7 +60,7 @@ namespace RoundaboutBuilder
             }
 
             UIWindow.instance.LostFocus();
-            UIWindow.instance.GoBack();
+            Instance.GoToFirstStage();
 
             try
             {
@@ -206,11 +206,17 @@ namespace RoundaboutBuilder
         {
             base.OnDisable();
             ellipse = null;
+            GoToFirstStage();
         }
 
         public override void GoToFirstStage()
         {
             stage = Stage.CentralPoint;
+            if(UIWindow.instance != null && UIWindow.instance.P_EllipsePanel_1 != null
+                && (UIWindow.instance.m_panelOnUI == UIWindow.instance.P_EllipsePanel_2 || UIWindow.instance.m_panelOnUI == UIWindow.instance.P_EllipsePanel_3)) // hell
+            {
+                UIWindow.instance.SwitchWindow(UIWindow.instance.P_EllipsePanel_1);
+            }
         }
 
         /* This draws UI shapes on the map. */

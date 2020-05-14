@@ -18,13 +18,12 @@ namespace RoundaboutBuilder.UI
     {
         public static UIWindow instance;
 
-        public bool keepOpen = true;
-
+        private static readonly SavedBool SavedKeepOpen = new SavedBool("savedKeepOpen", RoundAboutBuilder.settingsFileName, false, true);
         public static readonly SavedBool SavedSetupTmpe = new SavedBool("savedSetupTMPE", RoundAboutBuilder.settingsFileName, true, true);
         public static readonly SavedBool SavedFollowTerrain = new SavedBool("savedFollowTerrain", RoundAboutBuilder.settingsFileName, false, true);
 
         public ToolBaseExtended toolOnUI;
-        private AbstractPanel m_panelOnUI;
+        public AbstractPanel m_panelOnUI;
         private AbstractPanel m_lastStandardPanel;
 
         public RoundAboutPanel P_RoundAboutPanel;
@@ -184,10 +183,7 @@ namespace RoundaboutBuilder.UI
             tmpeButton.relativePosition = new Vector2(width - tmpeButton.width - 8, 0);
             tmpeButton.eventClick += (c, p) =>
             {
-                bool holder = this.keepOpen;
-                this.keepOpen = true;
                 toolOnUI.enabled = false;
-                this.keepOpen = holder;
                 SwitchWindow(P_TmpeSetupPanel);
             };
             m_setupTmpeSection.height = setupTmpe.height + 8;
@@ -199,13 +195,13 @@ namespace RoundaboutBuilder.UI
             var keepOpen = UIUtil.CreateCheckBox(m_bottomSection);
             keepOpen.name = "RAB_keepOpen";
             keepOpen.label.text = "Keep open";
-            keepOpen.tooltip = "Window won't close automatically when the tool is unselected";
-            keepOpen.isChecked = true;
+            keepOpen.tooltip = "Keep the window open after roundabout is built";
+            keepOpen.isChecked = SavedKeepOpen.value;
             keepOpen.relativePosition = new Vector3(8, cummulativeHeight);
             keepOpen.width = 196; // width - padding
             keepOpen.eventCheckChanged += (c, state) =>
             {
-                this.keepOpen = state;
+                SavedKeepOpen.value = state;
             };
             cummulativeHeight += keepOpen.height + 8;
 
@@ -296,8 +292,6 @@ namespace RoundaboutBuilder.UI
         {
             if (tool == toolOnUI) return;
 
-            bool holder = this.keepOpen;
-            this.keepOpen = true;
             toolOnUI = tool;
 
             if (tool is EllipseTool)
@@ -313,7 +307,6 @@ namespace RoundaboutBuilder.UI
             }
 
             tool.enabled = true;
-            this.keepOpen = holder;
         }
 
         public void InitPanels()
@@ -423,22 +416,39 @@ namespace RoundaboutBuilder.UI
 
         public void LostFocus()
         {
-            if (!keepOpen)
+            if (!SavedKeepOpen)
             {
                 enabled = false;
             }
-            if (toolOnUI != null)
-                toolOnUI.enabled = false;
+        }
+
+        // Toggles the tool (when clicking the mod button or pressing the shortcut)
+        public void Toggle()
+        {
+            if (instance.toolOnUI != null && (instance.toolOnUI.enabled || (instance.enabled && m_panelOnUI.IsSpecialWindow)))
+            {
+                instance.enabled = false;
+            }
+            else if (instance.toolOnUI != null && instance.enabled)
+            {
+                instance.toolOnUI.enabled = true;
+            }
+            else
+            {
+                instance.enabled = true;
+            }
         }
 
         public override void OnEnable()
         {
             base.OnEnable();
+            if (m_panelOnUI != null && m_lastStandardPanel != null && m_panelOnUI.IsSpecialWindow)
+            {
+                SwitchWindow(m_lastStandardPanel);
+            }
             isVisible = true;
             if (toolOnUI != null)
                 toolOnUI.enabled = true;
-            /*if (m_panelButton != null)
-                m_panelButton.FocusSprites();*/
         }
 
         public override void OnDisable()
@@ -447,8 +457,6 @@ namespace RoundaboutBuilder.UI
             isVisible = false;
             if (toolOnUI != null)
                 toolOnUI.enabled = false;
-            /*if (m_panelButton != null)
-                m_panelButton.UnfocusSprites();*/
         }
 
         public void ThrowErrorMsg(string content, bool error = false)

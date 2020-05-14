@@ -62,10 +62,10 @@ namespace RoundaboutBuilder.UI
         protected override void OnClick(UIMouseEventParameter p)
         {
             base.OnClick(p);
-            //Debug.Log("Clicked!!");
             if (UIWindow.instance == null)
                 return;
-            UIWindow.instance.enabled = !UIWindow.instance.enabled;
+
+            UIWindow.instance.Toggle();
         }
 
         /*public void FocusSprites()

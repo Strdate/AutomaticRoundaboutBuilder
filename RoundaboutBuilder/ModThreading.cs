@@ -42,10 +42,7 @@ namespace RoundaboutBuilder
                 if (UIWindow.instance == null) return;
 
                 //Activating/deactivating tool & UI
-                //UIWindow.Instance.enabled = !UIWindow.Instance.enabled;
-                UIWindow.instance.enabled = !UIWindow.instance.enabled;
-                //NodeSelection.instance.enabled = UIWindow.Instance.enabled;
-
+                UIWindow.instance.Toggle();
             }
             else if(UIWindow.instance.enabled)
             {
