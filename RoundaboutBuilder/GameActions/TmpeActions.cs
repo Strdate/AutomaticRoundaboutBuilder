@@ -3,7 +3,6 @@ using RoundaboutBuilder.UI;
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using UnityEngine;
 
 namespace SharedEnvironment
 {
@@ -187,9 +186,9 @@ namespace SharedEnvironment
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Implementation_preV11()
         {
-            var prioritySignsTool = (TrafficManager.UI.SubTools.PrioritySignsTool)TrafficManager.UI.UIBase.GetTrafficManagerTool().GetSubTool(TrafficManager.UI.ToolMode.AddPrioritySigns);
+            /*var prioritySignsTool = (TrafficManager.UI.SubTools.PrioritySignsTool)TrafficManager.UI.UIBase.GetTrafficManagerTool().GetSubTool(TrafficManager.UI.ToolMode.AddPrioritySigns);
             var setPrioritySign = prioritySignsTool.GetType().GetMethod("SetPrioritySign", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            setPrioritySign.Invoke(prioritySignsTool, new object[] { m_segment.Id, m_startNode, 3 });
+            setPrioritySign.Invoke(prioritySignsTool, new object[] { m_segment.Id, m_startNode, 3 });*/
         }
 
         protected bool IsPolicyAllowed()
@@ -229,7 +228,7 @@ namespace SharedEnvironment
 
         protected void Implementation()
         {
-            TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetLaneChangingAllowedWhenGoingStraight(m_segment.Id, m_startNode, true);
+            //TrafficManager.Manager.Impl.JunctionRestrictionsManager.Instance.SetLaneChangingAllowedWhenGoingStraight(m_segment.Id, m_startNode, true);
         }
 
         protected bool IsPolicyAllowed()
