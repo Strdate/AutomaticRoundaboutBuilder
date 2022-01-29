@@ -103,8 +103,7 @@ namespace RoundaboutBuilder.UI
         private static NetInfo FineRoadToolSelection(NetInfo prefab)
         {
             RoadAI roadAI = prefab.m_netAI as RoadAI;
-            return roadAI.m_info;
-            /*if(roadAI != null)
+            if(roadAI != null)
             {
                 // If the user has manually selected underground/overground mode, we let it be
                 if(!roadAI.IsUnderground() && !roadAI.IsOverground())
@@ -163,7 +162,7 @@ namespace RoundaboutBuilder.UI
                 }
             }
 
-            return prefab;*/
+            return prefab;
         }
 
         /* Load road netinfos */

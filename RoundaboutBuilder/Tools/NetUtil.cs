@@ -107,7 +107,7 @@ namespace RoundaboutBuilder.Tools
         {
             // The method including the follwoing line throws exceptipn if FineRoadTool dll is not present.
             // this line must not be inlined.
-            var ret = /*FineRoadTool.FineRoadTool.instance?.elevationStep ??*/ 0;
+            var ret = FineRoadTool.FineRoadTool.instance?.elevationStep ?? 0;
 
             // if user has never clicked on Road Tool, FRT slider is uninitialized.
             return ret != 0 ? ret : DEFAULT_ELEVATTION_STEP;
@@ -145,7 +145,7 @@ namespace RoundaboutBuilder.Tools
         {
             // The method including the follwoing line throws exceptipn if FineRoadTool dll is not present.
             // this line must not be inlined.
-            return /*FineRoadTool.FineRoadTool.instance?.elevation ??*/ 0;
+            return FineRoadTool.FineRoadTool.instance?.elevation ?? 0;
         }
       
         public static byte GetElevation(Vector3 position, NetAI net_ai)
