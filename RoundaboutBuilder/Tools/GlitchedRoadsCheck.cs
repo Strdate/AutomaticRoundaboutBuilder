@@ -38,6 +38,12 @@ namespace RoundaboutBuilder.Tools
 
                 try
                 {
+                    if(segment.Info.name == "Vehicle Connection") {
+                        if(TraverseVehicleConnections(segment.m_startNode, segmentId, segmentId, 0)) {
+                            Release(segmentId);
+                        }
+                    }
+
                     if(segment.m_startNode == 0 || segment.m_endNode == 0)
                     {
                         Release(segmentId);
@@ -88,6 +94,43 @@ namespace RoundaboutBuilder.Tools
             }
             
             panel.SetMessage("Removing glitched segments", message, false);
+        }
+
+        private static bool TraverseVehicleConnections(ushort nodeId, ushort startSegmentId, ushort initialSegmentId, int recursionCounter)
+        {
+            recursionCounter++;
+            if (recursionCounter > 12)
+                return false;
+
+            ushort savedSegId = 0;
+
+            NetNode node = NetManager.instance.m_nodes.m_buffer[nodeId];
+            for(int i = 0; i < 8; i++) {
+                var segId = node.GetSegment(i);
+                if (segId == startSegmentId)
+                    continue;
+                if(segId == initialSegmentId)
+                    return true;
+                var seg = NetUtil.Segment(segId);
+                if (seg.Info.name != "Vehicle Connection")
+                    continue;
+                if (savedSegId != 0)
+                    return false;
+                savedSegId = segId;
+            }
+
+            if(savedSegId != 0) {
+                var seg = NetUtil.Segment(savedSegId);
+                ushort newNodeId = seg.GetOtherNode(nodeId);
+                if(TraverseVehicleConnections(newNodeId, savedSegId, initialSegmentId, recursionCounter)) {
+                    Release(savedSegId);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         private static void Release(ushort segmentId)

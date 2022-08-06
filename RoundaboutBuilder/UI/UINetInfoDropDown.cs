@@ -221,6 +221,9 @@ namespace RoundaboutBuilder.UI
             if (prefab.m_netAI.IsUnderground() || prefab.m_netAI.IsOverground())
                 return false;
 
+            if (prefab.name == "Vehicle Connection")
+                return false;
+
             bool hasRoadLanes = prefab.m_hasBackwardVehicleLanes || prefab.m_hasForwardVehicleLanes;
             bool isOneWay = prefab.m_hasBackwardVehicleLanes ^ prefab.m_hasForwardVehicleLanes;
 
