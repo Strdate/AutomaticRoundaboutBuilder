@@ -3,6 +3,7 @@ using RoundaboutBuilder.Tools;
 using RoundaboutBuilder.UI;
 using SharedEnvironment;
 using System;
+using System.Diagnostics;
 using UnityEngine;
 
 /* By Strad, 01/2019 */
@@ -57,7 +58,7 @@ namespace RoundaboutBuilder
             catch (Exception e)
             {
                 Debug.LogError(e);
-                UIWindow.instance.ThrowErrorMsg(e.ToString(),true);
+                UIWindow.instance.ThrowErrorMsg(e.ToString(), true);
             }
 
         }
@@ -90,14 +91,15 @@ namespace RoundaboutBuilder
                     intersections = new EdgeIntersections2(traveller, m_nodeID, ellipse, GetFollowTerrain());
                 }
                 m_roundabout = new FinalConnector(NetUtil.Node(m_nodeID).Info, intersections, ellipse, true, GetFollowTerrain(), reverseDirection);
-            } catch(Exception e) { Debug.LogError(e); }
-            
+            }
+            catch (Exception e) { Debug.LogError(e); }
+
         }
 
         protected override void OnClick()
         {
             base.OnClick();
-            if(m_hoverNode != 0)
+            if (m_hoverNode != 0)
             {
                 CreateRoundabout(m_hoverNode);
             }
@@ -106,7 +108,7 @@ namespace RoundaboutBuilder
         protected override void OnDisable()
         {
             base.OnDisable();
-            if(UIWindow.instance != null && UIWindow.instance.P_RoundAboutPanel != null && UIWindow.instance.P_RoundAboutPanel.label != null)
+            if (UIWindow.instance != null && UIWindow.instance.P_RoundAboutPanel != null && UIWindow.instance.P_RoundAboutPanel.label != null)
             {
                 UIWindow.instance.P_RoundAboutPanel.label.text = "Click inside the window to reactivate the tool";
             }
@@ -117,16 +119,16 @@ namespace RoundaboutBuilder
             base.OnEnable();
             System.Random rand = new System.Random();
             string text = ""; // a little bit of advertising never hurt anyone
-            switch(rand.Next(6))
+            switch (rand.Next(6))
             {
-                case 0: case 1: text =  "Tip: Use Fine Road Tool for elevated roads"; break;
-                case 2: case 3: text =  "Tip: Use this with any network (see options)"; break;
-                case 4: text =          "Tip: Check out Smart Intersection Builder!"; break;
-                case 5: text =          "Tip: Check out Adjust Pathfinding mod!"; break;
-                default: text =         "Tip: Use Fine Road Tool for elevated roads"; break;
+                case 0: case 1: text = "Tip: Use Network Anarchy for elevated roads"; break;
+                case 2: case 3: text = "Tip: Use this with any network (see options)"; break;
+                case 4: text = "Tip: Check out Smart Intersection Builder!"; break;
+                case 5: text = "Tip: Check out Adjust Pathfinding mod!"; break;
+                default: text = "Tip: Use Network Anarchy for elevated roads"; break;
             }
 
-            if(UIWindow.instance != null && UIWindow.instance.P_RoundAboutPanel != null && UIWindow.instance.P_RoundAboutPanel.label != null)
+            if (UIWindow.instance != null && UIWindow.instance.P_RoundAboutPanel != null && UIWindow.instance.P_RoundAboutPanel.label != null)
             {
                 UIWindow.instance.P_RoundAboutPanel.label.text = text;
             }

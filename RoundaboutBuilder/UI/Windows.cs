@@ -1,6 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
 using RoundaboutBuilder.Tools;
+using System.Reflection.Emit;
 using UnityEngine;
 
 /* Version RELEASE 1.4.0+ */
@@ -65,7 +66,7 @@ namespace RoundaboutBuilder.UI
             };
             cumulativeHeight += button.height + 8;
 
-            if(RoundAboutBuilder.LegacyEllipticRoundabouts.value)
+            if (RoundAboutBuilder.LegacyEllipticRoundabouts.value)
             {
                 button = UIUtil.CreateButton(this);
                 button.text = "Elliptic Roundabout...";
@@ -76,10 +77,10 @@ namespace RoundaboutBuilder.UI
                     UIWindow.instance.SwitchTool(EllipseTool.Instance);
                 };
                 cumulativeHeight += button.height + 8;
-            }            
+            }
 
             label = AddUIComponent<UILabel>();
-            label.text = "Tip: Use Fine Road Tool for elevated roads";
+            label.text = "Tip: Use Network Anarchy for elevated roads";
             label.wordWrap = true;
             label.textScale = 0.9f;
             label.autoSize = false;
@@ -150,7 +151,7 @@ namespace RoundaboutBuilder.UI
             cumulativeHeight += ElevationField.height + 8;
 
             UILabel label = AddUIComponent<UILabel>();
-            label.text = "Roads won't be removed or connected\nUse Fine Road Tool for elevated roads";
+            label.text = "Roads won't be removed or connected\nUse Network Anarchy for elevated roads";
             label.wordWrap = true;
             label.textScale = 0.9f;
             label.autoSize = false;
