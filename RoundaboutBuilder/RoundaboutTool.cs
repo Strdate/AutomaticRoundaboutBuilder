@@ -57,7 +57,7 @@ namespace RoundaboutBuilder
             }
             catch (Exception e)
             {
-                Debug.LogError(e);
+                UnityEngine.Debug.LogError(e);
                 UIWindow.instance.ThrowErrorMsg(e.ToString(), true);
             }
 
@@ -92,7 +92,7 @@ namespace RoundaboutBuilder
                 }
                 m_roundabout = new FinalConnector(NetUtil.Node(m_nodeID).Info, intersections, ellipse, true, GetFollowTerrain(), reverseDirection);
             }
-            catch (Exception e) { Debug.LogError(e); }
+            catch (Exception e) { UnityEngine.Debug.LogError(e); }
 
         }
 
@@ -188,7 +188,7 @@ namespace RoundaboutBuilder
             }
             catch (Exception e)
             {
-                Debug.LogError(e);
+                UnityEngine.Debug.LogError(e);
             }
         }
 

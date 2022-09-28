@@ -56,6 +56,9 @@
     <Reference Include="Ionic.Zip">
       <HintPath>..\..\Ionic.Zip.dll</HintPath>
     </Reference>
+    <Reference Include="NetworkAnarchy">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\255710\2862881785\NetworkAnarchy.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
