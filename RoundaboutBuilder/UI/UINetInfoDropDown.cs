@@ -56,7 +56,7 @@ namespace RoundaboutBuilder.UI
             selectedIndex = 0;
             textFieldPadding = new RectOffset(8, 0, 8, 0);
             itemPadding = new RectOffset(14, 0, 8, 0);
-            
+
             UIButton button = AddUIComponent<UIButton>();
             triggerButton = button;
             button.atlas = ResourceLoader.GetAtlas("Ingame");
@@ -80,7 +80,6 @@ namespace RoundaboutBuilder.UI
             {
                 button.size = t; listWidth = (int)t.x;
             });
-            
             Populate();
         }
 
@@ -91,7 +90,9 @@ namespace RoundaboutBuilder.UI
                 NetInfo prefab = m_netInfos[selectedIndex];
                 try
                 {
-                    if(ModLoadingExtension.fineRoadToolDetected)
+                    if (ModLoadingExtension.networkAnarchyDetected)
+                        prefab = NetworkAnarchySelection(prefab);
+                    else if (ModLoadingExtension.fineRoadToolDetected)
                         prefab = FineRoadToolSelection(prefab);
                 }
                 catch { }
@@ -99,20 +100,86 @@ namespace RoundaboutBuilder.UI
             }
         }
 
+        /* We change the road mode according to Network Anarchy */
+        private static NetInfo NetworkAnarchySelection(NetInfo prefab)
+        {
+            RoadAI roadAI = prefab.m_netAI as RoadAI;
+            if (roadAI != null)
+            {
+                // If the user has manually selected underground/overground mode, we let it be
+                if (!roadAI.IsUnderground() && !roadAI.IsOverground())
+                {
+                    switch (NetworkAnarchy.NetworkAnarchy.instance.mode)
+                    {
+                        case NetworkAnarchy.Mode.Ground:
+                            return roadAI.m_info;
+                        case NetworkAnarchy.Mode.Elevated:
+                        case NetworkAnarchy.Mode.Bridge:
+                            if (roadAI.m_elevatedInfo != null)
+                            {
+                                return roadAI.m_elevatedInfo;
+                            }
+                            break;
+                        case NetworkAnarchy.Mode.Tunnel:
+                            if (roadAI.m_tunnelInfo != null)
+                            {
+                                return roadAI.m_tunnelInfo;
+                            }
+                            break;
+                        case NetworkAnarchy.Mode.Normal:
+                        case NetworkAnarchy.Mode.Single:
+                            break;
+                    }
+                }
+            }
+
+            PedestrianPathAI pedestrianAI = prefab.m_netAI as PedestrianPathAI;
+            if (pedestrianAI != null)
+            {
+                // If the user has manually selected underground/overground mode, we let it be
+                if (!pedestrianAI.IsUnderground() && !pedestrianAI.IsOverground())
+                {
+                    switch (NetworkAnarchy.NetworkAnarchy.instance.mode)
+                    {
+                        case NetworkAnarchy.Mode.Ground:
+                            return pedestrianAI.m_info;
+                        case NetworkAnarchy.Mode.Elevated:
+                        case NetworkAnarchy.Mode.Bridge:
+                            if (pedestrianAI.m_elevatedInfo != null)
+                            {
+                                return pedestrianAI.m_elevatedInfo;
+                            }
+                            break;
+                        case NetworkAnarchy.Mode.Tunnel:
+                            if (pedestrianAI.m_tunnelInfo != null)
+                            {
+                                return pedestrianAI.m_tunnelInfo;
+                            }
+                            break;
+                        case NetworkAnarchy.Mode.Normal:
+                        case NetworkAnarchy.Mode.Single:
+                            break;
+                    }
+                }
+            }
+
+            return prefab;
+        }
+
         /* We change the road mode according to Fine Road Tool */
         private static NetInfo FineRoadToolSelection(NetInfo prefab)
         {
             RoadAI roadAI = prefab.m_netAI as RoadAI;
-            if(roadAI != null)
+            if (roadAI != null)
             {
                 // If the user has manually selected underground/overground mode, we let it be
-                if(!roadAI.IsUnderground() && !roadAI.IsOverground())
+                if (!roadAI.IsUnderground() && !roadAI.IsOverground())
                 {
-                    switch(FineRoadTool.FineRoadTool.instance.mode)
+                    switch (FineRoadTool.FineRoadTool.instance.mode)
                     {
                         case FineRoadTool.Mode.Ground:
                             return roadAI.m_info;
-                        case FineRoadTool.Mode.Elevated:    
+                        case FineRoadTool.Mode.Elevated:
                         case FineRoadTool.Mode.Bridge:
                             if (roadAI.m_elevatedInfo != null)
                             {
@@ -169,7 +236,7 @@ namespace RoundaboutBuilder.UI
         public void Populate(bool keepSelection = false)
         {
             NetInfo lastSelection = null;
-            if(keepSelection)
+            if (keepSelection)
             {
                 try
                 {
@@ -187,7 +254,7 @@ namespace RoundaboutBuilder.UI
                 if (prefab != null)
                 {
                     //Debug.Log($"Prefab {prefab.GetUncheckedLocalizedTitle()}, fl {prefab.m_hasBackwardVehicleLanes}, bl {prefab.m_hasForwardVehicleLanes}, car flag {(prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0}");
-                    if( IsEligible(prefab, freeCursor) )
+                    if (IsEligible(prefab, freeCursor))
                     {
                         StringWithLaneCount slc = new StringWithLaneCount(prefab);
                         //beautified = (prefab.m_forwardVehicleLaneCount + prefab.m_backwardVehicleLaneCount) + "_" + beautified;
@@ -202,7 +269,7 @@ namespace RoundaboutBuilder.UI
             UpdateListWithPrefab(null);
 
             /* It seems that this code is there twice. (In this method and in the UpdateListWithPrefab method.) Yes, basically it is... :( */
-            if(keepSelection)
+            if (keepSelection)
             {
                 int i = Array.IndexOf(m_netInfos, lastSelection);
                 if (i > -1 && i < m_netInfos.Length)
@@ -227,10 +294,10 @@ namespace RoundaboutBuilder.UI
             bool hasRoadLanes = prefab.m_hasBackwardVehicleLanes || prefab.m_hasForwardVehicleLanes;
             bool isOneWay = prefab.m_hasBackwardVehicleLanes ^ prefab.m_hasForwardVehicleLanes;
 
-            if(freeCursor)
+            if (freeCursor)
             {
                 return (isOneWay && (prefab.m_vehicleTypes & VehicleInfo.VehicleType.Car) != 0
-                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0 )
+                        && (prefab.m_laneTypes & NetInfo.LaneType.Vehicle) != 0)
                         || prefab.m_class.name.IndexOf("pedestrian", StringComparison.OrdinalIgnoreCase) >= 0
                         || prefab.m_class.name.IndexOf("train track", StringComparison.OrdinalIgnoreCase) >= 0
                         || prefab.m_class.name.IndexOf("landscaping", StringComparison.OrdinalIgnoreCase) >= 0
@@ -282,17 +349,17 @@ namespace RoundaboutBuilder.UI
             bool freeCursor = UIWindow.instance?.toolOnUI is FreeCursorTool;
             if (m_lastToolInfo != null && !IsEligible(m_lastToolInfo, freeCursor))
             {
-                m_dictionary.Remove(new StringWithLaneCount(m_lastToolInfo," [S]"));
+                m_dictionary.Remove(new StringWithLaneCount(m_lastToolInfo, " [S]"));
             }
 
-            if(extraInfo != null && !IsEligible(extraInfo, freeCursor))
+            if (extraInfo != null && !IsEligible(extraInfo, freeCursor))
             {
                 m_dictionary.Add(new StringWithLaneCount(extraInfo, " [S]"), extraInfo);
             }
 
             // This should never happen, but I will leave there. Some NetInfos could have been missing from the list due to name duplicity, but that was
             // solved in the Populate() method
-            if(extraInfo != null && IsEligible(extraInfo, freeCursor) && !m_netInfos.Contains(extraInfo))
+            if (extraInfo != null && IsEligible(extraInfo, freeCursor) && !m_netInfos.Contains(extraInfo))
             {
                 m_dictionary.Add(new StringWithLaneCount(extraInfo, " [E]"), extraInfo);
             }
@@ -300,7 +367,7 @@ namespace RoundaboutBuilder.UI
             items = m_dictionary.Keys.Select(x => x.Name).ToArray();
             m_netInfos = m_dictionary.Values.ToArray();
 
-            if(extraInfo != null)
+            if (extraInfo != null)
             {
                 int i = Array.IndexOf(m_netInfos, extraInfo);
                 selectedIndex = i >= -1 ? i : selectedIndex;
@@ -328,9 +395,9 @@ namespace RoundaboutBuilder.UI
             {
                 ToolBase currentTool = ToolsModifierControl.toolController.CurrentTool;
                 NetTool netTool = currentTool as NetTool;
-                if(netTool?.Prefab != null && (IsEligible(netTool.Prefab, freeCursor) || ( IsRoad(netTool.Prefab) && RoundAboutBuilder.SelectTwoWayRoads.value) ))
+                if (netTool?.Prefab != null && (IsEligible(netTool.Prefab, freeCursor) || (IsRoad(netTool.Prefab) && RoundAboutBuilder.SelectTwoWayRoads.value)))
                 {
-                    if(m_lastToolInfo == null || m_lastToolInfo != netTool.Prefab)
+                    if (m_lastToolInfo == null || m_lastToolInfo != netTool.Prefab)
                     {
                         UpdateListWithPrefab(netTool.Prefab);
                         m_lastToolInfo = netTool.Prefab;

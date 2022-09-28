@@ -76,14 +76,23 @@ namespace RoundaboutBuilder.Tools
 
         public static int GetElevationStep()
         {
-            if (ModLoadingExtension.fineRoadToolDetected)
+            if (ModLoadingExtension.networkAnarchyDetected)
+            {
+                try
+                {
+                    return GetNAElevationStep();
+                }
+                catch { }
+            }
+            else if (ModLoadingExtension.fineRoadToolDetected)
             {
                 try
                 {
                     return GetFRTElevationStep();
-                } catch { }
+                }
+                catch { }
             }
-            
+
             switch (Singleton<NetTool>.instance.m_elevationDivider)
             {
                 case 1: return 12;
@@ -93,6 +102,24 @@ namespace RoundaboutBuilder.Tools
                     Debug.LogWarning($"RoundaboutBuilder: Unreachable code. NetToool.m_elvationDivider={Singleton<NetTool>.instance.m_elevationDivider}");
                     return DEFAULT_ELEVATTION_STEP;
             }
+        }
+
+        /// <summary>
+        /// Precondition: NA must be enabled 
+        /// Note: Must not be inlined.
+        /// Throws exception if NetworkAnarchy dll was not found.
+        /// </summary>
+        /// <returns>value of NA elevation slider or DEFAULT_ELEVATTION if slider is uninitialized
+        /// </returns>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static int GetNAElevationStep()
+        {
+            // The method including the follwoing line throws exceptipn if NetworkAnarchy dll is not present.
+            // this line must not be inlined.
+            var ret = NetworkAnarchy.NetworkAnarchy.instance?.elevationStep ?? 0;
+
+            // if user has never clicked on Network Anarchy, NA slider is uninitialized.
+            return ret != 0 ? ret : DEFAULT_ELEVATTION_STEP;
         }
 
         /// <summary>
@@ -123,16 +150,38 @@ namespace RoundaboutBuilder.Tools
 
         private static float GetElevation(NetInfo info)
         {
+            if (ModLoadingExtension.networkAnarchyDetected)
+            {
+                try
+                {
+                    return GetNAElevation();
+                }
+                catch { }
+            }
             if (ModLoadingExtension.fineRoadToolDetected)
             {
                 try
                 {
                     return GetFRTElevation();
-                } catch { }
+                }
+                catch { }
             }
             return (float)typeof(NetTool).
                 GetMethod("GetElevation", BindingFlags.NonPublic | BindingFlags.Instance).
                 Invoke(Singleton<NetTool>.instance, new object[] { info });
+        }
+
+        /// <summary>
+        /// Precondition: NA must be enabled 
+        /// Note: Must not be inlined.
+        /// Throws exception if NetworkAnarchy dll was not found.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static int GetNAElevation()
+        {
+            // The method including the follwoing line throws exceptipn if NetworkAnarchy dll is not present.
+            // this line must not be inlined.
+            return NetworkAnarchy.NetworkAnarchy.instance?.elevation ?? 0;
         }
 
         /// <summary>
@@ -147,14 +196,14 @@ namespace RoundaboutBuilder.Tools
             // this line must not be inlined.
             return FineRoadTool.FineRoadTool.instance?.elevation ?? 0;
         }
-      
+
         public static byte GetElevation(Vector3 position, NetAI net_ai)
         {
             if (!net_ai.IsUnderground() && !net_ai.IsOverground())
             {
                 return 0; // on ground.
             }
-            
+
             net_ai.GetElevationLimits(out int min, out int max);
             if (min == max)
             {
@@ -165,10 +214,10 @@ namespace RoundaboutBuilder.Tools
 
 #if DEBUG
             // tolerated error = +-1
-            if(!(min * 12 - 1 <= elevation && elevation <= max * 12 + 1))
+            if (!(min * 12 - 1 <= elevation && elevation <= max * 12 + 1))
                 Debug.LogWarning($"RoundaboutBuilder: ELevation out of range expected {min * 12 - 1} <= {elevation} <={max * 12 + 1}");
 #endif
-            
+
             elevation = Mathf.Clamp(elevation, min * 12, max * 12); // 12 is from NetTool.GetElevation()
             elevation = Mathf.Abs(elevation);
             return (byte)Mathf.Clamp(elevation, 1, 255); // underground/overground road should not have 0 elevation.
@@ -308,7 +357,7 @@ namespace RoundaboutBuilder.Tools
             {
                 if (node.GetSegment(i) != 0)
                 {
-                    if(index == 0)
+                    if (index == 0)
                     {
                         return node.GetSegment(i);
                     }

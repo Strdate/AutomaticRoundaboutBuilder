@@ -22,10 +22,12 @@ namespace RoundaboutBuilder
         public static bool LevelLoaded = false;
         public static bool tmpeDetected = false;
         public static bool fineRoadToolDetected = false;
+        public static bool networkAnarchyDetected = false;
         public static bool undoItDetected = false;
 
         public static readonly UInt64[] TMPE_IDs = { 583429740, 1637663252, 1806963141 };
         public static readonly UInt64[] FINE_ROAD_ANARCHY_IDs = { 651322972, 1844442251 };
+        public static readonly UInt64[] NETWORK_ANARCHY_IDs = { 2862881785 };
         public static readonly UInt64[] UNO_IT_IDs = { 1890830956 };
 
         // called when level loading begins
@@ -34,17 +36,24 @@ namespace RoundaboutBuilder
             appModeGame = loading.currentMode == AppMode.Game;
             tmpeDetected = false;
             fineRoadToolDetected = false;
+            networkAnarchyDetected = false;
             foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
             {
                 //_string += current.name + " ";
-                if (!tmpeDetected && current.isEnabled && (current.name.Contains("TrafficManager") || TMPE_IDs.Contains( current.publishedFileID.AsUInt64 )))
+                if (!tmpeDetected && current.isEnabled && (current.name.Contains("TrafficManager") || TMPE_IDs.Contains(current.publishedFileID.AsUInt64)))
                 {
                     tmpeDetected = true;
                     //_string += "[TMPE Detected!]";
-                } else if (!fineRoadToolDetected && current.isEnabled &&(current.name.Contains("FineRoadTool") || FINE_ROAD_ANARCHY_IDs.Contains( current.publishedFileID.AsUInt64 )))
+                }
+                else if (!networkAnarchyDetected && current.isEnabled && (current.name.Contains("NetworkAnarchy") || NETWORK_ANARCHY_IDs.Contains(current.publishedFileID.AsUInt64)))
+                {
+                    networkAnarchyDetected = true;
+                }
+                else if (!fineRoadToolDetected && current.isEnabled && (current.name.Contains("FineRoadTool") || FINE_ROAD_ANARCHY_IDs.Contains(current.publishedFileID.AsUInt64)))
                 {
                     fineRoadToolDetected = true;
-                } else if (!undoItDetected && current.isEnabled && (current.name.Contains("UndoMod") || UNO_IT_IDs.Contains(current.publishedFileID.AsUInt64)))
+                }
+                else if (!undoItDetected && current.isEnabled && (current.name.Contains("UndoMod") || UNO_IT_IDs.Contains(current.publishedFileID.AsUInt64)))
                 {
                     undoItDetected = true;
                 }
@@ -108,7 +117,7 @@ namespace RoundaboutBuilder
         // called when unloading begins
         public void OnLevelUnloading()
         {
-            if(UIWindow.instance != null)
+            if (UIWindow.instance != null)
             {
                 UIWindow.instance.enabled = false;
             }
